@@ -1,23 +1,26 @@
-from django.conf import settings
+from urllib.parse import urlsplit
+
+from django import forms
 from django.contrib import admin, messages
 from django.urls import reverse
 from django.utils.html import format_html
 
+from .harness import check_provider, has_usable_provider
 from .limits import cost_today
-from .models import AssistantSetting, Conversation, Message, QuickPrompt
+from .models import AIProvider, AssistantSetting, Conversation, Message, QuickPrompt
 
 
 @admin.register(AssistantSetting)
 class AssistantSettingAdmin(admin.ModelAdmin):
     readonly_fields = ("service_status", "today_cost")
     fieldsets = (
-        ("Switch", {"fields": ("service_status", "enabled", "model_name")}),
+        ("Switch", {"fields": ("service_status", "enabled")}),
         ("Limits", {"fields": (("visitor_daily_limit", "ip_daily_limit"), ("max_question_chars", "max_lookups"), "idle_timeout_seconds")}),
         (
             "Cost control",
             {
-                "description": "Enter the provider's current prices so the daily cap can be enforced.",
-                "fields": ("today_cost", ("daily_cost_cap", "currency"), ("price_input_cache_hit", "price_input_cache_miss", "price_output")),
+                "description": "Each AI provider's prices are entered on its own page under AI providers.",
+                "fields": ("today_cost", ("daily_cost_cap", "currency")),
             },
         ),
         ("Conversation records", {"fields": (("conversation_retention_days", "lead_retention_days"),)}),
@@ -26,8 +29,8 @@ class AssistantSettingAdmin(admin.ModelAdmin):
 
     @admin.display(description="Status")
     def service_status(self, obj):
-        if not settings.DEEPSEEK_API_KEY:
-            return "Not configured: set DEEPSEEK_API_KEY on the server."
+        if not has_usable_provider():
+            return "Not configured: add an active AI provider with an API key under AI providers."
         if not obj.enabled:
             return "Switched off"
         return "Running"
@@ -44,8 +47,118 @@ class AssistantSettingAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        if obj.daily_cost_cap is not None and not obj.prices_configured:
-            self.message_user(request, "Prices are zero, so the daily cost cap cannot take effect.", level=messages.WARNING)
+        unpriced = [provider.name for provider in AIProvider.objects.filter(is_active=True) if not provider.prices_configured]
+        if obj.daily_cost_cap is not None and unpriced:
+            self.message_user(
+                request,
+                f"Prices are zero for {', '.join(unpriced)}, so answers from them do not count toward the daily cost cap.",
+                level=messages.WARNING,
+            )
+
+
+class AIProviderForm(forms.ModelForm):
+    api_key = forms.CharField(
+        label="API key",
+        required=False,
+        strip=True,
+        widget=forms.PasswordInput(render_value=False, attrs={"autocomplete": "new-password"}),
+        help_text="Saved encrypted and never shown again. Leave blank to keep the saved key.",
+    )
+    clear_api_key = forms.BooleanField(label="Remove saved key", required=False)
+
+    class Meta:
+        model = AIProvider
+        fields = (
+            "name", "base_url", "model_name", "priority", "is_active", "extra_parameters",
+            "price_input_cache_hit", "price_input_cache_miss", "price_output",
+        )
+
+    def clean_base_url(self):
+        url = self.cleaned_data["base_url"].strip().rstrip("/")
+        parsed = urlsplit(url)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.query or parsed.fragment:
+            raise forms.ValidationError("Enter an address such as https://api.deepseek.com or http://model-server:8000/v1.")
+        if url.endswith("/chat/completions"):
+            url = url[: -len("/chat/completions")]
+        return url
+
+    def clean_extra_parameters(self):
+        value = self.cleaned_data.get("extra_parameters") or {}
+        if not isinstance(value, dict):
+            raise forms.ValidationError('Enter a JSON object, e.g. {"max_completion_tokens": 1200}.')
+        protected = {"model", "messages", "tools", "stream"} & value.keys()
+        if protected:
+            raise forms.ValidationError(f"These are set by the website and cannot be changed here: {', '.join(sorted(protected))}.")
+        return value
+
+    def save(self, commit=True):
+        provider = super().save(commit=False)
+        if self.cleaned_data.get("clear_api_key"):
+            provider.set_api_key("")
+        elif self.cleaned_data.get("api_key"):
+            provider.set_api_key(self.cleaned_data["api_key"])
+        if commit:
+            provider.save()
+        return provider
+
+
+@admin.register(AIProvider)
+class AIProviderAdmin(admin.ModelAdmin):
+    """Several providers can be active; the assistant tries them by priority
+    and switches to the next one automatically when one fails."""
+
+    form = AIProviderForm
+    list_display = ("name", "model_name", "priority", "is_active", "key_status", "health")
+    list_editable = ("priority", "is_active")
+    list_display_links = ("name",)
+    readonly_fields = ("key_status", "health", "last_error")
+    fieldsets = (
+        (None, {"fields": ("name", "base_url", "model_name", ("priority", "is_active"))}),
+        ("Compatibility", {"classes": ("collapse",), "fields": ("extra_parameters",)}),
+        ("API key", {"fields": ("key_status", "api_key", "clear_api_key")}),
+        (
+            "Prices",
+            {
+                "description": "Per million tokens, in the currency set under Assistant settings. Used for the daily cost cap.",
+                "fields": (("price_input_cache_hit", "price_input_cache_miss", "price_output"),),
+            },
+        ),
+        ("Health", {"fields": ("health", "last_error")}),
+    )
+    actions = ("test_connection",)
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if obj.base_url.startswith("http://"):
+            self.message_user(
+                request,
+                "This address uses plain http, so the API key travels unencrypted. Use it only for a model inside your own network.",
+                level=messages.WARNING,
+            )
+
+    @admin.display(description="API key")
+    def key_status(self, obj):
+        if not obj.encrypted_api_key:
+            return "Not set"
+        key = obj.get_api_key()
+        if key is None:
+            return "Unreadable (the server secret key changed). Enter the key again."
+        return f"Saved (ends with {key[-4:]})" if len(key) >= 12 else "Saved"
+
+    @admin.display(description="Last result")
+    def health(self, obj):
+        if obj.last_failure_at and (not obj.last_success_at or obj.last_failure_at > obj.last_success_at):
+            return f"Failed at {obj.last_failure_at:%Y-%m-%d %H:%M}"
+        if obj.last_success_at:
+            return f"OK at {obj.last_success_at:%Y-%m-%d %H:%M}"
+        return "Not used yet"
+
+    @admin.action(description="Test connection", permissions=["change"])
+    def test_connection(self, request, queryset):
+        for provider in queryset:
+            ok, detail = check_provider(provider)
+            level = messages.SUCCESS if ok else messages.ERROR
+            self.message_user(request, f"{provider.name}: {detail}", level=level)
 
 
 @admin.register(QuickPrompt)
@@ -103,11 +216,11 @@ class ConversationAdmin(admin.ModelAdmin):
 class MessageAdmin(admin.ModelAdmin):
     """Review answers; incorrect ones are listed together for fixing content."""
 
-    list_display = ("created_at", "short_content", "rating", "cost", "error", "conversation")
+    list_display = ("created_at", "short_content", "rating", "provider_name", "cost", "error", "conversation")
     list_filter = ("rating", "role", "created_at")
     list_editable = ("rating",)
     search_fields = ("content", "rating_note")
-    readonly_fields = ("conversation", "role", "content", "citations", "lookups", "rfq_draft", "prompt_cache_hit_tokens", "prompt_cache_miss_tokens", "completion_tokens", "cost", "error", "created_at")
+    readonly_fields = ("conversation", "role", "content", "citations", "lookups", "rfq_draft", "provider_name", "prompt_cache_hit_tokens", "prompt_cache_miss_tokens", "completion_tokens", "cost", "error", "created_at")
     fields = ("rating", "rating_note", *readonly_fields)
     actions = ("mark_correct", "mark_incorrect")
     list_select_related = ("conversation",)

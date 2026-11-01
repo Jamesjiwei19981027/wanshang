@@ -23,7 +23,9 @@ dependencies = [
   "psycopg>=3.3.6,<4",
   # Pure-Python text extraction for staff-uploaded product PDFs (worker only).
   "pypdf>=6.1,<7",
-  # Async HTTP client for the assistant's streaming DeepSeek calls.
+  # Encrypts AI provider API keys that staff enter in the admin.
+  "cryptography>=46,<47",
+  # Async HTTP client for the assistant's streaming AI provider calls.
   "httpx>=0.28,<0.29",
   # Minimal pure-Python ASGI server; do not install optional native extras.
   "uvicorn>=0.54.0,<0.55",

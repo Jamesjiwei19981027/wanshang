@@ -5,7 +5,6 @@ import logging
 import re
 
 from asgiref.sync import sync_to_async
-from django.conf import settings
 from django.db.models import F
 from django.http import JsonResponse, StreamingHttpResponse
 from django.utils import timezone
@@ -15,7 +14,7 @@ from django.views.decorators.http import require_GET, require_POST
 from catalog.attribution import hash_client_ip
 
 from . import limits
-from .harness import AssistantUnavailable, TurnResult, history_messages, run_turn
+from .harness import AssistantUnavailable, TurnResult, has_usable_provider, history_messages, run_turn
 from .leads import purge_once_a_day, remember_contact
 from .models import AssistantSetting, Conversation, Message, QuickPrompt
 
@@ -42,7 +41,7 @@ def _error(code: str, status: int) -> JsonResponse:
 
 
 def _available(setting: AssistantSetting) -> bool:
-    return setting.enabled and bool(settings.DEEPSEEK_API_KEY)
+    return setting.enabled and has_usable_provider()
 
 
 @require_GET
@@ -113,7 +112,6 @@ def _prepare(payload: dict, request) -> tuple[AssistantSetting, Conversation, li
 
 
 def _finish(setting: AssistantSetting, conversation: Conversation, result: TurnResult, error: str) -> tuple[int, int]:
-    cost = limits.message_cost(setting, result.cache_hit_tokens, result.cache_miss_tokens, result.completion_tokens)
     message = Message.objects.create(
         conversation=conversation,
         role=Message.Role.ASSISTANT,
@@ -124,12 +122,13 @@ def _finish(setting: AssistantSetting, conversation: Conversation, result: TurnR
         prompt_cache_hit_tokens=result.cache_hit_tokens,
         prompt_cache_miss_tokens=result.cache_miss_tokens,
         completion_tokens=result.completion_tokens,
-        cost=cost,
+        cost=result.cost,
+        provider_name=", ".join(result.providers)[:200],
         error=error[:300],
     )
     Conversation.objects.filter(pk=conversation.pk).update(
         message_count=F("message_count") + 1,
-        total_cost=F("total_cost") + cost,
+        total_cost=F("total_cost") + result.cost,
         last_message_at=timezone.now(),
     )
     visitor, _ = conversation._limit_identity

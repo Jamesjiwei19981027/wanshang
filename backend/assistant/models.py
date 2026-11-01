@@ -21,7 +21,6 @@ class AssistantSetting(models.Model):
         default=True,
         help_text="Master switch. When off, the assistant entry disappears and the contact options remain.",
     )
-    model_name = models.CharField(max_length=80, default="deepseek-chat")
     visitor_daily_limit = models.PositiveSmallIntegerField(default=10, validators=[MinValueValidator(1), MaxValueValidator(1000)])
     ip_daily_limit = models.PositiveSmallIntegerField(default=25, validators=[MinValueValidator(1), MaxValueValidator(5000)])
     max_question_chars = models.PositiveSmallIntegerField(default=500, validators=[MinValueValidator(50), MaxValueValidator(4000)])
@@ -42,14 +41,11 @@ class AssistantSetting(models.Model):
         blank=True,
         help_text="Pause the assistant for the rest of the day once today's cost reaches this amount. Blank = no cap.",
     )
-    currency = models.CharField(max_length=3, default="CNY")
-    price_input_cache_hit = models.DecimalField(
-        "Price per million input tokens (cache hit)", max_digits=10, decimal_places=4, default=Decimal("0"),
+    currency = models.CharField(
+        max_length=3,
+        default="CNY",
+        help_text="Enter every AI provider's prices in this currency.",
     )
-    price_input_cache_miss = models.DecimalField(
-        "Price per million input tokens (cache miss)", max_digits=10, decimal_places=4, default=Decimal("0"),
-    )
-    price_output = models.DecimalField("Price per million output tokens", max_digits=10, decimal_places=4, default=Decimal("0"))
     conversation_retention_days = models.PositiveSmallIntegerField(default=90, validators=[MinValueValidator(1)])
     lead_retention_days = models.PositiveSmallIntegerField(
         default=365,
@@ -80,6 +76,61 @@ class AssistantSetting(models.Model):
     def load(cls) -> "AssistantSetting":
         instance = cls.objects.filter(pk=1).first()
         return instance or cls(pk=1)
+
+
+class AIProvider(models.Model):
+    """One AI service. The assistant uses active providers in priority order and
+    moves to the next one when a provider fails before the visitor sees text."""
+
+    name = models.CharField(max_length=80, help_text="For staff, e.g. DeepSeek or Qwen.")
+    # CharField, not URLField: in-network hosts such as http://ollama:11434 have no dot.
+    base_url = models.CharField(
+        "API address",
+        max_length=300,
+        default="https://api.deepseek.com",
+        help_text="OpenAI-compatible address without /chat/completions, e.g. https://api.deepseek.com.",
+    )
+    model_name = models.CharField(max_length=120, default="deepseek-chat")
+    encrypted_api_key = models.TextField(blank=True, editable=False)
+    priority = models.PositiveSmallIntegerField(default=10, help_text="Lower numbers are tried first.")
+    is_active = models.BooleanField(default=True)
+    extra_parameters = models.JSONField(
+        "Extra request parameters",
+        default=dict,
+        blank=True,
+        help_text=(
+            "Optional JSON merged into every request for this model; null removes a default. "
+            'Example for OpenAI reasoning models: {"max_tokens": null, "max_completion_tokens": 1200, "temperature": null}.'
+        ),
+    )
+    price_input_cache_hit = models.DecimalField(
+        "Price per million input tokens (cache hit)", max_digits=10, decimal_places=4, default=Decimal("0"),
+    )
+    price_input_cache_miss = models.DecimalField(
+        "Price per million input tokens (cache miss)", max_digits=10, decimal_places=4, default=Decimal("0"),
+    )
+    price_output = models.DecimalField("Price per million output tokens", max_digits=10, decimal_places=4, default=Decimal("0"))
+    last_success_at = models.DateTimeField(null=True, blank=True, editable=False)
+    last_failure_at = models.DateTimeField(null=True, blank=True, editable=False)
+    last_error = models.CharField(max_length=300, blank=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("priority", "id")
+        verbose_name = "AI provider"
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.model_name})"
+
+    def set_api_key(self, value: str) -> None:
+        from .crypto import encrypt
+
+        self.encrypted_api_key = encrypt(value.strip()) if value.strip() else ""
+
+    def get_api_key(self) -> str | None:
+        from .crypto import decrypt
+
+        return decrypt(self.encrypted_api_key)
 
     @property
     def prices_configured(self) -> bool:
@@ -163,6 +214,7 @@ class Message(models.Model):
     prompt_cache_miss_tokens = models.PositiveIntegerField(default=0)
     completion_tokens = models.PositiveIntegerField(default=0)
     cost = models.DecimalField(max_digits=12, decimal_places=6, default=Decimal("0"))
+    provider_name = models.CharField(max_length=200, blank=True, help_text="AI provider(s) that produced this answer.")
     error = models.CharField(max_length=300, blank=True)
     rating = models.CharField(max_length=10, choices=Rating.choices, default=Rating.UNRATED, db_index=True)
     rating_note = models.TextField(blank=True, help_text="What was wrong and what the right answer is.")

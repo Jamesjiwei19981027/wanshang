@@ -74,7 +74,7 @@ npm run dev
 
 网站：`http://localhost:3000`；API：`http://localhost:8000/api/`；管理后台：`http://localhost:8000/admin/`。Unix 本地安装还需按原 README 准备系统 libpq。
 
-`configure_wanshang` 会写入公司资料、六个产品分类、车轴参数清单和助手默认设置，不会生成真实产品。启用助手需在后端环境变量中设置 `DEEPSEEK_API_KEY`。需要样例产品时，仅在可丢弃的演示数据库运行 `seed_demo`；演示参数不能作为真实产品承诺。
+`configure_wanshang` 会写入公司资料、六个产品分类、车轴参数清单和助手默认设置，不会生成真实产品。启用助手需在管理后台“AI providers”里添加至少一家大模型供应商并填入密钥（可配多家，按优先级自动切换）。需要样例产品时，仅在可丢弃的演示数据库运行 `seed_demo`；演示参数不能作为真实产品承诺。
 
 ## AI 开发入口
 

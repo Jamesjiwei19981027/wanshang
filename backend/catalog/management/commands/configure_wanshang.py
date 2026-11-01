@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from assistant.models import AssistantSetting, QuickPrompt
+from assistant.models import AIProvider, AssistantSetting, QuickPrompt
 from catalog.company_data import CATEGORIES, PROFILE_DEFAULTS, QUICK_PROMPTS, SITE_DEFAULTS
 from catalog.models import Category, CompanyProfile, SiteSetting
 from catalog.spec_templates import CATEGORY_TEMPLATES, apply_template
@@ -45,6 +45,9 @@ class Command(BaseCommand):
         if not dry_run:
             if not AssistantSetting.objects.filter(pk=1).exists():
                 AssistantSetting.load().save()
+            if not AIProvider.objects.exists():
+                # Placeholder without a key; staff enter the key in the admin.
+                AIProvider.objects.create(name="DeepSeek")
             if not QuickPrompt.objects.exists():
                 for position, (page, text) in enumerate(QUICK_PROMPTS):
                     QuickPrompt.objects.create(page=page, text=text, position=position)

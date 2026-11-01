@@ -81,8 +81,6 @@ x-app: &application
     CELERY_REDIS_SOCKET_TIMEOUT: "2"
     CELERY_TASK_PUBLISH_MAX_RETRIES: "2"
     CELERY_TASK_PUBLISH_RETRY_INTERVAL: "0.25"
-    DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
-    DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
   volumes:
     - {type: volume, source: public_media, target: /app/media, volume: {nocopy: true}}
     - {type: volume, source: private_media, target: /app/private_media, volume: {nocopy: true}}

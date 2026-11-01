@@ -15,7 +15,7 @@ from catalog.specs import refresh_search_document
 
 from . import knowledge
 from .leads import build_rfq_draft, detect_contact, purge_expired_conversations
-from .models import AssistantSetting, Conversation, Message, QuickPrompt
+from .models import AIProvider, AssistantSetting, Conversation, Message, QuickPrompt
 
 VISITOR = "visitor-0123456789abcdef"
 
@@ -47,9 +47,11 @@ class ScriptedDeepSeek:
     def __init__(self, *responses):
         self.responses = list(responses)
         self.requests: list[dict] = []
+        self.hosts: list[str] = []
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
         self.requests.append(json.loads(request.content))
+        self.hosts.append(request.url.host)
         body = self.responses.pop(0)
         if isinstance(body, httpx.Response):
             return body
@@ -75,7 +77,13 @@ def consume(response):
     return response
 
 
-@override_settings(DEEPSEEK_API_KEY="test-key", DEEPSEEK_BASE_URL="https://deepseek.test")
+def add_provider(name: str, host: str, priority: int = 10, **prices) -> AIProvider:
+    provider = AIProvider(name=name, base_url=f"https://{host}", model_name=f"{name.lower()}-chat", priority=priority, **prices)
+    provider.set_api_key(f"sk-{name.lower()}-0123456789abcdef")
+    provider.save()
+    return provider
+
+
 class AssistantChatTests(TestCase):
     def setUp(self):
         cache.clear()
@@ -93,11 +101,11 @@ class AssistantChatTests(TestCase):
         )
         refresh_search_document(self.product.pk)
         refresh_search_document(self.draft.pk)
-        setting = AssistantSetting.load()
-        setting.price_input_cache_hit = Decimal("0.5")
-        setting.price_input_cache_miss = Decimal("2")
-        setting.price_output = Decimal("8")
-        setting.save()
+        AssistantSetting.load().save()
+        self.provider = add_provider(
+            "DeepSeek", "deepseek.test",
+            price_input_cache_hit=Decimal("0.5"), price_input_cache_miss=Decimal("2"), price_output=Decimal("8"),
+        )
 
     def chat(self, message: str, script: ScriptedDeepSeek, **extra):
         with patch("assistant.harness.default_transport", return_value=script.transport()):
@@ -140,6 +148,8 @@ class AssistantChatTests(TestCase):
         self.assertEqual(message.completion_tokens, 60)
         # (400 * 0.5 + 120 * 2 + 60 * 8) / 1e6
         self.assertEqual(message.cost, Decimal("0.000920"))
+        self.assertEqual(message.provider_name, "DeepSeek")
+        self.assertEqual(script.requests[0]["model"], "deepseek-chat")
         self.assertEqual([lookup["tool"] for lookup in message.lookups], ["search_site", "read_page"])
 
     def test_read_page_never_exposes_unpublished_content(self):
@@ -233,8 +243,12 @@ class AssistantChatTests(TestCase):
         self.assertFalse(self.client.get("/api/assistant/config/").json()["enabled"])
         setting.enabled = True
         setting.save()
-        with override_settings(DEEPSEEK_API_KEY=""):
-            self.assertEqual(self.chat("hello", ScriptedDeepSeek()).status_code, 503)
+        self.provider.set_api_key("")
+        self.provider.save()
+        self.assertEqual(self.chat("hello", ScriptedDeepSeek()).status_code, 503)
+        self.assertFalse(self.client.get("/api/assistant/config/").json()["enabled"])
+        add_provider("Qwen", "qwen.test", is_active=False)
+        self.assertEqual(self.chat("hello", ScriptedDeepSeek()).status_code, 503)
 
     def test_provider_failure_returns_a_clear_message_and_refunds_the_question(self):
         script = ScriptedDeepSeek(httpx.Response(500, content=b"upstream down"))
@@ -295,6 +309,194 @@ class AssistantChatTests(TestCase):
         self.assertTrue(config["enabled"])
         self.assertEqual(config["quick_prompts"], {"product": ["Compare this product"], "any": ["Help me choose"]})
         self.assertEqual(config["max_question_chars"], 500)
+
+    def test_failed_provider_switches_to_the_next_one_without_the_visitor_noticing(self):
+        add_provider("Qwen", "qwen.test", priority=20, price_output=Decimal("4"))
+        script = ScriptedDeepSeek(
+            httpx.Response(401, content=b"invalid key"),
+            sse(
+                {"choices": [{"index": 0, "delta": {"content": "Hello from the backup."}, "finish_reason": "stop"}]},
+                {"choices": [], "usage": {"prompt_tokens": 300, "prompt_tokens_details": {"cached_tokens": 100}, "completion_tokens": 50}},
+            ),
+        )
+        stream = events(self.chat("hello", script))
+        self.assertEqual(script.hosts, ["deepseek.test", "qwen.test"])
+        self.assertEqual(script.requests[1]["model"], "qwen-chat")
+        self.assertFalse(any(event["type"] == "error" for event in stream))
+        self.assertEqual("".join(event["text"] for event in stream if event["type"] == "delta"), "Hello from the backup.")
+        message = Message.objects.get(role=Message.Role.ASSISTANT)
+        self.assertEqual(message.provider_name, "Qwen")
+        # OpenAI-style usage: 100 cached, 200 uncached, priced with the backup's prices.
+        self.assertEqual((message.prompt_cache_hit_tokens, message.prompt_cache_miss_tokens), (100, 200))
+        self.assertEqual(message.cost, Decimal("0.000200"))
+        self.provider.refresh_from_db()
+        self.assertIn("HTTP 401", self.provider.last_error)
+        self.assertIsNotNone(self.provider.last_failure_at)
+
+        # The failed provider is tried last for a while.
+        follow_up = ScriptedDeepSeek(answer("Still the backup."))
+        self.chat("again", follow_up)
+        self.assertEqual(follow_up.hosts, ["qwen.test"])
+
+    def test_switch_happens_mid_answer_after_lookups(self):
+        add_provider("Qwen", "qwen.test", priority=20)
+        script = ScriptedDeepSeek(
+            tool_call("search_site", {"query": "axle"}),
+            httpx.Response(503, content=b"overloaded"),
+            answer("Found the EA-3500."),
+        )
+        stream = events(self.chat("Show me axles", script))
+        self.assertEqual(script.hosts, ["deepseek.test", "deepseek.test", "qwen.test"])
+        # The backup continues the same conversation, including the search result.
+        self.assertEqual(script.requests[2]["messages"][-1]["role"], "tool")
+        self.assertEqual(stream[-1]["type"], "done")
+        self.assertEqual(Message.objects.get(role=Message.Role.ASSISTANT).provider_name, "DeepSeek, Qwen")
+
+    def test_no_switch_once_text_was_shown(self):
+        add_provider("Qwen", "qwen.test", priority=20)
+
+        class BreaksAfterFirstChunk(httpx.AsyncByteStream):
+            async def __aiter__(self):
+                yield f"data: {json.dumps({'choices': [{'index': 0, 'delta': {'content': 'Partial'}, 'finish_reason': None}]})}\n\n".encode()
+                raise httpx.ReadTimeout("silent")
+
+        script = ScriptedDeepSeek(httpx.Response(200, stream=BreaksAfterFirstChunk(), headers={"content-type": "text/event-stream"}))
+        stream = events(self.chat("hello", script))
+        self.assertEqual(script.hosts, ["deepseek.test"])
+        error = next(event for event in stream if event["type"] == "error")
+        self.assertEqual(error["code"], "idle_timeout")
+        self.assertTrue(error["partial"])
+        # The visitor saw part of an answer: it is saved and the question is not refunded.
+        self.assertEqual(Message.objects.get(role=Message.Role.ASSISTANT).content, "Partial")
+        self.assertEqual(stream[-1]["remaining"], 9)
+
+    def test_all_providers_failing_reports_the_last_error(self):
+        add_provider("Qwen", "qwen.test", priority=20)
+        script = ScriptedDeepSeek(httpx.Response(500, content=b"down"), httpx.Response(429, content=b"busy"))
+        stream = events(self.chat("hello", script))
+        self.assertEqual(next(event for event in stream if event["type"] == "error")["code"], "rate_limited")
+        self.assertEqual(stream[-1]["remaining"], 10)
+
+    def test_unreadable_key_is_skipped(self):
+        backup = add_provider("Qwen", "qwen.test", priority=20)
+        AIProvider.objects.filter(pk=self.provider.pk).update(encrypted_api_key="gAAAA-not-a-valid-token")
+        script = ScriptedDeepSeek(answer("Hi."))
+        self.chat("hello", script)
+        self.assertEqual(script.hosts, ["qwen.test"])
+        self.assertEqual(Message.objects.get(role=Message.Role.ASSISTANT).provider_name, backup.name)
+
+    def test_extra_parameters_adapt_requests_to_models_that_reject_defaults(self):
+        self.provider.extra_parameters = {"max_tokens": None, "temperature": None, "max_completion_tokens": 900, "reasoning_effort": "low"}
+        self.provider.save()
+        script = ScriptedDeepSeek(answer("Hi."))
+        self.chat("hello", script)
+        body = script.requests[0]
+        self.assertNotIn("max_tokens", body)
+        self.assertNotIn("temperature", body)
+        self.assertEqual((body["max_completion_tokens"], body["reasoning_effort"]), (900, "low"))
+        self.assertEqual(body["model"], "deepseek-chat")
+        self.assertTrue(body["stream"])
+
+    def test_error_inside_a_stream_switches_provider(self):
+        add_provider("Qwen", "qwen.test", priority=20)
+        script = ScriptedDeepSeek(sse({"error": {"message": "model overloaded"}}), answer("From the backup."))
+        stream = events(self.chat("hello", script))
+        self.assertEqual(script.hosts, ["deepseek.test", "qwen.test"])
+        self.assertFalse(any(event["type"] == "error" for event in stream))
+        self.provider.refresh_from_db()
+        self.assertIn("model overloaded", self.provider.last_error)
+
+
+class AIProviderAdminTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        self.admin_user = get_user_model().objects.create_superuser("boss", "boss@example.com", "pw-0123456789")
+        self.client.force_login(self.admin_user)
+
+    def post(self, url, follow=False, **fields):
+        data = {
+            "name": "DeepSeek", "base_url": "https://api.deepseek.com/", "model_name": "deepseek-chat", "priority": 10,
+            "is_active": "on", "price_input_cache_hit": "0.5", "price_input_cache_miss": "2", "price_output": "8", **fields,
+        }
+        return self.client.post(url, data, follow=follow)
+
+    def test_key_is_stored_encrypted_kept_when_blank_and_never_shown(self):
+        response = self.post("/admin/assistant/aiprovider/add/", api_key="sk-live-secret-abcdef123456")
+        self.assertEqual(response.status_code, 302)
+        provider = AIProvider.objects.get()
+        self.assertEqual(provider.base_url, "https://api.deepseek.com")
+        self.assertNotIn("sk-live-secret", provider.encrypted_api_key)
+        self.assertEqual(provider.get_api_key(), "sk-live-secret-abcdef123456")
+
+        change_url = f"/admin/assistant/aiprovider/{provider.pk}/change/"
+        page = self.client.get(change_url).content.decode()
+        self.assertNotIn("sk-live-secret-abcdef123456", page)
+        self.assertNotIn(provider.encrypted_api_key, page)
+        self.assertIn("ends with 3456", page)
+
+        self.post(change_url, model_name="deepseek-reasoner")
+        provider.refresh_from_db()
+        self.assertEqual(provider.model_name, "deepseek-reasoner")
+        self.assertEqual(provider.get_api_key(), "sk-live-secret-abcdef123456")
+
+        self.post(change_url, clear_api_key="on")
+        provider.refresh_from_db()
+        self.assertEqual(provider.encrypted_api_key, "")
+
+    def test_plain_http_address_is_allowed_with_a_warning(self):
+        response = self.post("/admin/assistant/aiprovider/add/", base_url="http://ollama:11434/v1", api_key="sk-x", follow=True)
+        self.assertEqual(AIProvider.objects.get().base_url, "http://ollama:11434/v1")
+        self.assertTrue(any("plain http" in str(message) for message in response.context["messages"]))
+        for bad in ("ftp://example.com", "api.deepseek.com", "https://user:pw@example.com", "https://example.com/v1?x=1"):
+            self.post("/admin/assistant/aiprovider/add/", name="Bad", base_url=bad)
+        self.assertEqual(AIProvider.objects.count(), 1)
+
+    def test_extra_parameters_must_be_an_object_and_cannot_override_core_fields(self):
+        self.post("/admin/assistant/aiprovider/add/", extra_parameters='["x"]')
+        self.post("/admin/assistant/aiprovider/add/", extra_parameters='{"messages": []}')
+        self.assertFalse(AIProvider.objects.exists())
+        self.post("/admin/assistant/aiprovider/add/", extra_parameters='{"max_tokens": null, "max_completion_tokens": 1200}')
+        self.assertEqual(AIProvider.objects.get().extra_parameters, {"max_tokens": None, "max_completion_tokens": 1200})
+
+    def test_blank_extra_parameters_are_saved_as_empty(self):
+        self.post("/admin/assistant/aiprovider/add/", extra_parameters="")
+        self.assertEqual(AIProvider.objects.get().extra_parameters, {})
+
+    def test_full_endpoint_address_is_trimmed(self):
+        self.post("/admin/assistant/aiprovider/add/", base_url="https://dashscope.example.com/compatible-mode/v1/chat/completions")
+        self.assertEqual(AIProvider.objects.get().base_url, "https://dashscope.example.com/compatible-mode/v1")
+
+    def test_connection_test_action_reports_each_provider(self):
+        good = add_provider("Good", "good.test")
+        bad = add_provider("Bad", "bad.test")
+
+        no_tools = add_provider("NoTools", "notools.test")
+        sent = []
+
+        def reply(request):
+            sent.append(json.loads(request.content))
+            if request.url.host == "good.test":
+                return httpx.Response(200, content=answer("OK"), headers={"content-type": "text/event-stream"})
+            if request.url.host == "notools.test":
+                return httpx.Response(400, json={"error": "tools are not supported by this model"})
+            return httpx.Response(401, json={"error": "invalid api key"})
+
+        with patch("assistant.harness.default_sync_transport", return_value=httpx.MockTransport(reply)):
+            response = self.client.post(
+                "/admin/assistant/aiprovider/",
+                {"action": "test_connection", "_selected_action": [good.pk, bad.pk, no_tools.pk]},
+                follow=True,
+            )
+        notes = [str(message) for message in response.context["messages"]]
+        self.assertIn("Good: OK (streaming and tools accepted)", notes)
+        self.assertTrue(any(note.startswith("Bad: HTTP 401") for note in notes))
+        self.assertTrue(any(note.startswith("NoTools: HTTP 400") and "tools" in note for note in notes))
+        self.assertTrue(all(body["stream"] and body["tools"] for body in sent))
+
+    def test_migration_style_provider_without_key_disables_the_assistant(self):
+        AIProvider.objects.create(name="DeepSeek")
+        self.assertFalse(self.client.get("/api/assistant/config/").json()["enabled"])
 
 
 class AssistantLeadTests(TestCase):

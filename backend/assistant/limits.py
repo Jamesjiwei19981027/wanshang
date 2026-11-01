@@ -82,11 +82,3 @@ def cost_today() -> Decimal:
 def cost_cap_reached(setting: AssistantSetting) -> bool:
     return setting.daily_cost_cap is not None and cost_today() >= setting.daily_cost_cap
 
-
-def message_cost(setting: AssistantSetting, hit: int, miss: int, output: int) -> Decimal:
-    million = Decimal(1_000_000)
-    return (
-        Decimal(hit) * setting.price_input_cache_hit
-        + Decimal(miss) * setting.price_input_cache_miss
-        + Decimal(output) * setting.price_output
-    ) / million
