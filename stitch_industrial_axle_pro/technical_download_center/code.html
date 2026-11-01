@@ -1,0 +1,469 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Technical Downloads Center | Axion Industrial</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#d6e4f0",
+                      "primary-container": "#102a43",
+                      "secondary-fixed-dim": "#a0cbf0",
+                      "error": "#ba1a1a",
+                      "surface-dim": "#cedce8",
+                      "error-container": "#ffdad6",
+                      "on-secondary-fixed": "#001e30",
+                      "inverse-on-surface": "#e5f3ff",
+                      "on-surface-variant": "#43474d",
+                      "tertiary": "#250d00",
+                      "outline-variant": "#c3c6ce",
+                      "on-primary-fixed": "#011d35",
+                      "surface-tint": "#49607c",
+                      "surface-container-high": "#dceaf6",
+                      "on-background": "#101d26",
+                      "on-surface": "#101d26",
+                      "on-primary": "#ffffff",
+                      "tertiary-fixed": "#ffdcc6",
+                      "tertiary-container": "#441e00",
+                      "outline": "#74777e",
+                      "tertiary-fixed-dim": "#ffb786",
+                      "secondary-fixed": "#cae6ff",
+                      "on-primary-container": "#7a92b0",
+                      "on-error-container": "#93000a",
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#f6faff",
+                      "primary-fixed": "#d1e4ff",
+                      "secondary-container": "#aed9ff",
+                      "on-error": "#ffffff",
+                      "surface-container": "#e2f0fc",
+                      "background": "#f6faff",
+                      "inverse-primary": "#b0c9e8",
+                      "primary-fixed-dim": "#b0c9e8",
+                      "on-secondary": "#ffffff",
+                      "inverse-surface": "#25323b",
+                      "surface-bright": "#f6faff",
+                      "on-tertiary-fixed-variant": "#723600",
+                      "secondary": "#366383",
+                      "on-tertiary-container": "#df7108",
+                      "primary": "#00152a",
+                      "on-secondary-container": "#33607f",
+                      "on-tertiary-fixed": "#311300",
+                      "on-secondary-fixed-variant": "#1b4b69",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed-variant": "#314863",
+                      "surface-container-low": "#eaf5ff",
+                      "surface-container-highest": "#d6e4f0"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack-lg": "24px",
+                      "stack-sm": "4px",
+                      "gutter": "24px",
+                      "margin-mobile": "16px",
+                      "container-max": "1280px",
+                      "margin-desktop": "40px",
+                      "stack-md": "12px",
+                      "base": "8px"
+              },
+              "fontFamily": {
+                      "body-sm": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "headline-lg-mobile": ["Inter"],
+                      "label-caps": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "technical-data": ["JetBrains Mono"],
+                      "headline-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "technical-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-left-border {
+            border-left: 4px solid #f58220;
+        }
+        .technical-table-row:nth-child(even) {
+            background-color: #f4f6f8;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #102a43;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body-md text-on-surface selection:bg-secondary-container">
+<div class="flex min-h-screen">
+<!-- Side Navigation Shell -->
+<aside class="hidden lg:flex flex-col h-screen sticky top-0 w-64 bg-primary text-on-primary">
+<div class="p-base flex items-center gap-stack-md mt-stack-lg border-b border-outline-variant border-opacity-20 pb-stack-lg mx-margin-desktop">
+<span class="material-symbols-outlined text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">precision_manufacturing</span>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md font-black">Axion</span>
+<span class="font-label-caps text-label-caps opacity-70 uppercase tracking-widest">Industrial</span>
+</div>
+</div>
+<nav class="flex-grow mt-stack-lg px-base">
+<div class="mb-stack-lg px-4">
+<p class="font-label-caps text-label-caps opacity-50 mb-2">Product Catalog</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 text-on-primary-container opacity-70 hover:opacity-100 px-4 py-3 font-label-caps text-label-caps hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">settings_input_component</span> Axle Assemblies
+                        </a>
+<a class="flex items-center gap-3 text-on-primary-container opacity-70 hover:opacity-100 px-4 py-3 font-label-caps text-label-caps hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">settings_ethernet</span> Suspension Systems
+                        </a>
+<a class="flex items-center gap-3 text-on-primary-container opacity-70 hover:opacity-100 px-4 py-3 font-label-caps text-label-caps hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">settings_applications</span> Braking Components
+                        </a>
+<a class="flex items-center gap-3 text-on-primary-container opacity-70 hover:opacity-100 px-4 py-3 font-label-caps text-label-caps hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">lightbulb</span> Electrical &amp; Lighting
+                        </a>
+<a class="flex items-center gap-3 text-on-primary-container opacity-70 hover:opacity-100 px-4 py-3 font-label-caps text-label-caps hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">construction</span> Hardware
+                        </a>
+</div>
+</div>
+<div class="px-4">
+<p class="font-label-caps text-label-caps opacity-50 mb-2">Technical Hub</p>
+<a class="flex items-center gap-3 border-l-4 border-on-tertiary-container bg-tertiary-container text-on-tertiary-container font-bold px-4 py-3 font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined">download</span> Resources
+                    </a>
+</div>
+</nav>
+<div class="p-margin-desktop space-y-4">
+<button class="w-full bg-[#f58220] hover:bg-[#df7108] text-white font-bold py-3 px-4 flex items-center justify-center gap-2 transition-all">
+<span class="material-symbols-outlined">file_download</span> Download Catalog
+                </button>
+<div class="space-y-1">
+<a class="flex items-center gap-3 text-on-primary-container opacity-60 hover:opacity-100 text-body-sm transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]">engineering</span> Technical Support
+                    </a>
+<a class="flex items-center gap-3 text-on-primary-container opacity-60 hover:opacity-100 text-body-sm transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]">verified_user</span> Warranty
+                    </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-grow flex flex-col min-w-0">
+<!-- Top App Bar -->
+<header class="w-full top-0 bg-primary dark:bg-primary-container flex flex-col px-margin-desktop border-b border-outline-variant opacity-20 py-4">
+<div class="flex items-center justify-between">
+<h1 class="font-headline-lg text-headline-lg font-bold text-on-primary">Technical Downloads</h1>
+<div class="flex items-center gap-gutter">
+<nav class="hidden md:flex items-center gap-stack-lg">
+<a class="text-on-primary opacity-80 hover:opacity-100 font-body-md text-body-md hover:text-on-tertiary-container transition-colors duration-200" href="#">Products</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 font-body-md text-body-md hover:text-on-tertiary-container transition-colors duration-200" href="#">OEM Solutions</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 font-body-md text-body-md hover:text-on-tertiary-container transition-colors duration-200" href="#">Compliance</a>
+<a class="text-on-tertiary-container border-b-2 border-on-tertiary-container pb-1 font-body-md text-body-md" href="#">Resources</a>
+</nav>
+<div class="flex items-center gap-stack-md">
+<button class="bg-[#f58220] text-white px-6 py-2 font-bold hover:bg-[#df7108] transition-all">Request Quote</button>
+<button class="border border-on-primary text-on-primary px-6 py-2 font-bold hover:bg-on-primary hover:text-primary transition-all">Contact Sales</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Hero/Header Section -->
+<section class="relative h-[280px] w-full flex items-center bg-industrial-charcoal overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A clean, wide-angle shot of a high-tech industrial manufacturing floor with robotic assembly lines and precision machinery. The scene is illuminated with cool blue and white professional lighting, creating a sharp, high-contrast engineering atmosphere. The background is slightly blurred to allow foreground technical elements to pop." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAtZxhg-1Lq1ljkcErfAB4s8VzKwpRWpr9Jb_gKBfY-IxICWAN3UgRcLKfS7aG21cp74d2DQzjfjOTbZ4kSaRYQfhQ90gBUmkUvwj4vz2El0KhKtpk0pwQM3jM2PZFG0iNLkt2uhzU3xEkT0sNgLiDGJsjZEwa4LEdWLvCm4Ar_nlDj-OoCLXrTEUSCzoath84-gYalP52j85XQ1YHUfDGtCQZQv_7YzxMvmki6dmDar3YLtnxVcQma')"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/40"></div>
+<div class="relative z-10 px-margin-desktop max-w-4xl">
+<span class="inline-block bg-[#f58220] text-white px-3 py-1 font-label-caps text-label-caps mb-4">ENGINEERING HUB</span>
+<h2 class="font-display-lg text-display-lg text-on-primary mb-2">Technical Documentation Center</h2>
+<p class="text-on-primary opacity-80 text-body-lg max-w-2xl">Access the latest technical specifications, CAD drawings, installation manuals, and ISO compliance certifications for our entire heavy-duty product range.</p>
+</div>
+</section>
+<!-- Main Filter & Grid Container -->
+<div class="flex-grow w-full max-w-container-max mx-auto px-margin-desktop py-stack-lg">
+<!-- Search & Filters -->
+<div class="flex flex-col md:flex-row gap-gutter mb-stack-lg items-end">
+<div class="flex-grow w-full md:w-auto">
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-2">SEARCH DOCUMENTATION</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-white border border-outline-variant py-3 pl-12 pr-4 focus:ring-2 focus:ring-[#f58220] focus:border-[#f58220] outline-none transition-all" placeholder="Enter part number, product name, or keyword..." type="text">
+</div>
+</div>
+<div class="w-full md:w-64">
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-2">FILE TYPE</label>
+<select class="w-full bg-white border border-outline-variant py-3 px-4 focus:ring-2 focus:ring-[#f58220] outline-none appearance-none cursor-pointer">
+<option>All Documents</option>
+<option>Catalogs</option>
+<option>CAD Drawings</option>
+<option>Technical Manuals</option>
+<option>ISO Certificates</option>
+</select>
+</div>
+</div>
+<!-- Tabs/Category Pills -->
+<div class="flex flex-wrap gap-stack-sm mb-stack-lg border-b border-outline-variant pb-stack-md">
+<button class="px-6 py-2 bg-primary text-on-primary font-label-caps text-label-caps">ALL FILES</button>
+<button class="px-6 py-2 bg-white border border-outline-variant text-on-surface hover:border-primary transition-colors font-label-caps text-label-caps">CATALOGS</button>
+<button class="px-6 py-2 bg-white border border-outline-variant text-on-surface hover:border-primary transition-colors font-label-caps text-label-caps">DRAWINGS (2D/3D)</button>
+<button class="px-6 py-2 bg-white border border-outline-variant text-on-surface hover:border-primary transition-colors font-label-caps text-label-caps">MANUALS</button>
+<button class="px-6 py-2 bg-white border border-outline-variant text-on-surface hover:border-primary transition-colors font-label-caps text-label-caps">CERTIFICATES</button>
+</div>
+<!-- Bento Grid Layout for Downloads -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Download Card 1 -->
+<div class="bg-white border border-outline-variant hover:border-[#1f4e6d] hover:shadow-sm transition-all p-stack-lg flex flex-col justify-between group">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="bg-surface-container px-2 py-1 text-[10px] font-bold text-primary font-technical-data border border-outline-variant">MANUAL</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">description</span>
+</div>
+<h3 class="font-headline-md text-[18px] leading-tight mb-2">AX-Series Axle Installation Guide</h3>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mb-4">Comprehensive assembly and torque specifications for AX-500 through AX-1200 heavy-duty axle systems.</p>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Format</span>
+<span class="font-technical-data text-body-sm text-primary uppercase">PDF (Full Color)</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Size</span>
+<span class="font-technical-data text-body-sm text-primary">12.4 MB</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Version</span>
+<span class="font-technical-data text-body-sm text-primary">v2024.1.2</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Updated</span>
+<span class="font-technical-data text-body-sm text-primary">Oct 12, 2024</span>
+</div>
+</div>
+</div>
+<button class="w-full border border-primary text-primary font-bold py-3 hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-base">download</span> DOWNLOAD
+                        </button>
+</div>
+<!-- Download Card 2 -->
+<div class="bg-white border border-outline-variant hover:border-[#1f4e6d] hover:shadow-sm transition-all p-stack-lg flex flex-col justify-between group">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="bg-surface-container px-2 py-1 text-[10px] font-bold text-primary font-technical-data border border-outline-variant">DRAWING</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">architecture</span>
+</div>
+<h3 class="font-headline-md text-[18px] leading-tight mb-2">AX-750 Tandem Suspension (3D CAD)</h3>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mb-4">STEP and IGES files for mechanical integration. Detailed dimensional accuracy within 0.05mm.</p>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Format</span>
+<span class="font-technical-data text-body-sm text-primary uppercase">STEP / ZIP</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Size</span>
+<span class="font-technical-data text-body-sm text-primary">45.8 MB</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Version</span>
+<span class="font-technical-data text-body-sm text-primary">A-03</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Updated</span>
+<span class="font-technical-data text-body-sm text-primary">Nov 05, 2024</span>
+</div>
+</div>
+</div>
+<button class="w-full border border-primary text-primary font-bold py-3 hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-base">download</span> DOWNLOAD
+                        </button>
+</div>
+<!-- Download Card 3 -->
+<div class="bg-white border border-outline-variant hover:border-[#1f4e6d] hover:shadow-sm transition-all p-stack-lg flex flex-col justify-between group">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="bg-surface-container px-2 py-1 text-[10px] font-bold text-primary font-technical-data border border-outline-variant">CERTIFICATE</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">verified</span>
+</div>
+<h3 class="font-headline-md text-[18px] leading-tight mb-2">ISO 9001:2015 Manufacturing Cert</h3>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mb-4">Official quality management system certification for our primary manufacturing facility.</p>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Format</span>
+<span class="font-technical-data text-body-sm text-primary uppercase">PDF</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Size</span>
+<span class="font-technical-data text-body-sm text-primary">1.2 MB</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Valid Thru</span>
+<span class="font-technical-data text-body-sm text-primary">Dec 2025</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Updated</span>
+<span class="font-technical-data text-body-sm text-primary">Jan 01, 2024</span>
+</div>
+</div>
+</div>
+<button class="w-full border border-primary text-primary font-bold py-3 hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-base">download</span> DOWNLOAD
+                        </button>
+</div>
+<!-- Download Card 4 -->
+<div class="bg-white border border-outline-variant hover:border-[#1f4e6d] hover:shadow-sm transition-all p-stack-lg flex flex-col justify-between group">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="bg-surface-container px-2 py-1 text-[10px] font-bold text-primary font-technical-data border border-outline-variant">CATALOG</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">menu_book</span>
+</div>
+<h3 class="font-headline-md text-[18px] leading-tight mb-2">2024 Braking Systems Full Catalog</h3>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mb-4">120-page comprehensive guide to air brakes, disc assemblies, and electronic control modules.</p>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Format</span>
+<span class="font-technical-data text-body-sm text-primary uppercase">PDF</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Size</span>
+<span class="font-technical-data text-body-sm text-primary">32.4 MB</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Release</span>
+<span class="font-technical-data text-body-sm text-primary">Q3-2024</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label-caps opacity-50 uppercase">Updated</span>
+<span class="font-technical-data text-body-sm text-primary">Aug 14, 2024</span>
+</div>
+</div>
+</div>
+<button class="w-full border border-primary text-primary font-bold py-3 hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-base">download</span> DOWNLOAD
+                        </button>
+</div>
+<!-- Additional Resources CTA Card -->
+<div class="bg-primary-container border border-primary flex flex-col items-center justify-center text-center p-stack-lg group">
+<span class="material-symbols-outlined text-on-tertiary-container text-4xl mb-4" style="font-variation-settings: 'FILL' 1;">help_center</span>
+<h3 class="text-on-primary font-headline-md mb-2">Can't find a file?</h3>
+<p class="text-on-primary-container text-body-sm mb-6">Contact our engineering support team directly for custom CAD requests or specific legacy documentation.</p>
+<button class="bg-[#f58220] text-white px-8 py-3 font-bold hover:bg-[#df7108] transition-all flex items-center gap-2">
+                            CONTACT SUPPORT
+                        </button>
+</div>
+</div>
+<!-- Technical Specs Table Section -->
+<div class="mt-16">
+<div class="flex items-center justify-between mb-6">
+<h2 class="font-headline-lg text-headline-lg text-primary">Latest Revisions History</h2>
+<button class="text-primary font-label-caps text-label-caps hover:underline flex items-center gap-1">
+                            VIEW FULL LOG <span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+<div class="overflow-x-auto border border-outline-variant">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-primary text-on-primary">
+<th class="px-6 py-4 font-label-caps text-label-caps">DOCUMENT ID</th>
+<th class="px-6 py-4 font-label-caps text-label-caps">TITLE</th>
+<th class="px-6 py-4 font-label-caps text-label-caps">CHANGE TYPE</th>
+<th class="px-6 py-4 font-label-caps text-label-caps">VERSION</th>
+<th class="px-6 py-4 font-label-caps text-label-caps">REVISION DATE</th>
+</tr>
+</thead>
+<tbody class="bg-white">
+<tr class="technical-table-row border-b border-outline-variant hover:bg-surface-container transition-colors">
+<td class="px-6 py-4 font-technical-data text-body-sm">DOC-AX-4421</td>
+<td class="px-6 py-4 text-body-sm font-bold">AX-500 Hub Torque Specs</td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-green-100 text-green-800 text-[10px] font-bold">MINOR UPDATE</span></td>
+<td class="px-6 py-4 font-technical-data text-body-sm">v2.4</td>
+<td class="px-6 py-4 font-technical-data text-body-sm">2024-11-01</td>
+</tr>
+<tr class="technical-table-row border-b border-outline-variant hover:bg-surface-container transition-colors">
+<td class="px-6 py-4 font-technical-data text-body-sm">DWG-SL-0092</td>
+<td class="px-6 py-4 text-body-sm font-bold">SL-Series Lighting Schematics</td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-blue-100 text-blue-800 text-[10px] font-bold">SCHEMA CHANGE</span></td>
+<td class="px-6 py-4 font-technical-data text-body-sm">v1.2</td>
+<td class="px-6 py-4 font-technical-data text-body-sm">2024-10-28</td>
+</tr>
+<tr class="technical-table-row border-b border-outline-variant hover:bg-surface-container transition-colors">
+<td class="px-6 py-4 font-technical-data text-body-sm">MNL-BK-1100</td>
+<td class="px-6 py-4 text-body-sm font-bold">Braking Maintenance Manual</td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-orange-100 text-orange-800 text-[10px] font-bold">CRITICAL SAFETY</span></td>
+<td class="px-6 py-4 font-technical-data text-body-sm">v4.0</td>
+<td class="px-6 py-4 font-technical-data text-body-sm">2024-10-20</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Global Industrial Footer -->
+<footer class="w-full py-stack-lg px-margin-desktop bg-primary text-on-primary mt-auto border-t border-outline">
+<div class="flex flex-col md:flex-row justify-between items-center gap-gutter">
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-primary">Axion Industrial</span>
+<p class="font-body-sm text-body-sm opacity-60 mt-2">© 2024 Axion Industrial Manufacturing. All rights reserved. Precision Engineered for Heavy-Duty Performance.</p>
+</div>
+<div class="flex flex-wrap gap-gutter">
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Terms of Service</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">ISO Certification</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Global Logistics</a>
+</div>
+</div>
+</footer>
+</main>
+</div>
+<!-- Floating Action Button for Support -->
+<div class="fixed bottom-margin-desktop right-margin-desktop z-50">
+<button class="bg-[#f58220] text-white p-4 shadow-xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center" title="Technical Support Chat">
+<span class="material-symbols-outlined">support_agent</span>
+</button>
+</div>
+<script>
+        // Simple search interaction placeholder
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('input', (e) => {
+            console.log('Searching for:', e.target.value);
+            // Dynamic filtering logic would go here
+        });
+
+        // Tab selection visual feedback
+        const tabs = document.querySelectorAll('.flex.flex-wrap.gap-stack-sm button');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    t.classList.remove('bg-primary', 'text-on-primary');
+                    t.classList.add('bg-white', 'border', 'border-outline-variant', 'text-on-surface');
+                });
+                tab.classList.remove('bg-white', 'border', 'border-outline-variant', 'text-on-surface');
+                tab.classList.add('bg-primary', 'text-on-primary');
+            });
+        });
+    </script>
+</body></html>

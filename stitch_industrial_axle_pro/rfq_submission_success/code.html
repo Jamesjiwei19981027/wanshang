@@ -1,0 +1,180 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .success-checkmark-animation {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: dash 0.8s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-secondary-container selection:text-on-secondary-container">
+<!-- TopNavBar -->
+<header class="bg-primary dark:bg-primary-container w-full top-0 border-b border-outline-variant opacity-20 z-50">
+<div class="flex flex-col w-full max-w-container-max mx-auto px-margin-desktop py-4">
+<div class="flex items-center justify-between">
+<div class="font-headline-lg text-headline-lg font-bold text-on-primary">Axion Industrial</div>
+<nav class="hidden md:flex space-x-gutter items-center">
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">Products</a>
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">OEM Solutions</a>
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">Compliance</a>
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">Resources</a>
+</nav>
+<div class="flex items-center gap-stack-lg">
+<button class="bg-[#F58220] text-white px-6 py-2 rounded font-bold hover:brightness-110 transition-all">Request Quote</button>
+</div>
+</div>
+</div>
+</header>
+<main class="min-h-[80vh] flex items-center justify-center py-20 px-margin-mobile md:px-margin-desktop">
+<!-- Success Content Container: Bento-inspired industrial layout -->
+<div class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Main Success Card -->
+<div class="md:col-span-8 bg-surface-container-lowest border border-outline-variant p-10 flex flex-col items-center text-center">
+<!-- Success Icon -->
+<div class="mb-8 relative">
+<div class="absolute inset-0 bg-on-tertiary-container/10 rounded-full scale-150 blur-xl"></div>
+<svg class="w-24 h-24 text-on-tertiary-container" viewBox="0 0 52 52">
+<circle class="text-on-tertiary-container/20" cx="26" cy="26" fill="none" r="25" stroke="currentColor" stroke-width="2"></circle>
+<path class="success-checkmark-animation" d="M14.1 27.2l7.1 7.2 16.7-16.8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"></path>
+</svg>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-stack-sm">Your request has been submitted</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-md">Our engineering team has received your technical specifications and is preparing a comprehensive quote.</p>
+<!-- Reference Number Section -->
+<div class="mt-10 w-full bg-surface-container border-l-4 border-on-tertiary-container p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="text-left">
+<span class="font-label-caps text-label-caps text-on-surface-variant block uppercase">Submission Reference</span>
+<div class="flex items-center gap-2 group">
+<code class="font-technical-data text-technical-data text-primary text-xl" id="ref-number">AX-99284-RFQ</code>
+<button class="p-1 hover:bg-surface-variant rounded transition-colors" onclick="copyRef()" title="Copy Reference">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">content_copy</span>
+</button>
+</div>
+</div>
+<div class="h-px w-full md:h-12 md:w-px bg-outline-variant/30"></div>
+<div class="text-center md:text-right">
+<span class="font-label-caps text-label-caps text-on-surface-variant block uppercase">Status</span>
+<span class="inline-flex items-center gap-1 text-on-tertiary-container font-bold">
+<span class="w-2 h-2 rounded-full bg-on-tertiary-container animate-pulse"></span>
+                            Under Review
+                        </span>
+</div>
+</div>
+</div>
+<!-- Next Steps & Actions Side Panel -->
+<div class="md:col-span-4 flex flex-col gap-gutter">
+<!-- Timeline Info -->
+<div class="bg-primary p-8 text-on-primary">
+<h3 class="font-label-caps text-label-caps mb-4 opacity-60 uppercase tracking-widest">Next Phase</h3>
+<div class="space-y-6">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-on-tertiary-container">schedule</span>
+<div>
+<p class="font-bold">24h Engineering Review</p>
+<p class="text-sm opacity-70">A specialist will verify compatibility with your existing systems.</p>
+</div>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-on-tertiary-container">mail</span>
+<div>
+<p class="font-bold">Quote Delivery</p>
+<p class="text-sm opacity-70">Detailed PDF sent to your registered business email address.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col gap-stack-md">
+<a class="group w-full flex items-center justify-between bg-surface-container-lowest border border-outline-variant p-4 hover:border-on-tertiary-container transition-all" href="#">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">inventory_2</span>
+<span class="font-bold text-primary">Return to Products</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-on-tertiary-container group-hover:translate-x-1 transition-all">arrow_forward</span>
+</a>
+<a class="group w-full flex items-center justify-between bg-surface-container-lowest border border-outline-variant p-4 hover:border-[#25D366] transition-all" href="https://wa.me/1234567890">
+<div class="flex items-center gap-4">
+<svg class="w-6 h-6 text-[#25D366] fill-current" viewBox="0 0 24 24">
+<path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path>
+</svg>
+<span class="font-bold text-primary">Contact by WhatsApp</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-[#25D366] transition-all">launch</span>
+</a>
+</div>
+</div>
+</div>
+</main>
+<!-- Visual Industrial Accent Section -->
+<section class="max-w-container-max mx-auto px-margin-desktop mb-20">
+<div class="h-64 w-full relative overflow-hidden group">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="A professional, high-contrast black and white architectural photography shot of a precision-engineered industrial assembly line. Soft cinematic blue lighting from the side highlights the metallic textures of heavy-duty robotic arms and stainless steel components. The background is a clean, modern manufacturing facility with a slight motion blur, evoking a sense of efficiency, reliability, and technological advancement in a Corporate Modern style." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAnJI_QI1W_T7fnH_ztIoqs1v-Wu_EVZCl1Ebmf8IMDcXekbp_fi_-Os4rZwJu9JwtCRXJMQLHcZT_XpOWEO3hWlgjKgCMBw_EF0dMBntux81-AIHajkYLs2_hXBpKz4GAfSlIrFyXmilAbXbyKxa3Dip2xy7rLqT_KABeVj59MpgaWlPfUqmLXX9oR7RfmJKRbg3vrnIr6oVtTGVKQTodQ9Vth46mM1lv_GbChSSMA2exdL4YfN-BM')"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-primary via-primary/60 to-transparent"></div>
+<div class="absolute inset-0 p-10 flex flex-col justify-center">
+<h2 class="text-on-primary font-headline-lg text-headline-lg max-w-md">Precision Engineered for Heavy-Duty Performance.</h2>
+<div class="flex gap-4 mt-6">
+<div class="px-4 py-2 bg-on-tertiary-container/10 border border-on-tertiary-container/30 backdrop-blur-sm">
+<span class="text-on-tertiary-container font-technical-data">ISO 9001:2015</span>
+</div>
+<div class="px-4 py-2 bg-on-primary/10 border border-on-primary/30 backdrop-blur-sm">
+<span class="text-on-primary font-technical-data">OEM Certified</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="w-full py-stack-lg px-margin-desktop bg-primary text-on-primary mt-auto border-t border-outline">
+<div class="max-w-container-max mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
+<div class="font-headline-md text-headline-md text-on-primary">Axion Industrial</div>
+<div class="flex flex-wrap justify-center gap-stack-lg">
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Terms of Service</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">ISO Certification</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Global Logistics</a>
+</div>
+</div>
+<div class="pt-8 border-t border-on-primary/10 text-center md:text-left">
+<p class="font-body-sm text-body-sm opacity-60">© 2024 Axion Industrial Manufacturing. All rights reserved. Precision Engineered for Heavy-Duty Performance.</p>
+</div>
+</div>
+</footer>
+<script>
+        function copyRef() {
+            const refText = document.getElementById('ref-number').innerText;
+            navigator.clipboard.writeText(refText).then(() => {
+                const btn = event.currentTarget;
+                const icon = btn.querySelector('.material-symbols-outlined');
+                const originalIcon = icon.innerText;
+                icon.innerText = 'check';
+                icon.classList.add('text-on-tertiary-container');
+                
+                setTimeout(() => {
+                    icon.innerText = originalIcon;
+                    icon.classList.remove('text-on-tertiary-container');
+                }, 2000);
+            });
+        }
+
+        // Simple enter key handling for contenteditable
+        document.getElementById('ref-number').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.target.blur();
+            }
+        });
+    </script>
+</body></html>

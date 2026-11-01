@@ -1,0 +1,413 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Axle Selector Wizard | Axion Industrial</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-container": "#df7108",
+                    "primary": "#00152a",
+                    "on-background": "#101d26",
+                    "primary-fixed": "#d1e4ff",
+                    "on-secondary-fixed": "#001e30",
+                    "surface-container-high": "#dceaf6",
+                    "secondary": "#366383",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "inverse-primary": "#b0c9e8",
+                    "secondary-fixed-dim": "#a0cbf0",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface": "#101d26",
+                    "secondary-container": "#aed9ff",
+                    "inverse-on-surface": "#e5f3ff",
+                    "on-primary-container": "#7a92b0",
+                    "on-secondary-fixed-variant": "#1b4b69",
+                    "tertiary": "#250d00",
+                    "surface-container-low": "#eaf5ff",
+                    "surface-tint": "#49607c",
+                    "on-primary-fixed": "#011d35",
+                    "tertiary-container": "#441e00",
+                    "surface-container": "#e2f0fc",
+                    "surface-variant": "#d6e4f0",
+                    "primary-container": "#102a43",
+                    "surface-container-highest": "#d6e4f0",
+                    "inverse-surface": "#25323b",
+                    "secondary-fixed": "#cae6ff",
+                    "on-primary-fixed-variant": "#314863",
+                    "surface-dim": "#cedce8",
+                    "surface-bright": "#f6faff",
+                    "primary-fixed-dim": "#b0c9e8",
+                    "tertiary-fixed": "#ffdcc6",
+                    "on-surface-variant": "#43474d",
+                    "background": "#f6faff",
+                    "on-tertiary-fixed-variant": "#723600",
+                    "tertiary-fixed-dim": "#ffb786",
+                    "surface": "#f6faff",
+                    "on-error-container": "#93000a",
+                    "on-secondary-container": "#33607f",
+                    "on-primary": "#ffffff",
+                    "outline": "#74777e",
+                    "on-tertiary-fixed": "#311300",
+                    "outline-variant": "#c3c6ce",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-desktop": "40px",
+                    "stack-md": "12px",
+                    "base": "8px",
+                    "container-max": "1280px",
+                    "stack-lg": "24px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "stack-sm": "4px"
+            },
+            "fontFamily": {
+                    "technical-data": ["JetBrains Mono"],
+                    "headline-md": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "label-caps": ["Inter"]
+            },
+            "fontSize": {
+                    "technical-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .step-active { @apply text-on-tertiary-container; }
+        .step-completed { @apply text-secondary; }
+        .spec-table tr:nth-child(even) { background-color: #F4F6F8; }
+        
+        /* Hide scrollbar but keep functionality */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-background min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="w-full top-0 bg-primary dark:bg-primary-container border-b border-outline-variant opacity-100 sticky z-50">
+<div class="flex flex-col w-full max-w-container-max mx-auto px-margin-desktop h-20 justify-center">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-8">
+<span class="font-headline-lg text-headline-lg font-bold text-on-primary">Axion Industrial</span>
+<nav class="hidden md:flex gap-6">
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">Products</a>
+<a class="font-body-md text-body-md text-on-tertiary-container border-b-2 border-on-tertiary-container pb-1" href="#">OEM Solutions</a>
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">Compliance</a>
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">Resources</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-6 py-2 border border-on-primary text-on-primary font-bold hover:bg-on-primary hover:text-primary transition-all">Contact Sales</button>
+<button class="px-6 py-2 bg-[#F58220] text-white font-bold hover:opacity-90 transition-all">Request Quote</button>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-grow flex">
+<!-- SideNav - Fixed Shell -->
+<aside class="hidden lg:flex flex-col h-screen sticky top-20 bg-primary w-64 shrink-0">
+<div class="p-6 border-b border-white/10">
+<h2 class="font-headline-md text-headline-md font-black text-on-primary">Product Catalog</h2>
+<p class="font-label-caps text-label-caps text-on-primary opacity-60">Technical Specifications</p>
+</div>
+<nav class="flex-grow py-4">
+<div class="space-y-1">
+<a class="flex items-center gap-3 border-l-4 border-on-tertiary-container bg-tertiary-container text-on-tertiary-container font-bold px-4 py-3" href="#">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span class="font-label-caps text-label-caps">Axle Assemblies</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed px-4 py-3 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="settings_ethernet">settings_ethernet</span>
+<span class="font-label-caps text-label-caps">Suspension Systems</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed px-4 py-3 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="settings_applications">settings_applications</span>
+<span class="font-label-caps text-label-caps">Braking Components</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed px-4 py-3 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="lightbulb">lightbulb</span>
+<span class="font-label-caps text-label-caps">Electrical &amp; Lighting</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed px-4 py-3 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="construction">construction</span>
+<span class="font-label-caps text-label-caps">Hardware</span>
+</a>
+</div>
+</nav>
+<div class="p-4 bg-primary-container mt-auto">
+<button class="w-full py-3 bg-[#F58220] text-white font-bold flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+                    Download Catalog
+                </button>
+</div>
+</aside>
+<!-- Wizard Canvas -->
+<div class="flex-grow max-w-6xl mx-auto px-margin-desktop py-12">
+<!-- Progress Indicator -->
+<div class="mb-12">
+<div class="flex items-center justify-between mb-4 px-2">
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center font-bold">
+<span class="material-symbols-outlined" data-icon="check">check</span>
+</div>
+<span class="font-label-caps text-label-caps text-secondary">Application</span>
+</div>
+<div class="h-[2px] flex-grow bg-secondary mx-4 opacity-30"></div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center font-bold">
+<span class="material-symbols-outlined" data-icon="check">check</span>
+</div>
+<span class="font-label-caps text-label-caps text-secondary">Configuration</span>
+</div>
+<div class="h-[2px] flex-grow bg-on-tertiary-container mx-4"></div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-on-tertiary-container text-white flex items-center justify-center font-bold outline outline-offset-4 outline-on-tertiary-container/30">
+                            3
+                        </div>
+<span class="font-label-caps text-label-caps text-on-tertiary-container">Capacity</span>
+</div>
+<div class="h-[2px] flex-grow bg-outline-variant mx-4 opacity-30"></div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-bold">
+                            4
+                        </div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Brake Type</span>
+</div>
+<div class="h-[2px] flex-grow bg-outline-variant mx-4 opacity-30"></div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-bold">
+                            5
+                        </div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Dimensions</span>
+</div>
+</div>
+</div>
+<!-- Header Section -->
+<div class="mb-10">
+<h1 class="font-headline-lg text-headline-lg text-primary mb-2">Select Axle Load Capacity</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">Precision engineering starts with load distribution. Select the appropriate Gross Axle Weight Rating (GAWR) for your industrial application.</p>
+</div>
+<!-- Wizard Step Content: Capacity Selection -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-12">
+<!-- Selection Card 1 -->
+<div class="bg-white border border-outline-variant p-8 flex flex-col h-full hover:border-primary-container transition-all group cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="info" style="font-variation-settings: 'FILL' 1;">info</span>
+</div>
+<div class="w-16 h-16 bg-surface-container flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="weight">weight</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">2,000 — 3,500 LBS</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 flex-grow">Optimized for utility trailers, light-duty landscaping equipment, and small recreational vehicles.</p>
+<ul class="space-y-3 mb-8">
+<li class="flex items-start gap-2 text-on-surface font-technical-data text-technical-data">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="done">done</span>
+                            Spring &amp; Torsion Options
+                        </li>
+<li class="flex items-start gap-2 text-on-surface font-technical-data text-technical-data">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="done">done</span>
+                            4 or 5 Bolt Hubs
+                        </li>
+</ul>
+<button class="w-full py-3 border border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all">Select Tier</button>
+</div>
+<!-- Selection Card 2 (Featured/Active) -->
+<div class="bg-white border-2 border-[#F58220] p-8 flex flex-col h-full relative shadow-lg">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F58220] text-white px-4 py-1 font-label-caps text-[10px] uppercase tracking-widest">Most Requested</div>
+<div class="w-16 h-16 bg-primary-container flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-white text-4xl" data-icon="precision_manufacturing">precision_manufacturing</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">5,200 — 7,000 LBS</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 flex-grow">The industry standard for commercial car haulers, equipment trailers, and heavy-duty industrial transport.</p>
+<ul class="space-y-3 mb-8">
+<li class="flex items-start gap-2 text-on-surface font-technical-data text-technical-data">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="done" style="font-variation-settings: 'FILL' 1;">done</span>
+                            EZ-Lube System Standard
+                        </li>
+<li class="flex items-start gap-2 text-on-surface font-technical-data text-technical-data">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="done" style="font-variation-settings: 'FILL' 1;">done</span>
+                            Electric or Hydraulic Brakes
+                        </li>
+<li class="flex items-start gap-2 text-on-surface font-technical-data text-technical-data">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="done" style="font-variation-settings: 'FILL' 1;">done</span>
+                            8-Lug Bolt Patterns Available
+                        </li>
+</ul>
+<button class="w-full py-3 bg-[#F58220] text-white font-bold hover:opacity-90 transition-all">Select Tier</button>
+</div>
+<!-- Selection Card 3 -->
+<div class="bg-white border border-outline-variant p-8 flex flex-col h-full hover:border-primary-container transition-all group cursor-pointer">
+<div class="w-16 h-16 bg-surface-container flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="construction">construction</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">8,000 — 15,000 LBS</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 flex-grow">Engineered for extreme heavy-duty logistics, construction machinery, and specialized flatbeds.</p>
+<ul class="space-y-3 mb-8">
+<li class="flex items-start gap-2 text-on-surface font-technical-data text-technical-data">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="done">done</span>
+                            Oil Bath Lubrication
+                        </li>
+<li class="flex items-start gap-2 text-on-surface font-technical-data text-technical-data">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="done">done</span>
+                            Air Brake Compatibility
+                        </li>
+</ul>
+<button class="w-full py-3 border border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all">Select Tier</button>
+</div>
+</div>
+<!-- Secondary Actions -->
+<div class="flex flex-col md:flex-row justify-between items-center gap-8 bg-surface-container-low p-8 border border-outline-variant border-dashed">
+<div>
+<h4 class="font-headline-md text-headline-md text-primary mb-2">Cant find your specific load rating?</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Our engineering team can design custom axle assemblies for non-standard load configurations up to 25,000 LBS.</p>
+</div>
+<button class="whitespace-nowrap px-8 py-4 border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all">Request Custom Axle</button>
+</div>
+<!-- Recommended Preview (Comparison Logic) -->
+<div class="mt-20">
+<div class="flex items-center justify-between mb-8">
+<h2 class="font-headline-lg text-headline-lg text-primary">Pre-Configured Performance Matches</h2>
+<div class="flex gap-2">
+<button class="p-2 border border-outline-variant hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="view_grid">file_json</span>
+</button>
+<button class="p-2 border border-primary bg-primary text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="view_list">view_list</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto no-scrollbar">
+<table class="w-full border-collapse spec-table">
+<thead>
+<tr class="bg-primary text-white text-left font-label-caps text-label-caps">
+<th class="p-4 border-r border-white/10">Model ID</th>
+<th class="p-4 border-r border-white/10">Application Fit</th>
+<th class="p-4 border-r border-white/10">Max GAWR</th>
+<th class="p-4 border-r border-white/10">Standard Hub</th>
+<th class="p-4 border-r border-white/10">Efficiency Rating</th>
+<th class="p-4">Action</th>
+</tr>
+</thead>
+<tbody class="font-technical-data text-technical-data border border-outline-variant">
+<tr>
+<td class="p-4 border-r border-outline-variant font-bold text-primary">AX-7000-S</td>
+<td class="p-4 border-r border-outline-variant">Straight Beam / Commercial</td>
+<td class="p-4 border-r border-outline-variant">7,000 LBS</td>
+<td class="p-4 border-r border-outline-variant">8-6.5" Bolt Pattern</td>
+<td class="p-4 border-r border-outline-variant">
+<div class="flex items-center gap-2">
+<div class="w-16 h-2 bg-outline-variant rounded-full overflow-hidden">
+<div class="bg-on-tertiary-container h-full w-[94%]"></div>
+</div>
+<span class="text-xs text-on-tertiary-container font-bold">94%</span>
+</div>
+</td>
+<td class="p-4">
+<button class="text-secondary font-bold hover:underline">View Specs</button>
+</td>
+</tr>
+<tr>
+<td class="p-4 border-r border-outline-variant font-bold text-primary">AX-7000-D</td>
+<td class="p-4 border-r border-outline-variant">4" Drop Beam / Industrial</td>
+<td class="p-4 border-r border-outline-variant">7,000 LBS</td>
+<td class="p-4 border-r border-outline-variant">8-6.5" Bolt Pattern</td>
+<td class="p-4 border-r border-outline-variant">
+<div class="flex items-center gap-2">
+<div class="w-16 h-2 bg-outline-variant rounded-full overflow-hidden">
+<div class="bg-on-tertiary-container h-full w-[88%]"></div>
+</div>
+<span class="text-xs text-on-tertiary-container font-bold">88%</span>
+</div>
+</td>
+<td class="p-4">
+<button class="text-secondary font-bold hover:underline">View Specs</button>
+</td>
+</tr>
+<tr>
+<td class="p-4 border-r border-outline-variant font-bold text-primary">AX-5200-S</td>
+<td class="p-4 border-r border-outline-variant">Straight Beam / Utility</td>
+<td class="p-4 border-r border-outline-variant">5,200 LBS</td>
+<td class="p-4 border-r border-outline-variant">6-5.5" Bolt Pattern</td>
+<td class="p-4 border-r border-outline-variant">
+<div class="flex items-center gap-2">
+<div class="w-16 h-2 bg-outline-variant rounded-full overflow-hidden">
+<div class="bg-on-tertiary-container h-full w-[82%]"></div>
+</div>
+<span class="text-xs text-on-tertiary-container font-bold">82%</span>
+</div>
+</td>
+<td class="p-4">
+<button class="text-secondary font-bold hover:underline">View Specs</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg px-margin-desktop bg-primary text-on-primary mt-auto border-t border-outline">
+<div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+<div class="space-y-2">
+<span class="font-headline-md text-headline-md text-on-primary">Axion Industrial</span>
+<p class="font-body-sm text-body-sm text-on-primary opacity-60">© 2024 Axion Industrial Manufacturing. All rights reserved. Precision Engineered for Heavy-Duty Performance.</p>
+</div>
+<div class="flex flex-wrap gap-6">
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Terms of Service</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">ISO Certification</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Global Logistics</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple Interaction logic for card selection
+        document.querySelectorAll('.cursor-pointer').forEach(card => {
+            card.addEventListener('click', () => {
+                // Highlight logic (demo purposes)
+                console.log('Selection registered');
+            });
+        });
+
+        // Add hover effects for buttons
+        const primaryButtons = document.querySelectorAll('button.bg-[#F58220]');
+        primaryButtons.forEach(btn => {
+            btn.addEventListener('mousedown', () => btn.classList.add('scale-95'));
+            btn.addEventListener('mouseup', () => btn.classList.remove('scale-95'));
+        });
+    </script>
+</body></html>

@@ -1,0 +1,56 @@
+{% extends "admin/base_site.html" %}
+{% load i18n log %}
+
+{% block bodyclass %}{{ block.super }} dashboard axleforge-dashboard{% endblock %}
+{% block nav-breadcrumbs %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
+
+{% block content %}
+  <section class="dashboard-hero">
+    <div>
+      <p class="dashboard-kicker">OPERATIONS OVERVIEW</p>
+      <h1>Catalogue and enquiry control.</h1>
+      <p>Review incoming RFQs, keep technical content current and move sales opportunities through the pipeline.</p>
+    </div>
+    <div class="dashboard-actions">
+      {% if admin_permissions.view_inquiries %}<a class="button button-primary" href="{% url 'admin:catalog_inquiry_changelist' %}?status__exact=new">Review new RFQs</a>{% endif %}
+      {% if admin_permissions.add_products %}<a class="button button-secondary" href="{% url 'admin:catalog_product_add' %}">Add product</a>{% endif %}
+    </div>
+  </section>
+
+  {% if admin_permissions.view_products or admin_permissions.view_inquiries or admin_permissions.view_contacts %}
+    <section class="metric-grid" aria-label="Operational totals">
+      {% if admin_permissions.view_products %}<a class="metric-card" href="{% url 'admin:catalog_product_changelist' %}?status__exact=published"><span>Published products</span><strong>{{ admin_metrics.published_products }}</strong><small>Live catalogue entries</small></a>{% endif %}
+      {% if admin_permissions.view_inquiries %}<a class="metric-card metric-card-alert" href="{% url 'admin:catalog_inquiry_changelist' %}?status__exact=new"><span>New RFQs</span><strong>{{ admin_metrics.new_inquiries }}</strong><small>Awaiting first response</small></a>
+      <a class="metric-card" href="{% url 'admin:catalog_inquiry_changelist' %}?priority__in=high,urgent"><span>Priority attention</span><strong>{{ admin_metrics.high_priority_inquiries }}</strong><small>High or urgent enquiries</small></a>{% endif %}
+      {% if admin_permissions.view_contacts %}<a class="metric-card" href="{% url 'admin:catalog_contactmessage_changelist' %}?is_resolved__exact=0"><span>Contact inbox</span><strong>{{ admin_metrics.unresolved_contacts }}</strong><small>Messages to review</small></a>{% endif %}
+    </section>
+  {% endif %}
+
+  <section class="dashboard-columns">
+    {% if admin_permissions.view_inquiries %}
+      <div class="dashboard-panel recent-rfqs">
+        <div class="panel-heading"><div><p class="panel-kicker">INQUIRY PIPELINE</p><h2>Latest RFQs</h2></div><a href="{% url 'admin:catalog_inquiry_changelist' %}">View all</a></div>
+        {% if admin_metrics.recent_inquiries %}
+          <div class="rfq-table-wrap"><table class="rfq-table"><thead><tr><th>Reference</th><th>Buyer</th><th>Company</th><th>Priority</th><th>Received</th></tr></thead><tbody>
+            {% for inquiry in admin_metrics.recent_inquiries %}
+              <tr><td><a href="{% url 'admin:catalog_inquiry_change' inquiry.pk %}">{{ inquiry.reference }}</a></td><td>{{ inquiry.name }}</td><td>{{ inquiry.company|default:"—" }}</td><td><span class="priority-badge priority-{{ inquiry.priority }}">{{ inquiry.get_priority_display }}</span></td><td>{{ inquiry.created_at|date:"M j, H:i" }}</td></tr>
+            {% endfor %}
+          </tbody></table></div>
+        {% else %}<p class="empty-state">No RFQs have been received yet.</p>{% endif %}
+      </div>
+    {% endif %}
+
+    <aside class="dashboard-panel activity-panel">
+      <div class="panel-heading"><div><p class="panel-kicker">ADMINISTRATION</p><h2>Recent activity</h2></div></div>
+      {% get_admin_log 6 as admin_log for_user user %}
+      {% if admin_log %}<ul class="activity-list">{% for entry in admin_log %}<li><span class="activity-dot"></span><div>{% if entry.is_deletion or not entry.get_admin_url %}<strong>{{ entry.object_repr }}</strong>{% else %}<a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>{% endif %}<small>{{ entry.get_change_message|capfirst }} · {{ entry.action_time|date:"M j, H:i" }}</small></div></li>{% endfor %}</ul>{% else %}<p class="empty-state">Your recent changes will appear here.</p>{% endif %}
+    </aside>
+  </section>
+
+  <section class="dashboard-panel management-panel">
+    <div class="panel-heading"><div><p class="panel-kicker">CONTENT OPERATIONS</p><h2>Management modules</h2></div></div>
+    <div class="app-grid">{% for app in app_list %}<article class="app-card"><h3>{{ app.name }}</h3><ul>{% for model in app.models %}<li>{% if model.admin_url %}<a href="{{ model.admin_url }}">{{ model.name }}</a>{% else %}<span>{{ model.name }}</span>{% endif %}{% if model.add_url %}<a class="add-model" href="{{ model.add_url }}" aria-label="Add {{ model.name }}">Add</a>{% endif %}</li>{% endfor %}</ul></article>{% endfor %}</div>
+  </section>
+{% endblock %}

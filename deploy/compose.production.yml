@@ -1,0 +1,346 @@
+name: ${DEPLOY_PROJECT_NAME:?Set a distinct production Compose project name}
+
+x-log: &bounded-log
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-backend-image: &backend-image
+  image: ${BACKEND_IMAGE:?Set a release-specific backend image tag}
+  platform: linux/amd64
+  build:
+    context: ../backend
+    dockerfile: Dockerfile
+    args:
+      GIT_SHA: ${GIT_SHA:-}
+      APP_VERSION: ${APP_VERSION:-development}
+
+x-app: &application
+  <<: *backend-image
+  init: true
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=128m,mode=1777
+  logging: *bounded-log
+  pids_limit: 256
+  environment: &app-environment
+    DJANGO_ENV: production
+    DJANGO_DEBUG: "False"
+    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Generate an independent production secret}
+    DJANGO_ALLOWED_HOSTS: ${SITE_DOMAIN:?Set the public hostname}
+    DJANGO_CORS_ORIGINS: https://${SITE_DOMAIN:?Set the public hostname}
+    DJANGO_PUBLIC_BASE_URL: https://${SITE_DOMAIN:?Set the public hostname}
+    DJANGO_PUBLIC_MEDIA_URL: https://${SITE_DOMAIN:?Set the public hostname}/media/
+    DJANGO_BEHIND_PROXY: "True"
+    # Nginx always replaces X-Forwarded-For with exactly one verified client IP.
+    DJANGO_NUM_PROXIES: "1"
+    DJANGO_SECURE_SSL_REDIRECT: "True"
+    DJANGO_SECURE_HSTS_SECONDS: "31536000"
+    DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS: "True"
+    DJANGO_SECURE_HSTS_PRELOAD: "True"
+    DATABASE_URL: ""
+    DJANGO_DB_HOST: postgres
+    DJANGO_DB_PORT: "5432"
+    DJANGO_DB_NAME: ${POSTGRES_DB:?Set the application database name}
+    DJANGO_DB_USER: ${APP_DB_USER:?Set a non-superuser application role}
+    DJANGO_DB_PASSWORD: ${APP_DB_PASSWORD:?Set the application database password}
+    REDIS_URL: ""
+    DJANGO_CACHE_URL: ""
+    DJANGO_REDIS_HOST: redis
+    DJANGO_REDIS_PORT: "6379"
+    DJANGO_REDIS_PASSWORD: ${REDIS_PASSWORD:?Set the Redis password}
+    DJANGO_CACHE_KEY_PREFIX: ${DEPLOY_PROJECT_NAME:?Set the production project name}
+    EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+    EMAIL_HOST: ${EMAIL_HOST:?Set the SMTP host}
+    EMAIL_PORT: ${EMAIL_PORT:-465}
+    EMAIL_HOST_USER: ${EMAIL_HOST_USER:?Set the SMTP login}
+    EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:?Set the SMTP application password}
+    EMAIL_USE_TLS: ${EMAIL_USE_TLS:-False}
+    EMAIL_USE_SSL: ${EMAIL_USE_SSL:-True}
+    EMAIL_TIMEOUT: ${EMAIL_TIMEOUT:-15}
+    DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:?Set the permitted sender address}
+    SALES_NOTIFICATION_EMAIL: ${SALES_NOTIFICATION_EMAIL:?Set the default notification recipient}
+    TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:?Set the production Turnstile secret}
+    TURNSTILE_REQUIRED: "True"
+    TURNSTILE_TIMEOUT: "8"
+    ATTACHMENT_SCANNER_COMMAND: python /app/config/clamav_scan.py
+    ATTACHMENT_SCAN_TIMEOUT: "60"
+    ATTACHMENT_ALLOW_UNSCANNED_IN_DEVELOPMENT: "False"
+    CLAMAV_HOST: clamav
+    CLAMAV_PORT: "3310"
+    CLAMAV_TIMEOUT: "45"
+    CLAMAV_MAX_FILE_BYTES: "10485760"
+    CLAMAV_MAX_DATABASE_AGE_DAYS: "7"
+    ADMIN_LOGIN_MAX_FAILURES: "5"
+    ADMIN_LOGIN_FAILURE_WINDOW: "900"
+    CELERY_REDIS_SOCKET_CONNECT_TIMEOUT: "1"
+    CELERY_REDIS_SOCKET_TIMEOUT: "2"
+    CELERY_TASK_PUBLISH_MAX_RETRIES: "2"
+    CELERY_TASK_PUBLISH_RETRY_INTERVAL: "0.25"
+  volumes:
+    - {type: volume, source: public_media, target: /app/media, volume: {nocopy: true}}
+    - {type: volume, source: private_media, target: /app/private_media, volume: {nocopy: true}}
+    - {type: volume, source: staticfiles, target: /app/staticfiles, read_only: true, volume: {nocopy: true}}
+  networks: [data, scan, outbound]
+  depends_on:
+    postgres: {condition: service_healthy}
+    redis: {condition: service_healthy}
+    volume-init: {condition: service_completed_successfully}
+
+services:
+  postgres:
+    image: postgres:16.15-alpine@sha256:f4610795587492cd4fb887c2dc3de301b813278bb6f616992061141b5f15ac36
+    platform: linux/amd64
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set the application database name}
+      POSTGRES_USER: ${POSTGRES_USER:?Set a separate initialization administrator}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set the initialization administrator password}
+      APP_DB_USER: ${APP_DB_USER:?Set the application role}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Set the application password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-app-role.sh:/docker-entrypoint-initdb.d/20-app-role.sh:ro
+    networks: [data]
+    shm_size: 256m
+    mem_limit: ${POSTGRES_MEMORY_LIMIT:-1g}
+    pids_limit: 256
+    logging: *bounded-log
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7.4.11-alpine@sha256:57e4255cc971b1c8d6f8a6ca283ac01bc3ecdd914273ef6bfaede87aaecd6541
+    platform: linux/amd64
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set the Redis password}
+    command: [redis-server, --appendonly, "yes", --requirepass, '${REDIS_PASSWORD:?Set the Redis password}', --protected-mode, "yes", --maxmemory, '${REDIS_MAXMEMORY:-256mb}', --maxmemory-policy, noeviction]
+    volumes: [redis_data:/data]
+    networks: [data]
+    mem_limit: ${REDIS_MEMORY_LIMIT:-512m}
+    pids_limit: 128
+    logging: *bounded-log
+    healthcheck:
+      test: [CMD-SHELL, 'REDISCLI_AUTH=$$REDIS_PASSWORD redis-cli ping | grep -q PONG']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  volume-init:
+    <<: *backend-image
+    user: "0:0"
+    restart: "no"
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [CHOWN, FOWNER]
+    security_opt: [no-new-privileges:true]
+    entrypoint: [/bin/sh, -ec]
+    # Only the four volume roots are initialized; never recurse over old files.
+    command:
+      - mkdir -p /app/media /app/staticfiles /app/private_media /frontend-cache;
+        chown 10001:10001 /app/media /app/staticfiles /app/private_media;
+        chmod 0755 /app/media /app/staticfiles;
+        chmod 0700 /app/private_media;
+        chown 1000:1000 /frontend-cache;
+        chmod 0755 /frontend-cache
+    volumes:
+      - {type: volume, source: public_media, target: /app/media, volume: {nocopy: true}}
+      - {type: volume, source: private_media, target: /app/private_media, volume: {nocopy: true}}
+      - {type: volume, source: staticfiles, target: /app/staticfiles, volume: {nocopy: true}}
+      - {type: volume, source: frontend_cache, target: /frontend-cache, volume: {nocopy: true}}
+    network_mode: none
+    logging: *bounded-log
+
+  clamav:
+    image: ${CLAMAV_IMAGE:?Set the pinned official ClamAV image digest}
+    platform: linux/amd64
+    user: "100:101"
+    entrypoint: [/init-unprivileged]
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      TZ: UTC
+      # The official entrypoint passes --checks explicitly, overriding the conf.
+      FRESHCLAM_CHECKS: "12"
+    volumes:
+      - clamav_data:/var/lib/clamav
+      - ./clamav/clamd.conf:/etc/clamav/clamd.conf:ro
+      - ./clamav/freshclam.conf:/etc/clamav/freshclam.conf:ro
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777
+      - /var/log/clamav:rw,noexec,nosuid,nodev,size=32m,uid=100,gid=101,mode=0750
+    networks: [scan, outbound]
+    mem_limit: ${CLAMAV_MEMORY_LIMIT:-4g}
+    pids_limit: 256
+    logging: *bounded-log
+    healthcheck:
+      test: [CMD, clamdscan, '--config-file=/etc/clamav/clamd.conf', --ping=1]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 300s
+
+  api:
+    <<: *application
+    command: [/app/.venv/bin/uvicorn, 'config.asgi:application', --host, '0.0.0.0', --port, '8000', --loop, asyncio, --http, h11, --workers, '${API_WORKERS:-2}', --limit-concurrency, '${API_CONCURRENCY:-8}', --limit-max-requests, '10000', --timeout-keep-alive, '5', --no-proxy-headers, --no-access-log]
+    networks: [web, data, scan, outbound]
+    mem_limit: ${API_MEMORY_LIMIT:-1g}
+    healthcheck:
+      test: [CMD, /app/.venv/bin/python, -c, 'import os,urllib.request; r=urllib.request.Request("http://127.0.0.1:8000/api/health/",headers={"Host":os.environ["DJANGO_ALLOWED_HOSTS"],"X-Forwarded-Proto":"https"}); urllib.request.urlopen(r,timeout=3).read()']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  celery:
+    <<: *application
+    command: [/app/.venv/bin/celery, -A, config, worker, '--hostname=celery@%h', --loglevel=INFO, '--concurrency=${CELERY_CONCURRENCY:-2}']
+    mem_limit: 768m
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      clamav: {condition: service_healthy}
+      volume-init: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD-SHELL, 'CLAMAV_TIMEOUT=5 /app/.venv/bin/python config/clamav_scan.py --ping && /app/.venv/bin/celery -A config inspect --destination celery@$$HOSTNAME ping -t 5 | grep -q pong']
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 30s
+
+  manage:
+    <<: *application
+    profiles: [ops]
+    restart: "no"
+    entrypoint: [/app/.venv/bin/python, manage.py]
+    command: [check, --deploy, --fail-level, WARNING]
+    volumes:
+      - {type: volume, source: public_media, target: /app/media, volume: {nocopy: true}}
+      - {type: volume, source: private_media, target: /app/private_media, volume: {nocopy: true}}
+      - {type: volume, source: staticfiles, target: /app/staticfiles, volume: {nocopy: true}}
+
+  frontend:
+    image: ${FRONTEND_IMAGE:?Set a release-specific frontend image tag}
+    platform: linux/amd64
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.production
+      args:
+        GIT_SHA: ${GIT_SHA:-}
+        APP_VERSION: ${APP_VERSION:-development}
+        NEXT_PUBLIC_SITE_URL: https://${SITE_DOMAIN:?Set the public hostname}
+        NEXT_PUBLIC_API_BASE_URL: https://${SITE_DOMAIN:?Set the public hostname}/api
+        NEXT_PUBLIC_IMAGE_HOSTNAME: ${SITE_DOMAIN:?Set the public hostname}
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:?Set the public Turnstile site key}
+        NEXT_PUBLIC_COMPANY_NAME: ${NEXT_PUBLIC_COMPANY_NAME:-}
+        NEXT_PUBLIC_COMPANY_TAGLINE: ${NEXT_PUBLIC_COMPANY_TAGLINE:-}
+        NEXT_PUBLIC_SALES_EMAIL: ${NEXT_PUBLIC_SALES_EMAIL:-}
+        NEXT_PUBLIC_SALES_PHONE: ${NEXT_PUBLIC_SALES_PHONE:-}
+        NEXT_PUBLIC_COMPANY_ADDRESS: ${NEXT_PUBLIC_COMPANY_ADDRESS:-}
+        NEXT_PUBLIC_BUSINESS_HOURS: ${NEXT_PUBLIC_BUSINESS_HOURS:-}
+        NEXT_PUBLIC_WHATSAPP_URL: ${NEXT_PUBLIC_WHATSAPP_URL:-}
+        NEXT_PUBLIC_MAP_URL: ${NEXT_PUBLIC_MAP_URL:-}
+        NEXT_PUBLIC_LINKEDIN_URL: ${NEXT_PUBLIC_LINKEDIN_URL:-}
+    init: true
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      NEXT_TELEMETRY_DISABLED: "1"
+      API_BASE_URL: http://nginx:8080/api
+    volumes:
+      - {type: volume, source: frontend_cache, target: /app/.next/cache, volume: {nocopy: true}}
+    networks: [web]
+    mem_limit: ${FRONTEND_MEMORY_LIMIT:-768m}
+    pids_limit: 256
+    logging: *bounded-log
+    depends_on:
+      api: {condition: service_healthy}
+      volume-init: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/robots.txt').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  nginx:
+    image: ${NGINX_IMAGE:?Set a release-specific minimal Nginx image tag}
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+      args:
+        NGINX_BASE_IMAGE: ${NGINX_BASE_IMAGE:?Set the pinned official Nginx base digest}
+        GIT_SHA: ${GIT_SHA:-}
+        APP_VERSION: ${APP_VERSION:-development}
+    platform: linux/amd64
+    entrypoint: [/bin/sh, /opt/axle/nginx-entrypoint.sh]
+    command: [nginx, -g, 'daemon off;']
+    restart: unless-stopped
+    user: "0:0"
+    read_only: true
+    cap_drop: [ALL]
+    # Root master reads the private key; unprivileged workers serve requests.
+    cap_add: [CHOWN, SETUID, SETGID, DAC_READ_SEARCH]
+    security_opt: [no-new-privileges:true]
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Set the public hostname}
+      NGINX_ENVSUBST_OUTPUT_DIR: /tmp/nginx-conf
+      NGINX_ENVSUBST_FILTER: ^SITE_DOMAIN$$
+    volumes:
+      - ./nginx/entrypoint.sh:/opt/axle/nginx-entrypoint.sh:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ${CLOUDFLARE_REALIP_CONFIG:?Set the trusted Cloudflare include file}:/etc/nginx/cloudflare-realip.conf:ro
+      - ${TLS_CERT_DIR:?Set the directory containing fullchain.pem and privkey.pem}:/etc/nginx/tls:ro
+      - ${ACME_WEBROOT:-./acme-webroot}:/var/www/acme:ro
+      - {type: volume, source: public_media, target: /srv/media, read_only: true, volume: {nocopy: true}}
+      - {type: volume, source: staticfiles, target: /srv/static, read_only: true, volume: {nocopy: true}}
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777
+    ports:
+      - ${NGINX_BIND_ADDRESS:-0.0.0.0}:${HTTP_PORT:-80}:8081
+      - ${NGINX_BIND_ADDRESS:-0.0.0.0}:${HTTPS_PORT:-443}:8443
+    networks: [web]
+    mem_limit: 256m
+    pids_limit: 256
+    logging: *bounded-log
+    depends_on:
+      api: {condition: service_healthy}
+      frontend: {condition: service_started}
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://127.0.0.1:8080/api/health/']
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+networks:
+  web: {}
+  data: {internal: true}
+  scan: {internal: true}
+  outbound: {}
+
+volumes:
+  postgres_data: {}
+  redis_data: {}
+  clamav_data: {}
+  public_media: {}
+  private_media: {}
+  staticfiles: {}
+  frontend_cache: {}

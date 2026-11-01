@@ -1,0 +1,17 @@
+{
+  "name": "minimatch",
+  "version": "11.0.3-wanshang.1",
+  "private": true,
+  "description": "Legacy CommonJS API adapter for the patched upstream minimatch implementation",
+  "main": "index.cjs",
+  "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "minimatch-modern": "npm:minimatch@11.0.3"
+  }
+}

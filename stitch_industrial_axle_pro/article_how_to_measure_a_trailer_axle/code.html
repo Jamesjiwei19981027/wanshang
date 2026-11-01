@@ -1,0 +1,417 @@
+<!DOCTYPE html><html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>How to Measure a Trailer Axle: Hub Face and Spring Center Guide | Axion Industrial</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-dot {
+            position: relative;
+        }
+        .active-dot::before {
+            content: '';
+            position: absolute;
+            left: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 12px;
+            background-color: #F58220;
+            border-radius: 2px;
+        }
+        .technical-grid {
+            background-image: radial-gradient(#667582 0.5px, transparent 0.5px);
+            background-size: 16px 16px;
+            opacity: 0.05;
+        }
+    </style>
+<!-- Tailwind Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#d6e4f0",
+                        "primary-container": "#102a43",
+                        "secondary-fixed-dim": "#a0cbf0",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#cedce8",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed": "#001e30",
+                        "inverse-on-surface": "#e5f3ff",
+                        "on-surface-variant": "#43474d",
+                        "tertiary": "#250d00",
+                        "outline-variant": "#c3c6ce",
+                        "on-primary-fixed": "#011d35",
+                        "surface-tint": "#49607c",
+                        "surface-container-high": "#dceaf6",
+                        "on-background": "#101d26",
+                        "on-surface": "#101d26",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed": "#ffdcc6",
+                        "tertiary-container": "#441e00",
+                        "outline": "#74777e",
+                        "tertiary-fixed-dim": "#ffb786",
+                        "secondary-fixed": "#cae6ff",
+                        "on-primary-container": "#7a92b0",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#f6faff",
+                        "primary-fixed": "#d1e4ff",
+                        "secondary-container": "#aed9ff",
+                        "on-error": "#ffffff",
+                        "surface-container": "#e2f0fc",
+                        "background": "#f6faff",
+                        "inverse-primary": "#b0c9e8",
+                        "primary-fixed-dim": "#b0c9e8",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#25323b",
+                        "surface-bright": "#f6faff",
+                        "on-tertiary-fixed-variant": "#723600",
+                        "secondary": "#366383",
+                        "on-tertiary-container": "#df7108",
+                        "primary": "#00152a",
+                        "on-secondary-container": "#33607f",
+                        "on-tertiary-fixed": "#311300",
+                        "on-secondary-fixed-variant": "#1b4b69",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#314863",
+                        "surface-container-low": "#eaf5ff",
+                        "surface-container-highest": "#d6e4f0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-lg": "24px",
+                        "stack-sm": "4px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "container-max": "1280px",
+                        "margin-desktop": "40px",
+                        "stack-md": "12px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "technical-data": ["JetBrains Mono"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "technical-data": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased">
+<!-- Top Navigation Bar (from JSON) -->
+<header class="bg-primary sticky top-0 z-50 w-full border-b border-outline-variant opacity-100 shadow-sm">
+<div class="flex items-center justify-between w-full max-w-container-max mx-auto px-margin-desktop py-4">
+<div class="flex items-center gap-8">
+<span class="font-headline-lg text-headline-lg font-bold text-on-primary">Axion Industrial</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-on-primary opacity-80 hover:opacity-100 font-body-md transition-colors duration-200" href="#">Products</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 font-body-md transition-colors duration-200" href="#">OEM Solutions</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 font-body-md transition-colors duration-200" href="#">Compliance</a>
+<a class="text-on-tertiary-container border-b-2 border-on-tertiary-container pb-1 font-body-md" href="#">Resources</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden lg:flex items-center gap-2 text-on-primary opacity-80 hover:opacity-100 font-body-md">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="bg-transparent border border-on-primary text-on-primary px-4 py-2 font-body-md hover:bg-white/10 transition-all">Contact Sales</button>
+<button class="bg-[#F58220] text-on-primary px-4 py-2 font-body-md font-bold hover:brightness-110 transition-all">Request Quote</button>
+</div>
+</div>
+</header>
+<div class="flex w-full max-w-container-max mx-auto min-h-screen">
+<!-- Sidebar (from JSON SideNavBar) -->
+<aside class="hidden lg:flex flex-col h-screen sticky top-16 w-64 border-r border-outline-variant bg-surface-container-low shrink-0 overflow-y-auto">
+<div class="p-6 border-b border-outline-variant">
+<h3 class="font-headline-md text-headline-md font-black text-primary leading-tight">Product Catalog</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant mt-1">TECHNICAL SPECIFICATIONS</p>
+</div>
+<nav class="flex flex-col py-4">
+<a class="border-l-4 border-on-tertiary-container bg-tertiary-container/10 text-on-tertiary-container font-bold px-4 py-3 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">settings_input_component</span>
+<span class="font-label-caps text-label-caps">Axle Assemblies</span>
+</a>
+<a class="text-on-primary-container opacity-70 hover:opacity-100 hover:bg-surface-variant px-4 py-3 flex items-center gap-3 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">settings_ethernet</span>
+<span class="font-label-caps text-label-caps">Suspension Systems</span>
+</a>
+<a class="text-on-primary-container opacity-70 hover:opacity-100 hover:bg-surface-variant px-4 py-3 flex items-center gap-3 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">settings_applications</span>
+<span class="font-label-caps text-label-caps">Braking Components</span>
+</a>
+<a class="text-on-primary-container opacity-70 hover:opacity-100 hover:bg-surface-variant px-4 py-3 flex items-center gap-3 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">lightbulb</span>
+<span class="font-label-caps text-label-caps">Electrical &amp; Lighting</span>
+</a>
+<a class="text-on-primary-container opacity-70 hover:opacity-100 hover:bg-surface-variant px-4 py-3 flex items-center gap-3 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">construction</span>
+<span class="font-label-caps text-label-caps">Hardware</span>
+</a>
+</nav>
+<div class="mt-auto p-4 border-t border-outline-variant">
+<button class="w-full bg-primary text-on-primary py-3 font-label-caps text-label-caps mb-4 hover:brightness-125 transition-all">
+                    Download Full Catalog
+                </button>
+<div class="flex flex-col gap-2">
+<a class="text-on-surface-variant text-body-sm flex items-center gap-2 px-2 hover:text-primary" href="#">
+<span class="material-symbols-outlined text-[18px]">engineering</span> Technical Support
+                    </a>
+<a class="text-on-surface-variant text-body-sm flex items-center gap-2 px-2 hover:text-primary" href="#">
+<span class="material-symbols-outlined text-[18px]">verified_user</span> Warranty
+                    </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 w-full min-w-0 bg-white">
+<!-- Breadcrumbs -->
+<div class="px-margin-desktop py-6 bg-surface-bright flex items-center gap-2 text-on-surface-variant font-body-sm border-b border-outline-variant/30">
+<a class="hover:text-primary" href="#">Resources</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<a class="hover:text-primary" href="#">Technical Documentation</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-primary font-medium">Axle Measurement Guide</span>
+</div>
+<article class="max-w-4xl mx-auto px-margin-desktop py-12">
+<!-- Hero Section -->
+<header class="mb-12">
+<div class="flex items-center gap-3 mb-4">
+<span class="bg-surface-container-highest text-primary px-3 py-1 text-label-caps rounded-full">Guide ID: AX-204-T</span>
+<span class="text-on-surface-variant text-body-sm">Published Oct 24, 2024</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary-container leading-tight mb-6">How to Measure a Trailer Axle: Hub Face and Spring Center Guide</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed max-w-2xl">
+                        Precise measurements are critical for maintaining the structural integrity and tracking of industrial trailers. This guide outlines the standard engineering procedure for calculating Hub Face and Spring Center dimensions.
+                    </p>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-12">
+<!-- Main Body -->
+<div class="space-y-12">
+<!-- Technical Diagram Component -->
+<section class="scroll-mt-24" id="diagrams">
+<h2 class="font-headline-lg text-headline-lg text-primary-container mb-6 border-l-4 border-on-tertiary-container pl-4">Critical Technical Diagrams</h2>
+<div class="bg-surface border border-outline-variant p-2 rounded-lg relative overflow-hidden group">
+<div class="technical-grid absolute inset-0"></div>
+<div class="relative z-10 w-full h-[320px] bg-white flex items-center justify-center p-8">
+<div class="w-full h-full relative" data-alt="A clean, high-contrast engineering technical drawing of a trailer axle assembly. The illustration features detailed blue and black line work against a white background, highlighting specific measurement points labeled 'Hub Face' and 'Spring Center' with professional dimension lines and arrows. The style is strictly technical and industrial, resembling an official blueprint or manufacturing spec sheet." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA7p0TDi-5rRRxUtWWCdJB6yDeULLtfSNraBRyZGKUzQyvz9TouKjCppy80lubngRb9m-v-3A0446nWkDnY3tFczYQEIXVAaRE1-nXZc9QqeMqpLqTu_NtT7h8b591cdF5FLq-rmIOqrhRyJS5f1mTPLM_w_dU8OaQGX2IN2Nuq0pc_93GGaW_GmdyiR5sfCEOQLQCgtcQh97i0snIbZcEFlUNCn47DGWS-KfsSkKGYodS1dt9XIeZq')">
+</div>
+</div>
+<div class="p-4 bg-primary text-on-primary flex justify-between items-center">
+<span class="font-technical-data text-technical-data">Figure 1.0: Axle Dimension Reference Matrix</span>
+<button class="flex items-center gap-2 text-body-sm hover:text-on-tertiary-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">open_in_full</span> Expand Specs
+                                    </button>
+</div>
+</div>
+</section>
+<!-- Content Sections -->
+<section class="scroll-mt-24 space-y-4" id="hub-face">
+<h2 class="font-headline-md text-headline-md text-primary-container">1. Measuring the Hub Face (HF)</h2>
+<p class="text-on-surface-variant leading-relaxed">
+                                The Hub Face measurement is the distance between the two points on the axle where the wheel rims actually bolt onto. It is the most critical dimension for ensuring proper wheel clearance from the trailer frame.
+                            </p>
+<div class="bg-surface-container-low border-l-4 border-primary p-6 space-y-4">
+<h4 class="font-bold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined">rule</span> Step-by-Step Procedure:
+                                </h4>
+<ol class="list-decimal list-inside space-y-3 text-body-md text-on-surface">
+<li>Remove the wheels from the axle to expose the wheel studs.</li>
+<li>Hook your measuring tape on the outside of one hub face (the flat surface where the wheel meets the hub).</li>
+<li>Extend the tape across the axle to the exact same point on the opposite hub.</li>
+<li>Record the measurement in inches (standard industrial tolerance: ± 1/16").</li>
+</ol>
+</div>
+</section>
+<section class="scroll-mt-24 space-y-4" id="spring-center">
+<h2 class="font-headline-md text-headline-md text-primary-container">2. Measuring the Spring Center (SC)</h2>
+<p class="text-on-surface-variant leading-relaxed">
+                                The Spring Center dimension determines where the leaf springs or torsion mounting brackets are welded to the axle tube. Incorrect SC measurement will result in mounting failure or severe frame stress.
+                            </p>
+<table class="w-full border-collapse bg-white border border-outline-variant">
+<thead>
+<tr class="bg-primary-container text-white">
+<th class="p-3 text-left font-label-caps text-label-caps">Parameter</th>
+<th class="p-3 text-left font-label-caps text-label-caps">Method</th>
+<th class="p-3 text-left font-label-caps text-label-caps">Standard Range</th>
+</tr>
+</thead>
+<tbody class="font-technical-data text-technical-data text-on-surface">
+<tr class="border-b border-outline-variant/30">
+<td class="p-3">New Installation</td>
+<td class="p-3">Measure frame width (outside to outside)</td>
+<td class="p-3">48" - 84"</td>
+</tr>
+<tr class="bg-surface-container border-b border-outline-variant/30">
+<td class="p-3">Replacement</td>
+<td class="p-3">Center of spring seat to center of seat</td>
+<td class="p-3">Specific to OEM</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- Quote Section -->
+<section class="bg-surface-variant p-8 border border-outline relative overflow-hidden">
+<div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
+<div class="flex-1">
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Need a Custom Axle Assembly?</h3>
+<p class="text-on-surface-variant">Submit your measurements directly to our engineering team for a guaranteed fitment quote within 4 business hours.</p>
+</div>
+<button class="whitespace-nowrap bg-[#F58220] text-on-primary px-8 py-4 font-headline-md text-[18px] font-bold shadow-lg hover:translate-y-[-2px] transition-all">
+                                    Open RFQ Portal
+                                </button>
+</div>
+<div class="absolute right-0 top-0 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-[120px]">architecture</span>
+</div>
+</section>
+</div>
+<!-- Sticky TOC & Side Meta -->
+<aside class="hidden md:block">
+<div class="sticky top-28 space-y-8">
+<div>
+<h5 class="font-label-caps text-label-caps text-primary border-b border-outline-variant pb-2 mb-4">TABLE OF CONTENTS</h5>
+<nav class="flex flex-col gap-3">
+<a class="text-body-sm text-on-surface-variant hover:text-on-tertiary-container transition-all active-dot" href="#diagrams">Technical Diagrams</a>
+<a class="text-body-sm text-on-surface-variant hover:text-on-tertiary-container transition-all" href="#hub-face">1. Hub Face (HF)</a>
+<a class="text-body-sm text-on-surface-variant hover:text-on-tertiary-container transition-all" href="#spring-center">2. Spring Center (SC)</a>
+<a class="text-body-sm text-on-surface-variant hover:text-on-tertiary-container transition-all" href="#overhang">3. Calculating Overhang</a>
+<a class="text-body-sm text-on-surface-variant hover:text-on-tertiary-container transition-all" href="#checklist">4. Validation Checklist</a>
+</nav>
+</div>
+<div class="bg-primary-container p-6 text-white rounded">
+<span class="material-symbols-outlined text-on-tertiary-container mb-2">download</span>
+<h6 class="font-bold text-body-md mb-2">Printable Guide</h6>
+<p class="text-body-sm opacity-70 mb-4">Get the 1:1 Scale Measurement Template PDF.</p>
+<button class="w-full border border-white/30 py-2 text-body-sm hover:bg-white/10 transition-all">Download PDF (2.4MB)</button>
+</div>
+<div class="border border-outline-variant p-4">
+<h6 class="font-label-caps text-label-caps text-on-surface-variant mb-4">RELATED COMPONENTS</h6>
+<div class="space-y-4">
+<div class="flex gap-3">
+<div class="w-12 h-12 bg-surface shrink-0" data-alt="Close up high-detail photography of a heavy-duty industrial trailer hub with chrome mounting studs. The lighting is crisp and surgical, emphasizing the metallic textures and precision engineering of the component. The overall palette is cool-toned with industrial greys and steel blues." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDjBfCw-oakJFyfyyY13MXU--axNCLHgZa3V-rivmr5VPKWXOMeX6vrOQVR2MXCvvXVE-8x0aSuDRjkojIxWC13CnTnTHoy9P1j2Kc56cpf40UmmYwWRqS9NJkq-e6cxbaYmHYMP20ipAymhOGWOrEbYmWv01MmedwTtUwWeKRXDSXl_GtEDMJQyFxKBSHPIoigPpaCbpyN19VrXRnumf-BlFIaU3hng4ibY_8WE2-IU9HOiMEAq0qt')"></div>
+<div>
+<p class="text-body-sm font-bold leading-tight">Idler Hub Series 3500</p>
+<p class="text-[12px] text-on-tertiary-container">In Stock</p>
+</div>
+</div>
+<div class="flex gap-3">
+<div class="w-12 h-12 bg-surface shrink-0" data-alt="A pair of multi-leaf trailer springs made of black-coated industrial steel, stacked and ready for assembly. The photography is sharp with a shallow depth of field, set against a clean concrete floor of a modern manufacturing facility. The tone is utilitarian and professional." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuANkKgRl3_SBqWsR0Nt3VvLx0AEyCMZ2AdGpZQLThmPSrnLlKC8Zzw7Xkiw93GgiZzKgwx3cqR5C4LxRb-KMq99RpPLKRcV564y0UT7KiYmu73yjqJoIz_fYHtX4aucFlHGGyIG86HAYdUHxWFGY9Dyv6oELhqJdkg6rid8MnrsD_F02gxHUwRCTeyiSQwshFZNWoL4ji590G2XFogUOWkgauHWdpkzkal2ao1evfgAk9llg5BtXik3')"></div>
+<div>
+<p class="text-body-sm font-bold leading-tight">Double-Eye Leaf Springs</p>
+<p class="text-[12px] text-on-tertiary-container">Bulk Pricing</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</article>
+</main>
+</div>
+<!-- Footer (from JSON) -->
+<footer class="w-full py-stack-lg px-margin-desktop bg-primary text-on-primary mt-auto border-t border-outline">
+<div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
+<div class="space-y-4 max-w-sm">
+<span class="font-headline-md text-headline-md text-on-primary font-bold">Axion Industrial</span>
+<p class="text-body-sm opacity-60">© 2024 Axion Industrial Manufacturing. All rights reserved. Precision Engineered for Heavy-Duty Performance.</p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+<div class="flex flex-col gap-2">
+<h6 class="font-label-caps text-label-caps text-on-tertiary-container">Legal</h6>
+<a class="text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Terms of Service</a>
+<a class="text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Privacy Policy</a>
+</div>
+<div class="flex flex-col gap-2">
+<h6 class="font-label-caps text-label-caps text-on-tertiary-container">Quality</h6>
+<a class="text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">ISO Certification</a>
+<a class="text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Compliance</a>
+</div>
+<div class="flex flex-col gap-2">
+<h6 class="font-label-caps text-label-caps text-on-tertiary-container">Logistics</h6>
+<a class="text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Global Logistics</a>
+<a class="text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Tracking</a>
+</div>
+<div class="flex flex-col gap-2">
+<h6 class="font-label-caps text-label-caps text-on-tertiary-container">Contact</h6>
+<a class="text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Headquarters</a>
+<a class="text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Support</a>
+</div>
+</div>
+</div>
+</footer>
+<!-- Back to Top Button -->
+<button class="fixed bottom-8 right-8 bg-primary-container text-white p-3 rounded-full shadow-xl opacity-0 transition-opacity duration-300" id="backToTop">
+<span class="material-symbols-outlined">expand_less</span>
+</button>
+<script>
+        // Micro-interactions and scroll tracking
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section[id]');
+            const scrollY = window.pageYOffset;
+            
+            sections.forEach(current => {
+                const sectionHeight = current.offsetHeight;
+                const sectionTop = current.offsetTop - 100;
+                const sectionId = current.getAttribute('id');
+                const tocLink = document.querySelector(`aside nav a[href*=${sectionId}]`);
+
+                if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+                    tocLink?.classList.add('active-dot', 'text-primary');
+                    tocLink?.classList.remove('text-on-surface-variant');
+                } else {
+                    tocLink?.classList.remove('active-dot', 'text-primary');
+                    tocLink?.classList.add('text-on-surface-variant');
+                }
+            });
+
+            // Back to top visibility
+            const btn = document.getElementById('backToTop');
+            if (scrollY > 500) {
+                btn.classList.remove('opacity-0');
+                btn.classList.add('opacity-100');
+            } else {
+                btn.classList.add('opacity-0');
+                btn.classList.remove('opacity-100');
+            }
+        });
+
+        document.getElementById('backToTop').addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Simple tab/content interaction for technical specs
+        console.log("Axion Industrial Measurement Guide v1.2 loaded.");
+    </script>
+</body></html>

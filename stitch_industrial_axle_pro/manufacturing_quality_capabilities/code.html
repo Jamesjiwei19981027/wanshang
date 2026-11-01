@@ -1,0 +1,373 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Manufacturing &amp; Quality | Axion Industrial</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-container": "#df7108",
+                    "primary": "#00152a",
+                    "on-background": "#101d26",
+                    "primary-fixed": "#d1e4ff",
+                    "on-secondary-fixed": "#001e30",
+                    "surface-container-high": "#dceaf6",
+                    "secondary": "#366383",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "inverse-primary": "#b0c9e8",
+                    "secondary-fixed-dim": "#a0cbf0",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface": "#101d26",
+                    "secondary-container": "#aed9ff",
+                    "inverse-on-surface": "#e5f3ff",
+                    "on-primary-container": "#7a92b0",
+                    "on-secondary-fixed-variant": "#1b4b69",
+                    "tertiary": "#250d00",
+                    "surface-container-low": "#eaf5ff",
+                    "surface-tint": "#49607c",
+                    "on-primary-fixed": "#011d35",
+                    "tertiary-container": "#441e00",
+                    "surface-container": "#e2f0fc",
+                    "surface-variant": "#d6e4f0",
+                    "primary-container": "#102a43",
+                    "surface-container-highest": "#d6e4f0",
+                    "inverse-surface": "#25323b",
+                    "secondary-fixed": "#cae6ff",
+                    "on-primary-fixed-variant": "#314863",
+                    "surface-dim": "#cedce8",
+                    "surface-bright": "#f6faff",
+                    "primary-fixed-dim": "#b0c9e8",
+                    "tertiary-fixed": "#ffdcc6",
+                    "on-surface-variant": "#43474d",
+                    "background": "#f6faff",
+                    "on-tertiary-fixed-variant": "#723600",
+                    "tertiary-fixed-dim": "#ffb786",
+                    "surface": "#f6faff",
+                    "on-error-container": "#93000a",
+                    "on-secondary-container": "#33607f",
+                    "on-primary": "#ffffff",
+                    "outline": "#74777e",
+                    "on-tertiary-fixed": "#311300",
+                    "outline-variant": "#c3c6ce",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-desktop": "40px",
+                    "stack-md": "12px",
+                    "base": "8px",
+                    "container-max": "1280px",
+                    "stack-lg": "24px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "stack-sm": "4px"
+            },
+            "fontFamily": {
+                    "technical-data": ["JetBrains Mono"],
+                    "headline-md": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "label-caps": ["Inter"]
+            },
+            "fontSize": {
+                    "technical-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .workflow-arrow::after {
+            content: '';
+            position: absolute;
+            right: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-left: 12px solid #DDE1E6;
+        }
+        @media (max-width: 1024px) {
+            .workflow-arrow::after { display: none; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-on-tertiary-container selection:text-white">
+<!-- Top Navigation Bar -->
+<header class="w-full top-0 z-50 bg-primary dark:bg-primary-container border-b border-outline-variant opacity-100 shadow-sm">
+<nav class="flex flex-col w-full max-w-container-max mx-auto px-margin-desktop">
+<div class="flex items-center justify-between h-20">
+<div class="flex items-center gap-stack-lg">
+<span class="font-headline-lg text-headline-lg font-bold text-on-primary">Axion Industrial</span>
+</div>
+<div class="hidden md:flex items-center gap-gutter">
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">Products</a>
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">OEM Solutions</a>
+<a class="font-body-md text-body-md text-on-tertiary-container border-b-2 border-on-tertiary-container pb-1" href="#">Compliance</a>
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">Resources</a>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="px-stack-lg py-stack-md font-label-caps text-label-caps uppercase border border-on-primary text-on-primary hover:bg-on-primary hover:text-primary transition-all">Contact Sales</button>
+<button class="px-stack-lg py-stack-md font-label-caps text-label-caps uppercase bg-on-tertiary-container text-white font-bold hover:opacity-90 transition-all">Request Quote</button>
+</div>
+</div>
+</nav>
+</header>
+<main class="flex flex-col min-h-screen">
+<!-- Hero Section -->
+<section class="relative w-full h-[600px] flex items-center overflow-hidden">
+<div class="absolute inset-0 bg-primary-container/60 z-10"></div>
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A wide-angle, high-contrast industrial photography shot of a modern manufacturing factory floor. Large automated orange robotic arms are positioned along a clean assembly line for heavy-duty trailer axles. The lighting is dramatic and technical, with overhead cool white LED arrays and deep shadows in the machinery. Industrial charcoal and primary navy tones dominate the color palette, emphasizing a precise engineering environment." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAc4VHHAQVOj0MKLsOrbHPTrkrRmKqzXDavTJ8KGlZJuJiSAorrGayZQPpVbkPM4HiQd7S43VvSrLv_4hDNPNXL5ELmnvZgk_cXjIpFcTsk1e66bIyb3cSCBLWmWE2RWWlYoxUT-cEDWIYeadLT66utUrdnLVHs0npAsmmYqqIeNM1fU7w1vfATOP1xq_nJDSPOmMXcs3GH9R9XzxsHrPFv7mEFHrnIDQNzq_zvViYEeWeigbHpBxxE')"></div>
+<div class="relative z-20 max-w-container-max mx-auto px-margin-desktop w-full text-on-primary">
+<div class="max-w-2xl">
+<span class="inline-block bg-on-tertiary-container px-3 py-1 font-label-caps text-label-caps uppercase mb-stack-md">Advanced Operations</span>
+<h1 class="font-display-lg text-display-lg mb-stack-lg leading-tight">Precision Manufacturing &amp; Quality Control</h1>
+<p class="font-body-lg text-body-lg opacity-90 mb-stack-lg">Where engineering excellence meets industrial-scale production. Our facility is engineered for the high-volume manufacturing of heavy-duty trailer components with uncompromising reliability.</p>
+<div class="flex gap-stack-md">
+<button class="bg-on-tertiary-container px-stack-lg py-stack-md font-label-caps text-label-caps text-white font-bold transition-all hover:brightness-110">Tour Our Facility</button>
+<button class="border border-on-primary px-stack-lg py-stack-md font-label-caps text-label-caps text-on-primary font-bold hover:bg-white/10">Technical Data Sheets</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Certification Strip -->
+<section class="bg-primary py-stack-lg border-y border-outline-variant/20">
+<div class="max-w-container-max mx-auto px-margin-desktop flex flex-wrap items-center justify-between gap-gutter">
+<div class="flex items-center gap-stack-md">
+<span class="material-symbols-outlined text-on-tertiary-container text-4xl">verified</span>
+<span class="font-label-caps text-label-caps text-on-primary uppercase tracking-widest">ISO 9001:2015 Certified Operations</span>
+</div>
+<div class="flex items-center gap-stack-md">
+<span class="material-symbols-outlined text-on-tertiary-container text-4xl">security</span>
+<span class="font-label-caps text-label-caps text-on-primary uppercase tracking-widest">OEM Compliance Standards</span>
+</div>
+<div class="flex items-center gap-stack-md">
+<span class="material-symbols-outlined text-on-tertiary-container text-4xl">engineering</span>
+<span class="font-label-caps text-label-caps text-on-primary uppercase tracking-widest">In-House Metallurgical Lab</span>
+</div>
+<div class="flex items-center gap-stack-md">
+<span class="material-symbols-outlined text-on-tertiary-container text-4xl">precision_manufacturing</span>
+<span class="font-label-caps text-label-caps text-on-primary uppercase tracking-widest">Robotic Weld Verification</span>
+</div>
+</div>
+</section>
+<!-- Process Grid -->
+<section class="py-24 bg-surface">
+<div class="max-w-container-max mx-auto px-margin-desktop">
+<div class="mb-16">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-stack-sm">The Precision Manufacturing Process</h2>
+<div class="w-24 h-1 bg-on-tertiary-container mb-stack-lg"></div>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">Our six-stage manufacturing pipeline ensures every component leaving our floor meets the exact tolerances required for heavy-duty industrial applications.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Step 1 -->
+<div class="bg-white border border-outline-variant p-stack-lg hover:border-on-tertiary-container transition-all group">
+<div class="font-technical-data text-technical-data text-on-tertiary-container mb-stack-md">PHASE 01 // MATERIAL</div>
+<div class="flex items-start gap-stack-md mb-stack-lg">
+<span class="material-symbols-outlined text-primary text-3xl">inventory_2</span>
+<h3 class="font-headline-md text-headline-md text-primary">Raw Material Intake</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-stack-lg">Rigorous inspection of high-grade steel alloys. Every batch is tested for tensile strength and chemical composition consistency before entering production.</p>
+<div class="border-t border-outline-variant pt-stack-md">
+<span class="font-label-caps text-label-caps text-on-primary-container">QC CHECKPOINT: METALLURGICAL ANALYSIS</span>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="bg-white border border-outline-variant p-stack-lg hover:border-on-tertiary-container transition-all group">
+<div class="font-technical-data text-technical-data text-on-tertiary-container mb-stack-md">PHASE 02 // MACHINING</div>
+<div class="flex items-start gap-stack-md mb-stack-lg">
+<span class="material-symbols-outlined text-primary text-3xl">precision_manufacturing</span>
+<h3 class="font-headline-md text-headline-md text-primary">CNC Precision Milling</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-stack-lg">Multi-axis CNC machining centers deliver tolerances within +/- 0.005mm. Critical for hub surfaces and axle spindle threading.</p>
+<div class="border-t border-outline-variant pt-stack-md">
+<span class="font-label-caps text-label-caps text-on-primary-container">QC CHECKPOINT: MICROMETER VERIFICATION</span>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="bg-white border border-outline-variant p-stack-lg hover:border-on-tertiary-container transition-all group">
+<div class="font-technical-data text-technical-data text-on-tertiary-container mb-stack-md">PHASE 03 // ASSEMBLY</div>
+<div class="flex items-start gap-stack-md mb-stack-lg">
+<span class="material-symbols-outlined text-primary text-3xl">settings_input_component</span>
+<h3 class="font-headline-md text-headline-md text-primary">Robotic Fusion Welding</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-stack-lg">State-of-the-art FANUC robotics execute deep-penetration welds for suspension brackets and structural axle beams.</p>
+<div class="border-t border-outline-variant pt-stack-md">
+<span class="font-label-caps text-label-caps text-on-primary-container">QC CHECKPOINT: X-RAY WELD INSPECTION</span>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="bg-white border border-outline-variant p-stack-lg hover:border-on-tertiary-container transition-all group">
+<div class="font-technical-data text-technical-data text-on-tertiary-container mb-stack-md">PHASE 04 // COATING</div>
+<div class="flex items-start gap-stack-md mb-stack-lg">
+<span class="material-symbols-outlined text-primary text-3xl">format_paint</span>
+<h3 class="font-headline-md text-headline-md text-primary">Industrial E-Coating</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-stack-lg">Cathodic electrodeposition provides superior corrosion resistance. Tested for 1000-hour salt spray endurance.</p>
+<div class="border-t border-outline-variant pt-stack-md">
+<span class="font-label-caps text-label-caps text-on-primary-container">QC CHECKPOINT: MIL THICKNESS AUDIT</span>
+</div>
+</div>
+<!-- Step 5 -->
+<div class="bg-white border border-outline-variant p-stack-lg hover:border-on-tertiary-container transition-all group">
+<div class="font-technical-data text-technical-data text-on-tertiary-container mb-stack-md">PHASE 05 // CALIBRATION</div>
+<div class="flex items-start gap-stack-md mb-stack-lg">
+<span class="material-symbols-outlined text-primary text-3xl">straighten</span>
+<h3 class="font-headline-md text-headline-md text-primary">System Bench Testing</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-stack-lg">Load cells and dynamometers test braking force and hub rotation friction under simulated heavy-duty payloads.</p>
+<div class="border-t border-outline-variant pt-stack-md">
+<span class="font-label-caps text-label-caps text-on-primary-container">QC CHECKPOINT: DYNAMOMETER PERFORMANCE</span>
+</div>
+</div>
+<!-- Step 6 -->
+<div class="bg-white border border-outline-variant p-stack-lg hover:border-on-tertiary-container transition-all group">
+<div class="font-technical-data text-technical-data text-on-tertiary-container mb-stack-md">PHASE 06 // DISPATCH</div>
+<div class="flex items-start gap-stack-md mb-stack-lg">
+<span class="material-symbols-outlined text-primary text-3xl">assignment_turned_in</span>
+<h3 class="font-headline-md text-headline-md text-primary">Final Quality Audit</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-stack-lg">Each unit receives a serialized tracking number linked to its unique production and quality control report.</p>
+<div class="border-t border-outline-variant pt-stack-md">
+<span class="font-label-caps text-label-caps text-on-primary-container">FINAL SIGN-OFF: QR LOGISTICS CODING</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- OEM/ODM Workflow Section -->
+<section class="py-24 bg-primary text-on-primary">
+<div class="max-w-container-max mx-auto px-margin-desktop">
+<div class="flex flex-col lg:flex-row gap-gutter items-end mb-16">
+<div class="flex-1">
+<span class="font-label-caps text-label-caps text-on-tertiary-container uppercase tracking-widest mb-stack-sm block">Custom Engineering</span>
+<h2 class="font-display-lg text-display-lg">The OEM/ODM Collaboration Process</h2>
+</div>
+<div class="flex-1">
+<p class="font-body-lg text-body-lg opacity-80 border-l-2 border-on-tertiary-container pl-6">We don't just manufacture parts; we co-engineer solutions. Our rapid-prototyping pipeline takes your technical requirements from concept to mass production in record time.</p>
+</div>
+</div>
+<div class="flex flex-col lg:flex-row items-center justify-between gap-base lg:gap-0 mt-20 relative">
+<!-- Step 1: Requirement -->
+<div class="flex flex-col items-center text-center w-full lg:w-1/5 px-4 relative workflow-arrow">
+<div class="w-16 h-16 rounded-full border-2 border-on-tertiary-container flex items-center justify-center mb-stack-lg bg-primary relative z-10">
+<span class="material-symbols-outlined text-on-tertiary-container text-3xl">description</span>
+</div>
+<h4 class="font-headline-md text-headline-md mb-2">Requirement</h4>
+<p class="font-body-sm text-body-sm opacity-60">Initial technical scoping &amp; spec identification.</p>
+</div>
+<!-- Step 2: Evaluation -->
+<div class="flex flex-col items-center text-center w-full lg:w-1/5 px-4 relative workflow-arrow">
+<div class="w-16 h-16 rounded-full border-2 border-on-tertiary-container flex items-center justify-center mb-stack-lg bg-primary relative z-10">
+<span class="material-symbols-outlined text-on-tertiary-container text-3xl">analytics</span>
+</div>
+<h4 class="font-headline-md text-headline-md mb-2">Evaluation</h4>
+<p class="font-body-sm text-body-sm opacity-60">Feasibility study &amp; metallurgical assessment.</p>
+</div>
+<!-- Step 3: Drawing -->
+<div class="flex flex-col items-center text-center w-full lg:w-1/5 px-4 relative workflow-arrow">
+<div class="w-16 h-16 rounded-full border-2 border-on-tertiary-container flex items-center justify-center mb-stack-lg bg-primary relative z-10">
+<span class="material-symbols-outlined text-on-tertiary-container text-3xl">architecture</span>
+</div>
+<h4 class="font-headline-md text-headline-md mb-2">Drawing</h4>
+<p class="font-body-sm text-body-sm opacity-60">CAD/CAM modeling and stress simulation.</p>
+</div>
+<!-- Step 4: Sample -->
+<div class="flex flex-col items-center text-center w-full lg:w-1/5 px-4 relative workflow-arrow">
+<div class="w-16 h-16 rounded-full border-2 border-on-tertiary-container flex items-center justify-center mb-stack-lg bg-primary relative z-10">
+<span class="material-symbols-outlined text-on-tertiary-container text-3xl">biotech</span>
+</div>
+<h4 class="font-headline-md text-headline-md mb-2">Sample</h4>
+<p class="font-body-sm text-body-sm opacity-60">Physical prototyping and bench testing.</p>
+</div>
+<!-- Step 5: Mass Production -->
+<div class="flex flex-col items-center text-center w-full lg:w-1/5 px-4">
+<div class="w-16 h-16 rounded-full bg-on-tertiary-container flex items-center justify-center mb-stack-lg relative z-10 shadow-lg shadow-on-tertiary-container/20">
+<span class="material-symbols-outlined text-white text-3xl">factory</span>
+</div>
+<h4 class="font-headline-md text-headline-md mb-2">Production</h4>
+<p class="font-body-sm text-body-sm opacity-60">High-volume automated manufacturing.</p>
+</div>
+<!-- Background Connector Line (Desktop) -->
+<div class="hidden lg:block absolute top-8 left-1/10 right-1/10 h-0.5 border-t-2 border-dashed border-outline-variant opacity-20 -z-0 w-[80%] mx-auto"></div>
+</div>
+<div class="mt-20 flex justify-center">
+<button class="bg-white text-primary font-bold px-10 py-5 font-label-caps text-label-caps uppercase hover:bg-on-tertiary-container hover:text-white transition-all flex items-center gap-stack-md">
+                        Start Your OEM Project
+                        <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Technical Capabilities Stats -->
+<section class="py-24 bg-surface-container">
+<div class="max-w-container-max mx-auto px-margin-desktop">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-gutter text-center">
+<div class="flex flex-col border-r border-outline-variant last:border-none">
+<span class="font-technical-data text-4xl text-primary font-bold">120k m²</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-stack-sm">Production Floor Space</span>
+</div>
+<div class="flex flex-col border-r border-outline-variant last:border-none">
+<span class="font-technical-data text-4xl text-primary font-bold">450k+</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-stack-sm">Annual Axle Capacity</span>
+</div>
+<div class="flex flex-col border-r border-outline-variant last:border-none">
+<span class="font-technical-data text-4xl text-primary font-bold">0.005mm</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-stack-sm">Machining Tolerance</span>
+</div>
+<div class="flex flex-col last:border-none">
+<span class="font-technical-data text-4xl text-primary font-bold">18</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-stack-sm">Robotic Weld Stations</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg px-margin-desktop bg-primary text-on-primary mt-auto border-t border-outline">
+<div class="max-w-container-max mx-auto">
+<div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-gutter mb-stack-lg">
+<div class="flex flex-col gap-base">
+<span class="font-headline-md text-headline-md text-on-primary">Axion Industrial</span>
+<p class="font-body-sm text-body-sm opacity-60">Industrial Manufacturing Hub · Precision Trailer Components</p>
+</div>
+<div class="flex flex-wrap gap-gutter">
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Terms of Service</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">ISO Certification</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Global Logistics</a>
+</div>
+</div>
+<div class="pt-stack-lg border-t border-outline-variant/10 text-center lg:text-left">
+<p class="font-body-sm text-body-sm opacity-50">© 2024 Axion Industrial Manufacturing. All rights reserved. Precision Engineered for Heavy-Duty Performance.</p>
+</div>
+</div>
+</footer>
+</body></html>

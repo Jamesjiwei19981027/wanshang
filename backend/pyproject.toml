@@ -1,0 +1,43 @@
+[project]
+name = "trailer-parts-api"
+version = "1.0.0"
+description = "Django REST API for a trailer parts B2B catalogue and RFQ workflow"
+requires-python = ">=3.13.18,<3.14"
+dependencies = [
+  "celery[redis]>=5.5,<6",
+  # 5.2.18 includes the 2026-10-06 security fixes, including HTTP header
+  # parsing denial of service (CVE-2026-84429). Keep the patched LTS release.
+  "Django>=5.2.18,<6",
+  "django-cors-headers>=4.7,<5",
+  # 3.18.2 fixes CVE-2026-114136/114137/114138; 3.18.3 also fixes the
+  # content-negotiation API regression. settings.py retains list-shaped
+  # validation errors through LIST_SERIALIZER_ERRORS_AS_DICT=False.
+  "djangorestframework>=3.18.3,<3.19",
+  # 13.0.0 fixes 28 advisories affecting 12.3.0, including heap overflows in the
+  # JPEG/TIFF codecs and argument injection in the Ghostscript path. Public RFQ
+  # attachments are parsed with PIL (catalog/file_security.py), so this is
+  # reachable with attacker-controlled bytes.
+  "Pillow>=13.0.0,<14",
+  # The container extra builds a C binding against the distribution's
+  # libpq/OpenSSL rather than a binary wheel's private native libraries.
+  "psycopg>=3.3.6,<4",
+  # Minimal pure-Python ASGI server; do not install optional native extras.
+  "uvicorn>=0.54.0,<0.55",
+]
+
+[project.optional-dependencies]
+container = [
+  # Alpine's minimal runtime has no compiler/linker for ctypes discovery.
+  # Compile this binding in the builder stage and keep toolchains out of runtime.
+  "psycopg[c]>=3.3.6,<4; sys_platform == 'linux'",
+]
+
+[dependency-groups]
+dev = [
+  # Convenience for local Windows development; excluded by --no-dev.
+  "psycopg[binary]>=3.3.6,<4; sys_platform == 'win32'",
+]
+
+[tool.uv]
+package = false
+required-version = ">=0.13.5"

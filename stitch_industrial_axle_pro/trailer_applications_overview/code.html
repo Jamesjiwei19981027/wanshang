@@ -1,0 +1,428 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Applications Overview | Axion Industrial Manufacturing</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;family=JetBrains+Mono:wght@500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .technical-grid {
+            background-image: radial-gradient(#667582 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+            opacity: 0.05;
+        }
+        .card-hover-effect {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover-effect:hover {
+            border-color: #1F4E6D;
+            transform: translateY(-4px);
+            box-shadow: 0 4px 20px -10px rgba(16, 42, 67, 0.1);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#d6e4f0",
+                      "primary-container": "#102a43",
+                      "secondary-fixed-dim": "#a0cbf0",
+                      "error": "#ba1a1a",
+                      "surface-dim": "#cedce8",
+                      "error-container": "#ffdad6",
+                      "on-secondary-fixed": "#001e30",
+                      "inverse-on-surface": "#e5f3ff",
+                      "on-surface-variant": "#43474d",
+                      "tertiary": "#250d00",
+                      "outline-variant": "#c3c6ce",
+                      "on-primary-fixed": "#011d35",
+                      "surface-tint": "#49607c",
+                      "surface-container-high": "#dceaf6",
+                      "on-background": "#101d26",
+                      "on-surface": "#101d26",
+                      "on-primary": "#ffffff",
+                      "tertiary-fixed": "#ffdcc6",
+                      "tertiary-container": "#441e00",
+                      "outline": "#74777e",
+                      "tertiary-fixed-dim": "#ffb786",
+                      "secondary-fixed": "#cae6ff",
+                      "on-primary-container": "#7a92b0",
+                      "on-error-container": "#93000a",
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#f6faff",
+                      "primary-fixed": "#d1e4ff",
+                      "secondary-container": "#aed9ff",
+                      "on-error": "#ffffff",
+                      "surface-container": "#e2f0fc",
+                      "background": "#f6faff",
+                      "inverse-primary": "#b0c9e8",
+                      "primary-fixed-dim": "#b0c9e8",
+                      "on-secondary": "#ffffff",
+                      "inverse-surface": "#25323b",
+                      "surface-bright": "#f6faff",
+                      "on-tertiary-fixed-variant": "#723600",
+                      "secondary": "#366383",
+                      "on-tertiary-container": "#df7108",
+                      "primary": "#00152a",
+                      "on-secondary-container": "#33607f",
+                      "on-tertiary-fixed": "#311300",
+                      "on-secondary-fixed-variant": "#1b4b69",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed-variant": "#314863",
+                      "surface-container-low": "#eaf5ff",
+                      "surface-container-highest": "#d6e4f0"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack-lg": "24px",
+                      "stack-sm": "4px",
+                      "gutter": "24px",
+                      "margin-mobile": "16px",
+                      "container-max": "1280px",
+                      "margin-desktop": "40px",
+                      "stack-md": "12px",
+                      "base": "8px"
+              },
+              "fontFamily": {
+                      "body-sm": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "headline-lg-mobile": ["Inter"],
+                      "label-caps": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "technical-data": ["JetBrains Mono"],
+                      "headline-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "technical-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md">
+<!-- TopNavBar -->
+<header class="w-full top-0 bg-primary dark:bg-primary-container border-b border-outline-variant opacity-20 z-50">
+<div class="flex flex-col w-full max-w-container-max mx-auto px-margin-desktop py-4">
+<div class="flex items-center justify-between gap-gutter">
+<div class="flex items-center gap-stack-lg">
+<span class="font-headline-lg text-headline-lg font-bold text-on-primary">Axion Industrial</span>
+<nav class="hidden md:flex gap-stack-lg items-center">
+<a class="text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200 font-body-md text-body-md" href="#">Products</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200 font-body-md text-body-md" href="#">OEM Solutions</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200 font-body-md text-body-md" href="#">Compliance</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200 font-body-md text-body-md" href="#">Resources</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="px-4 py-2 border border-on-primary text-on-primary rounded-lg font-body-md hover:bg-on-primary hover:text-primary transition-all">Contact Sales</button>
+<button class="px-4 py-2 bg-[#F58220] text-white rounded-lg font-bold font-body-md hover:bg-[#e0751a] transition-all">Request Quote</button>
+</div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 relative max-w-container-max mx-auto w-full">
+<!-- SideNavBar (Hidden on small, sticky on LG) -->
+<aside class="hidden lg:flex flex-col h-[calc(100vh-80px)] sticky top-20 w-64 bg-primary dark:bg-primary-container shrink-0 border-r border-outline-variant/20">
+<div class="p-stack-lg border-b border-outline-variant/10">
+<h2 class="font-headline-md text-headline-md font-black text-on-primary">Product Catalog</h2>
+<p class="text-on-primary-container text-label-caps font-label-caps mt-2 opacity-70">Technical Specifications</p>
+</div>
+<nav class="flex-1 py-stack-md overflow-y-auto">
+<div class="flex flex-col">
+<a class="text-on-primary-container opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed px-4 py-3 flex items-center gap-3 transition-all duration-300 ease-in-out font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined text-[20px]">settings_input_component</span>
+<span>Axle Assemblies</span>
+</a>
+<a class="text-on-primary-container opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed px-4 py-3 flex items-center gap-3 transition-all duration-300 ease-in-out font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined text-[20px]">settings_ethernet</span>
+<span>Suspension Systems</span>
+</a>
+<a class="text-on-primary-container opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed px-4 py-3 flex items-center gap-3 transition-all duration-300 ease-in-out font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined text-[20px]">settings_applications</span>
+<span>Braking Components</span>
+</a>
+<a class="text-on-primary-container opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed px-4 py-3 flex items-center gap-3 transition-all duration-300 ease-in-out font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined text-[20px]">lightbulb</span>
+<span>Electrical &amp; Lighting</span>
+</a>
+<a class="text-on-primary-container opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed px-4 py-3 flex items-center gap-3 transition-all duration-300 ease-in-out font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined text-[20px]">construction</span>
+<span>Hardware</span>
+</a>
+</div>
+</nav>
+<div class="p-4 bg-primary-container/50">
+<button class="w-full py-3 bg-[#F58220] text-white font-bold rounded-lg text-body-sm mb-4">Download Full Catalog</button>
+<div class="flex flex-col gap-2">
+<a class="flex items-center gap-2 text-on-primary opacity-60 hover:opacity-100 text-label-caps" href="#">
+<span class="material-symbols-outlined text-[18px]">engineering</span>
+<span>Technical Support</span>
+</a>
+<a class="flex items-center gap-2 text-on-primary opacity-60 hover:opacity-100 text-label-caps" href="#">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>Warranty</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col bg-surface relative min-w-0">
+<!-- Background Decoration -->
+<div class="absolute inset-0 technical-grid pointer-events-none"></div>
+<!-- Page Header -->
+<section class="relative py-12 px-margin-desktop bg-primary text-white overflow-hidden">
+<div class="absolute inset-0 opacity-40 mix-blend-overlay bg-cover bg-center" data-alt="Close-up industrial macro photography of precision-engineered trailer axle parts with dramatic side lighting. High-contrast metallic textures, cool blue industrial charcoal tones, and engineering orange highlights. Depth of field creates a professional manufacturing environment background." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAoV5wfwm3z_5TERP9IDfxECv-EZXW9hwm1qr2L5t5U-oJ44DtXgA5_HXalstcgqh7FyCt0LvZf0F8GP1T2YprwBdlQQMdVTiD_ohT4J9KUzmPj25tRkKdG46VLCi-T0OHk8vL0AfGKuoTYxoZNy31TEtlDd8dfdYF2JYFeaqnidi3W-R_QXX1FfXXcWFNsqRg4wcuoF7ofOkTaxVbzchkdNqkHGxrnvan8Pubxg9au8RgsE9tsEBe6')"></div>
+<div class="relative z-10 max-w-3xl">
+<span class="bg-[#F58220] px-3 py-1 text-label-caps font-label-caps inline-block mb-4">ENGINEERED FOR PERFORMANCE</span>
+<h1 class="font-display-lg text-display-lg font-bold mb-4">Applications Overview</h1>
+<p class="font-body-lg text-body-lg opacity-90">Precision axle and braking solutions tailored for demanding trailer environments. From commercial heavy-duty logistics to specialized agricultural machinery.</p>
+</div>
+</section>
+<!-- Application Cards Grid -->
+<section class="p-margin-desktop">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+<!-- Utility Trailer Card -->
+<div class="flex flex-col bg-white border border-[#DDE1E6] card-hover-effect overflow-hidden">
+<div class="h-48 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A clean, high-angle shot of a galvanized utility trailer parked on a modern warehouse loading dock. Bright morning light, sharp details of the mesh flooring and steel frame. Industrial modern aesthetic with clean lines and soft blue shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZxn5BlJDPdDaw4TI218EEn3uQ9NwPeYx_5u5HvI-GgvacsR-pc3EcvsGd0DdKCkukLM_V7md5NkCMsPWStqdwq7Fvq6vygqiaZjh1FiLxkY3Pxbys-43hmEzSd9_WSdZnFr5BYjgymrEQvjvZ_rOY9_rvIbb-FZkMXgfn6RTSKsZR5rkHZME5NzGnW9S1ABqRdeSsgPSVJrxHOsZi1LQ5ULzbSuwDi7hXn3e4S_KRTTeVjCtH0nim">
+</div>
+<div class="p-6 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Utility Trailers</h3>
+<span class="bg-surface-container px-2 py-1 text-on-primary-container text-label-caps font-label-caps">LIGHT DUTY</span>
+</div>
+<p class="text-body-sm text-on-surface-variant mb-6 flex-1">Reliable, low-maintenance configurations for general hauling, landscaping, and residential use cases. Optimized for durability and ease of installation.</p>
+<div class="border-t border-[#DDE1E6] pt-4 mb-6">
+<span class="text-label-caps text-on-primary-container mb-2 block">RECOMMENDED SPECS</span>
+<div class="space-y-2">
+<div class="flex justify-between font-technical-data text-technical-data">
+<span class="text-outline">AXLE TYPE</span>
+<span class="text-primary-container">Spring / Torsion</span>
+</div>
+<div class="flex justify-between font-technical-data text-technical-data">
+<span class="text-outline">BRAKE TYPE</span>
+<span class="text-primary-container">Electric Drum</span>
+</div>
+</div>
+</div>
+<button class="w-full py-3 border border-primary text-primary font-bold hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2">
+                                View Solution <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Boat Trailer Card -->
+<div class="flex flex-col bg-white border border-[#DDE1E6] card-hover-effect overflow-hidden">
+<div class="h-48 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Professional architectural shot of a sleek aluminum boat trailer at a high-end marina. The lighting is late afternoon sun reflecting off water, emphasizing the corrosion-resistant surfaces. Clean, technical presentation of the frame and axle components." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxWuemBSZmgTIdwc7f45v4oAoWAIDUlVTZxVE5excoc5jgw3zpl7u1Fz5yVyEqYXAIzfVmoG3QWp7rMdJK7GyPesxi5sgPSSafXPyvZE-EhIKArqXR67H7TA35YhBv2MLX4daqW33wm-S55QHdrpi1TCVs0dfr-SBc9JZSNwZ4UYzgPPPoTbR2DoB2u75d6G-YM3cGYI_-j_F5Gqx_A2ObyYtZX7XSJX4YJxLm4Q1JQ2hWyTO6w6jV">
+</div>
+<div class="p-6 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Marine &amp; Boat</h3>
+<span class="bg-[#1F4E6D]/10 text-[#1F4E6D] px-2 py-1 text-label-caps font-label-caps">CORROSION RESISTANT</span>
+</div>
+<p class="text-body-sm text-on-surface-variant mb-6 flex-1">Specialized marine-grade components designed to withstand saltwater environments and frequent submersion. Engineered for long-term reliability.</p>
+<div class="border-t border-[#DDE1E6] pt-4 mb-6">
+<span class="text-label-caps text-on-primary-container mb-2 block">RECOMMENDED SPECS</span>
+<div class="space-y-2">
+<div class="flex justify-between font-technical-data text-technical-data">
+<span class="text-outline">AXLE TYPE</span>
+<span class="text-primary-container">Galvanized Torsion</span>
+</div>
+<div class="flex justify-between font-technical-data text-technical-data">
+<span class="text-outline">BRAKE TYPE</span>
+<span class="text-primary-container">Hydraulic Disc</span>
+</div>
+</div>
+</div>
+<button class="w-full py-3 border border-primary text-primary font-bold hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2">
+                                View Solution <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Agricultural Card -->
+<div class="flex flex-col bg-white border border-[#DDE1E6] card-hover-effect overflow-hidden">
+<div class="h-48 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Dramatic technical shot of a large agricultural machinery trailer in a vast field at dusk. Heavy dust and warm orange sunset lighting highlighting the rugged build and heavy-duty tires. Professional industrial photography for farm equipment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8epGZFrjI1pIKmH10Jmas292FDsH7GUX550SScG44D6_M77MPFtBIFJAUmA6C6gSuGf_ZLmepK-aAAaNd1nam9HQH-qkV7j0qzYe_nMNcNPvz1RV6o1bIsIOQOnL9F0SvExDw8jzwyHAZPNSquTv_gaJqU7K0qkR0HMBB0WsneDFYs-aIO6N5EEI9VqVfWG6q5NbqWOIN39TXz7RtnlOrxlpt6UujX6YyMSUJ9ELPFbJcMwgW0a9X">
+</div>
+<div class="p-6 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Agricultural</h3>
+<span class="bg-[#F58220]/10 text-[#F58220] px-2 py-1 text-label-caps font-label-caps">HIGH TORQUE</span>
+</div>
+<p class="text-body-sm text-on-surface-variant mb-6 flex-1">High-capacity axles for farm implements and livestock transport. Designed for off-road durability and heavy vertical load distribution.</p>
+<div class="border-t border-[#DDE1E6] pt-4 mb-6">
+<span class="text-label-caps text-on-primary-container mb-2 block">RECOMMENDED SPECS</span>
+<div class="space-y-2">
+<div class="flex justify-between font-technical-data text-technical-data">
+<span class="text-outline">AXLE TYPE</span>
+<span class="text-primary-container">Oversized Round</span>
+</div>
+<div class="flex justify-between font-technical-data text-technical-data">
+<span class="text-outline">BRAKE TYPE</span>
+<span class="text-primary-container">Free Backing Drum</span>
+</div>
+</div>
+</div>
+<button class="w-full py-3 border border-primary text-primary font-bold hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2">
+                                View Solution <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- RV Card -->
+<div class="flex flex-col bg-white border border-[#DDE1E6] card-hover-effect overflow-hidden">
+<div class="h-48 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A side view of a modern luxury RV fifth-wheel trailer on a paved scenic highway. High-key, bright lighting, emphasizing the smooth exterior and high-tech suspension. Clean, premium look for travel and leisure markets." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvPxxf4KgiTiwk0mE6e1afdoMHABV8pKjvh_1i6dOXoE8On6skJ6VNmPF0GUzmKJ9nmG7jxE0hd5yAyQjaCTlcUfM-LmsCV3nIQ-M4CRy-uhrBNGnfr5yHveSAUDRFy_2YlW5xGwVlHAEIHXLEGbe7ChwOW43WxsNXJwQud4-ciL_bJhWitcqYoqV8HJdtn8PNqkwOV2S-vIti92mZDgMDmZ2KWZDiElCZ1Zf5cAzyXAhPfRM28Q9T">
+</div>
+<div class="p-6 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">RV &amp; Recreation</h3>
+<span class="bg-surface-container px-2 py-1 text-on-primary-container text-label-caps font-label-caps">RIDE QUALITY</span>
+</div>
+<p class="text-body-sm text-on-surface-variant mb-6 flex-1">Suspension systems focused on road comfort and cargo protection. Features advanced damping and self-adjusting braking technology.</p>
+<div class="border-t border-[#DDE1E6] pt-4 mb-6">
+<span class="text-label-caps text-on-primary-container mb-2 block">RECOMMENDED SPECS</span>
+<div class="space-y-2">
+<div class="flex justify-between font-technical-data text-technical-data">
+<span class="text-outline">AXLE TYPE</span>
+<span class="text-primary-container">Rubber Torsion</span>
+</div>
+<div class="flex justify-between font-technical-data text-technical-data">
+<span class="text-outline">BRAKE TYPE</span>
+<span class="text-primary-container">Self-Adjusting Electric</span>
+</div>
+</div>
+</div>
+<button class="w-full py-3 border border-primary text-primary font-bold hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2">
+                                View Solution <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Car Hauler Card -->
+<div class="flex flex-col bg-white border border-[#DDE1E6] card-hover-effect overflow-hidden">
+<div class="h-48 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Technical photography of an open deck car hauler with a precision winch and heavy-duty ramps. Studio lighting with sharp focus on the axle placement and tie-down points. Professional grey and black color palette with metallic textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuDrMswQFOq_B62IIgexWz0mACtrpD-QKacl9q-bsaMjIDNvbZEl8hI3OiWzTU3fa2Qrx6vgWkm6OQzBSqwkYDpgCNFG7mFRMSOv8z9f21sSGufZRpehWuzt4NHXog2h6gX6_uOjoyCUuOSDA8Zf5wQEelDqeFHxbWPoitXw77gRL2pYN2tvG1mg-N56On8YQ1y98eRJHb7MY2IcN2MIeWdAH1ided1VU8ft6oMkwGCkrAJ0bld4aU">
+</div>
+<div class="p-6 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Car Haulers</h3>
+<span class="bg-surface-container px-2 py-1 text-on-primary-container text-label-caps font-label-caps">PRECISION LOADING</span>
+</div>
+<p class="text-body-sm text-on-surface-variant mb-6 flex-1">Low-profile axle designs for reduced deck height and easier loading of automotive cargo. Optimized for stability at highway speeds.</p>
+<div class="border-t border-[#DDE1E6] pt-4 mb-6">
+<span class="text-label-caps text-on-primary-container mb-2 block">RECOMMENDED SPECS</span>
+<div class="space-y-2">
+<div class="flex justify-between font-technical-data text-technical-data">
+<span class="text-outline">AXLE TYPE</span>
+<span class="text-primary-container">Dropped Axle</span>
+</div>
+<div class="flex justify-between font-technical-data text-technical-data">
+<span class="text-outline">BRAKE TYPE</span>
+<span class="text-primary-container">Nevo-Adjust Electric</span>
+</div>
+</div>
+</div>
+<button class="w-full py-3 border border-primary text-primary font-bold hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2">
+                                View Solution <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Heavy Duty Card -->
+<div class="flex flex-col bg-white border border-[#DDE1E6] card-hover-effect overflow-hidden">
+<div class="h-48 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Massive heavy-duty equipment trailer hauling an excavator on a construction site. High-contrast midday lighting, detailed mechanical view of multi-axle suspension. Powerful, gritty industrial aesthetic with blue-collar engineering vibes." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFYHnKCX-nqPxkVocj1FBz5e2ky_5x0PX14l41G9giSyrlDdeDU1p065VmxVu2RFeokW4MMrnZF0Bj144F8sT1BonCF2_bSLP-BSKKkC9y1QirlgUt9sPGHQC021REJ8JU44Uiq_IBKQU4dl4z25obey-hP6Q9svrzNa1u9AsljlIBktjHWLUGdc_VHGezdYv3u8KIkTuH7Zczu-70FtiqOsMEUluRSiElXtNqMzS9KH_uCOjv7-in">
+</div>
+<div class="p-6 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Heavy-Duty / Industrial</h3>
+<span class="bg-error-container text-error px-2 py-1 text-label-caps font-label-caps">25,000 LB+ CAP</span>
+</div>
+<p class="text-body-sm text-on-surface-variant mb-6 flex-1">Ultimate load-bearing solutions for construction equipment and heavy industrial logistics. Engineered for maximum GVWR and safety.</p>
+<div class="border-t border-[#DDE1E6] pt-4 mb-6">
+<span class="text-label-caps text-on-primary-container mb-2 block">RECOMMENDED SPECS</span>
+<div class="space-y-2">
+<div class="flex justify-between font-technical-data text-technical-data">
+<span class="text-outline">AXLE TYPE</span>
+<span class="text-primary-container">Dual Tandem Air</span>
+</div>
+<div class="flex justify-between font-technical-data text-technical-data">
+<span class="text-outline">BRAKE TYPE</span>
+<span class="text-primary-container">Air / ABS Systems</span>
+</div>
+</div>
+</div>
+<button class="w-full py-3 border border-primary text-primary font-bold hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2">
+                                View Solution <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Lead Gen Section -->
+<section class="mt-auto px-margin-desktop py-12 bg-surface-container-high">
+<div class="max-w-4xl mx-auto text-center">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-4">Don't see your specific application?</h2>
+<p class="text-body-lg text-on-surface-variant mb-8">Our engineering team specializes in custom OEM solutions for unique hauling requirements. Let's build your specific technical blueprint.</p>
+<div class="flex flex-wrap justify-center gap-4">
+<button class="px-8 py-4 bg-[#F58220] text-white font-bold rounded-lg hover:bg-[#e0751a] transition-all shadow-md">Consult with Engineering</button>
+<button class="px-8 py-4 border-2 border-primary text-primary font-bold rounded-lg hover:bg-primary hover:text-white transition-all">View All Products</button>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- Footer -->
+<footer class="w-full py-stack-lg px-margin-desktop bg-primary text-on-primary mt-auto border-t border-outline">
+<div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex flex-col gap-2">
+<span class="font-headline-md text-headline-md text-on-primary">Axion Industrial</span>
+<p class="text-body-sm text-on-primary opacity-60">© 2024 Axion Industrial Manufacturing. All rights reserved. Precision Engineered for Heavy-Duty Performance.</p>
+</div>
+<div class="flex gap-stack-lg">
+<a class="text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Terms of Service</a>
+<a class="text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Privacy Policy</a>
+<a class="text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">ISO Certification</a>
+<a class="text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Global Logistics</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple micro-interaction for cards
+        document.querySelectorAll('.card-hover-effect').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                const img = card.querySelector('img');
+                if (img) img.style.transform = 'scale(1.05)';
+            });
+            card.addEventListener('mouseleave', () => {
+                const img = card.querySelector('img');
+                if (img) img.style.transform = 'scale(1)';
+            });
+        });
+
+        // Initialize transitions
+        document.querySelectorAll('img').forEach(img => {
+            img.style.transition = 'transform 0.5s ease';
+        });
+    </script>
+</body></html>

@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "sqlite:///:memory:"
+      DJANGO_CACHE_URL: ""
+      DJANGO_ENV: "test"
+      DJANGO_DEBUG: "True"
+      DJANGO_SECRET_KEY: "ci-only-test-secret-not-for-production-0123456789abcdef"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.18"
+      - name: Install system PostgreSQL client library
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libpq5
+      - run: python -m pip install uv==0.13.5
+      - run: uv sync --locked --no-dev
+        working-directory: backend
+      - name: Audit Python dependencies
+        run: uv run --frozen --no-sync --with pip-audit pip-audit --progress-spinner off
+        working-directory: backend
+      - run: uv run --frozen --no-sync python manage.py check
+        working-directory: backend
+      - run: uv run --frozen --no-sync python manage.py makemigrations --check --dry-run
+        working-directory: backend
+      - run: uv run --frozen --no-sync python manage.py test
+        working-directory: backend
+
+  linux-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.18"
+      - name: Verify worker image with isolated PostgreSQL and Redis
+        run: python scripts/check_linux_stack.py --output-dir output/linux-check
+      - name: Read the verified runtime image tag
+        id: runtime-image
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          result = json.loads(Path("output/linux-check/results.json").read_text())
+          if not result["passed"]:
+              raise SystemExit("Runtime integration verification failed")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write("image=" + result["image"] + "\n")
+          PY
+      - name: Audit the verified runtime image
+        # Pin the official v7 action to its verified commit. Findings with no
+        # available fix are still reported and High/Critical block the job.
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2
+        with:
+          image: ${{ steps.runtime-image.outputs.image }}
+          grype-version: "v0.121.0"
+          severity-cutoff: high
+          fail-build: true
+          only-fixed: false
+          output-format: json
+          output-file: output/linux-check/container-vulnerabilities.json
+      - name: Save Linux verification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-runtime-check
+          path: output/linux-check/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  frontend:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SITE_URL: "https://www.example.com"
+      NEXT_PUBLIC_API_BASE_URL: "https://api.example.com/api"
+      API_BASE_URL: "https://api.example.com/api"
+      NEXT_PUBLIC_ENABLE_STARTER_FALLBACK: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.22.1"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      # Audit must hit the public registry: mirrors such as npmmirror do not
+      # implement /-/npm/v1/security/audits and answer 404 NOT_IMPLEMENTED.
+      # Build tools execute in CI too; moderate or worse advisories in either
+      # runtime or development dependencies must fail the release checks.
+      - name: Audit all frontend dependencies
+        run: npm audit --audit-level=moderate --registry=https://registry.npmjs.org
+        working-directory: frontend
+      - name: Run frontend security regressions
+        run: npm run test:security
+        working-directory: frontend
+      - run: npx next typegen && npm run typecheck
+        working-directory: frontend
+      - run: npm run lint
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+
+  production-configuration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.18"
+      - name: Check deployment configuration contracts
+        run: python -m unittest discover -s deploy -p test_configure.py -v
+      - name: Check backup, restore and failure recovery contracts
+        run: python -m unittest discover -s deploy/tests -p test_operations.py -v
+      - name: Check Linux operation script syntax
+        run: |
+          for script in deploy/bin/*.sh deploy/postgres/*.sh deploy/nginx/*.sh; do
+            bash -n "$script"
+          done

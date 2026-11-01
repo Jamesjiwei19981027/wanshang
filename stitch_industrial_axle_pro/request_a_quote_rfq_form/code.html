@@ -1,0 +1,387 @@
+<!DOCTYPE html><html lang="en" class="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-container": "#df7108",
+                    "primary": "#00152a",
+                    "on-background": "#101d26",
+                    "primary-fixed": "#d1e4ff",
+                    "on-secondary-fixed": "#001e30",
+                    "surface-container-high": "#dceaf6",
+                    "secondary": "#366383",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "inverse-primary": "#b0c9e8",
+                    "secondary-fixed-dim": "#a0cbf0",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface": "#101d26",
+                    "secondary-container": "#aed9ff",
+                    "inverse-on-surface": "#e5f3ff",
+                    "on-primary-container": "#7a92b0",
+                    "on-secondary-fixed-variant": "#1b4b69",
+                    "tertiary": "#250d00",
+                    "surface-container-low": "#eaf5ff",
+                    "surface-tint": "#49607c",
+                    "on-primary-fixed": "#011d35",
+                    "tertiary-container": "#441e00",
+                    "surface-container": "#e2f0fc",
+                    "surface-variant": "#d6e4f0",
+                    "primary-container": "#102a43",
+                    "surface-container-highest": "#d6e4f0",
+                    "inverse-surface": "#25323b",
+                    "secondary-fixed": "#cae6ff",
+                    "on-primary-fixed-variant": "#314863",
+                    "surface-dim": "#cedce8",
+                    "surface-bright": "#f6faff",
+                    "primary-fixed-dim": "#b0c9e8",
+                    "tertiary-fixed": "#ffdcc6",
+                    "on-surface-variant": "#43474d",
+                    "background": "#f6faff",
+                    "on-tertiary-fixed-variant": "#723600",
+                    "tertiary-fixed-dim": "#ffb786",
+                    "surface": "#f6faff",
+                    "on-error-container": "#93000a",
+                    "on-secondary-container": "#33607f",
+                    "on-primary": "#ffffff",
+                    "outline": "#74777e",
+                    "on-tertiary-fixed": "#311300",
+                    "outline-variant": "#c3c6ce",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-desktop": "40px",
+                    "stack-md": "12px",
+                    "base": "8px",
+                    "container-max": "1280px",
+                    "stack-lg": "24px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "stack-sm": "4px"
+            },
+            "fontFamily": {
+                    "technical-data": ["JetBrains Mono"],
+                    "headline-md": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "label-caps": ["Inter"]
+            },
+            "fontSize": {
+                    "technical-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    }catch(_e){}</script></head><body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-primary dark:bg-primary-container w-full top-0 z-50 border-b border-outline-variant opacity-20">
+<div class="flex flex-col w-full max-w-container-max mx-auto px-margin-desktop">
+<div class="flex items-center justify-between h-20">
+<div class="flex items-center gap-gutter">
+<span class="font-headline-lg text-headline-lg font-bold text-on-primary">Axion Industrial</span>
+<nav class="hidden lg:flex items-center gap-stack-lg ml-gutter">
+<a href="#" class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200">Products</a>
+<a href="#" class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200">OEM Solutions</a>
+<a href="#" class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200">Compliance</a>
+<a href="#" class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200">Resources</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="font-body-sm text-body-sm text-on-primary opacity-80 hover:opacity-100 px-4 py-2 border border-on-primary/20 rounded">Contact Sales</button>
+<button class="font-body-sm text-body-sm bg-on-tertiary-container text-white font-bold px-6 py-2 rounded hover:bg-on-tertiary-container/90 transition-all">Request Quote</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-margin-desktop py-stack-lg flex flex-col lg:flex-row gap-gutter">
+<!-- Left: RFQ Form Content -->
+<div class="flex-grow lg:w-2/3">
+<section class="mb-stack-lg">
+<h1 class="font-headline-lg text-headline-lg text-primary-container mb-stack-sm">Technical RFQ Submission</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+                    Configure your precision axle and suspension components. Our engineering team will review your technical specifications and provide a formal quote within 24 hours.
+                </p>
+</section>
+<form id="rfq-form" class="space-y-gutter">
+<!-- Contact Information Section -->
+<div class="bg-surface border border-outline-variant p-stack-lg rounded shadow-sm">
+<div class="flex items-center gap-2 mb-stack-lg">
+<span class="material-symbols-outlined text-secondary">person</span>
+<h2 class="font-headline-md text-headline-md text-primary-container">Contact Information</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-lg">
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant block">FULL NAME</label>
+<input type="text" placeholder="e.g. Robert Miller" class="w-full border-outline-variant focus:ring-0 focus:border-on-tertiary-container text-body-md p-3 bg-surface-container-lowest">
+</div>
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant block">COMPANY NAME</label>
+<input type="text" placeholder="Manufacturing Corp" class="w-full border-outline-variant focus:ring-0 focus:border-on-tertiary-container text-body-md p-3 bg-surface-container-lowest">
+</div>
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant block">WORK EMAIL</label>
+<input type="email" placeholder="r.miller@example.com" class="w-full border-outline-variant focus:ring-0 focus:border-on-tertiary-container text-body-md p-3 bg-surface-container-lowest">
+</div>
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant block">PHONE NUMBER</label>
+<input type="tel" placeholder="+1 (555) 000-0000" class="w-full border-outline-variant focus:ring-0 focus:border-on-tertiary-container text-body-md p-3 bg-surface-container-lowest">
+</div>
+</div>
+</div>
+<!-- Product Requirements Section -->
+<div class="bg-surface border border-outline-variant p-stack-lg rounded shadow-sm">
+<div class="flex items-center gap-2 mb-stack-lg">
+<span class="material-symbols-outlined text-secondary">inventory_2</span>
+<h2 class="font-headline-md text-headline-md text-primary-container">Product Requirements</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-lg">
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant block">ORDER QUANTITY</label>
+<input type="number" value="10" min="1" class="w-full border-outline-variant focus:ring-0 focus:border-on-tertiary-container text-body-md p-3 bg-surface-container-lowest">
+</div>
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant block">REQUIRED DELIVERY DATE</label>
+<input type="date" class="w-full border-outline-variant focus:ring-0 focus:border-on-tertiary-container text-body-md p-3 bg-surface-container-lowest">
+</div>
+</div>
+</div>
+<!-- Axle Specifications -->
+<div class="bg-surface border border-outline-variant p-stack-lg rounded shadow-sm">
+<div class="flex items-center gap-2 mb-stack-lg">
+<span class="material-symbols-outlined text-secondary">settings_input_component</span>
+<h2 class="font-headline-md text-headline-md text-primary-container">Axle Technical Specifications</h2>
+</div>
+<div class="space-y-stack-lg">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-lg">
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant block">LOAD CAPACITY</label>
+<div class="flex">
+<input type="number" placeholder="7000" class="flex-grow border-outline-variant focus:ring-0 focus:border-on-tertiary-container text-body-md p-3 bg-surface-container-lowest">
+<select class="border-l-0 border-outline-variant bg-surface-container text-on-surface text-body-sm px-4">
+<option>LBS</option>
+<option>KG</option>
+</select>
+</div>
+</div>
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant block">AXLE TYPE</label>
+<select class="w-full border-outline-variant focus:ring-0 focus:border-on-tertiary-container text-body-md p-3 bg-surface-container-lowest">
+<option>Straight Axle</option>
+<option>Drop Axle (4")</option>
+<option>Torsion Axle</option>
+<option>Custom Geometry</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-stack-lg">
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant block">HUB FACE TO HUB FACE</label>
+<div class="flex">
+<input type="number" placeholder="95" class="flex-grow border-outline-variant focus:ring-0 focus:border-on-tertiary-container text-body-md p-3 bg-surface-container-lowest">
+<select class="border-l-0 border-outline-variant bg-surface-container text-on-surface text-body-sm px-2">
+<option>IN</option>
+<option>MM</option>
+</select>
+</div>
+</div>
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant block">SPRING CENTER</label>
+<div class="flex">
+<input type="number" placeholder="80" class="flex-grow border-outline-variant focus:ring-0 focus:border-on-tertiary-container text-body-md p-3 bg-surface-container-lowest">
+<select class="border-l-0 border-outline-variant bg-surface-container text-on-surface text-body-sm px-2">
+<option>IN</option>
+<option>MM</option>
+</select>
+</div>
+</div>
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant block">TUBE DIAMETER</label>
+<select class="w-full border-outline-variant focus:ring-0 focus:border-on-tertiary-container text-body-md p-3 bg-surface-container-lowest">
+<option>3.0" Round</option>
+<option>3.5" Round</option>
+<option>4.0" Round</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+<!-- File Uploader -->
+<div class="bg-surface border border-outline-variant p-stack-lg rounded shadow-sm">
+<div class="flex items-center gap-2 mb-stack-lg">
+<span class="material-symbols-outlined text-secondary">cloud_upload</span>
+<h2 class="font-headline-md text-headline-md text-primary-container">Technical Drawings</h2>
+</div>
+<div id="drop-zone" class="border-2 border-dashed border-outline-variant rounded p-12 text-center bg-surface-container-low hover:bg-surface-container-high transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant mb-4">description</span>
+<p class="font-body-md text-body-md text-on-surface font-semibold">Drag and drop technical drawings here</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">PDF, DXF, or STEP files (Max 25MB)</p>
+<button type="button" class="mt-4 font-label-caps text-label-caps text-on-tertiary-container border border-on-tertiary-container px-6 py-2 rounded hover:bg-on-tertiary-container hover:text-white transition-all">BROWSE FILES</button>
+</div>
+</div>
+<div class="flex justify-end gap-stack-lg pt-4">
+<button type="button" class="font-body-md text-body-md text-on-surface-variant px-8 py-3 hover:underline">Save as Draft</button>
+<button type="submit" class="font-body-md text-body-md bg-on-tertiary-container text-white font-bold px-12 py-3 rounded shadow-md hover:brightness-110 transition-all">Submit Quote Request</button>
+</div>
+</form>
+</div>
+<!-- Right: Sticky Sidebar -->
+<aside class="lg:w-1/3">
+<div class="sticky top-24 space-y-stack-lg">
+<div class="bg-primary-container text-on-primary p-stack-lg rounded shadow-lg border border-primary">
+<h3 class="font-label-caps text-label-caps text-on-tertiary-container mb-stack-md">RFQ SUMMARY</h3>
+<div class="space-y-stack-md mb-stack-lg">
+<div class="flex justify-between items-start pb-stack-sm border-b border-on-primary/10">
+<div>
+<p class="font-body-sm text-body-sm opacity-60">Primary Component</p>
+<p class="font-body-md text-body-md font-bold">HD Series Axle Assembly</p>
+</div>
+<span class="font-technical-data text-technical-data text-on-tertiary-container">AX-HD-70</span>
+</div>
+<div class="grid grid-cols-2 gap-stack-md py-stack-sm">
+<div>
+<p class="font-body-sm text-body-sm opacity-60">Capacity</p>
+<p class="font-technical-data text-technical-data">7,000 LBS</p>
+</div>
+<div>
+<p class="font-body-sm text-body-sm opacity-60">Quantity</p>
+<p class="font-technical-data text-technical-data">10 Units</p>
+</div>
+<div>
+<p class="font-body-sm text-body-sm opacity-60">Hub Face</p>
+<p class="font-technical-data text-technical-data">95 IN</p>
+</div>
+<div>
+<p class="font-body-sm text-body-sm opacity-60">Type</p>
+<p class="font-technical-data text-technical-data">Straight</p>
+</div>
+</div>
+</div>
+<div class="bg-primary/40 p-stack-md rounded border border-white/5 mb-stack-lg">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-sm text-on-tertiary-container">verified</span>
+<span class="font-label-caps text-label-caps">ESTIMATED LEAD TIME</span>
+</div>
+<p class="font-body-lg text-body-lg font-bold">14-18 Business Days</p>
+<p class="font-body-sm text-body-sm opacity-60 mt-1">Standard industrial shipping included.</p>
+</div>
+<div class="flex items-start gap-stack-md p-stack-md bg-on-tertiary-container/10 border-l-4 border-on-tertiary-container">
+<span class="material-symbols-outlined text-on-tertiary-container">info</span>
+<p class="font-body-sm text-body-sm leading-relaxed">
+                            A dedicated Sales Engineer will be assigned to this RFQ for technical validation of your specific load-bearing requirements.
+                        </p>
+</div>
+</div>
+<!-- Support Card -->
+<div class="bg-surface border border-outline-variant p-stack-lg rounded">
+<h4 class="font-headline-md text-headline-md text-primary-container mb-stack-sm">Need Engineering Assistance?</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-stack-lg">Our technical support team is available for real-time consultation on custom dimensions.</p>
+<a href="#" class="flex items-center gap-2 text-secondary font-bold hover:underline">
+<span class="material-symbols-outlined">call</span>
+<span>Speak with an Engineer</span>
+</a>
+</div>
+</div>
+</aside>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg px-margin-desktop bg-primary text-on-primary mt-auto border-t border-outline">
+<div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-stack-lg">
+<div>
+<span class="font-headline-md text-headline-md text-on-primary">Axion Industrial</span>
+<p class="font-body-sm text-body-sm opacity-60 mt-2 max-w-xs">© 2024 Axion Industrial Manufacturing. All rights reserved. Precision Engineered for Heavy-Duty Performance.</p>
+</div>
+<nav class="flex flex-wrap justify-center gap-stack-lg">
+<a href="#" class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline">Terms of Service</a>
+<a href="#" class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline">Privacy Policy</a>
+<a href="#" class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline">ISO Certification</a>
+<a href="#" class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline">Global Logistics</a>
+</nav>
+</div>
+</footer>
+<!-- Success Modal State (Hidden by default) -->
+<div id="success-overlay" class="fixed inset-0 bg-primary/80 backdrop-blur-sm z-[100] flex items-center justify-center p-margin-mobile hidden">
+<div class="bg-surface w-full max-w-lg rounded shadow-2xl overflow-hidden border border-outline-variant">
+<div class="bg-on-tertiary-container h-2 w-full"></div>
+<div class="p-10 text-center">
+<div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-stack-lg">
+<span class="material-symbols-outlined text-4xl text-green-600">check_circle</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-primary-container mb-stack-sm">RFQ Submitted Successfully</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-stack-lg">
+                    Your request (Ref: #AXN-99231) has been received. Our engineering team is currently reviewing your technical specifications.
+                </p>
+<div class="bg-surface-container p-stack-md rounded text-left mb-stack-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant">NEXT STEPS</p>
+<ul class="font-body-sm text-body-sm mt-2 space-y-2 text-on-surface">
+<li class="flex gap-2">
+<span class="material-symbols-outlined text-sm text-on-tertiary-container">arrow_forward</span>
+                            Review email confirmation with tracking ID
+                        </li>
+<li class="flex gap-2">
+<span class="material-symbols-outlined text-sm text-on-tertiary-container">arrow_forward</span>
+                            Technical validation within 24 business hours
+                        </li>
+</ul>
+</div>
+<button onclick="document.getElementById('success-overlay').classList.add('hidden')" class="w-full bg-primary text-on-primary font-bold py-3 rounded hover:bg-primary-container transition-colors">Return to Dashboard</button>
+</div>
+</div>
+</div>
+<script>
+        // Micro-interaction for form submission
+        document.getElementById('rfq-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Show Success Overlay
+            document.getElementById('success-overlay').classList.remove('hidden');
+        });
+
+        // Simple drag and drop visual feedback
+        const dropZone = document.getElementById('drop-zone');
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('bg-surface-container-highest', 'border-on-tertiary-container');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('bg-surface-container-highest', 'border-on-tertiary-container');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if(files.length > 0) {
+                dropZone.innerHTML = `
+                    <span class="material-symbols-outlined text-4xl text-green-600 mb-4">check_circle</span>
+                    <p class="font-body-md text-body-md text-on-surface font-semibold">${files[0].name} uploaded</p>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Technical drawing successfully attached to RFQ.</p>
+                `;
+            }
+        });
+    </script>
+</body></html>

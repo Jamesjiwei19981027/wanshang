@@ -1,0 +1,65 @@
+# Same maintained Node release as the CI and development baseline.
+FROM node:24.22.1-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY vendor ./vendor
+RUN npm ci --registry=https://registry.npmjs.org --no-fund --audit=false
+ENV NEXT_TELEMETRY_DISABLED=1 NEXT_OUTPUT_STANDALONE=true
+COPY next.config.ts tsconfig.json ./
+COPY src ./src
+COPY public ./public
+
+# Every build argument is intentionally public. Never add server credentials.
+ARG NEXT_PUBLIC_SITE_URL
+ARG NEXT_PUBLIC_API_BASE_URL
+ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY
+ARG NEXT_PUBLIC_IMAGE_HOSTNAME
+ARG NEXT_PUBLIC_COMPANY_NAME
+ARG NEXT_PUBLIC_COMPANY_TAGLINE
+ARG NEXT_PUBLIC_SALES_EMAIL
+ARG NEXT_PUBLIC_SALES_PHONE
+ARG NEXT_PUBLIC_COMPANY_ADDRESS
+ARG NEXT_PUBLIC_BUSINESS_HOURS
+ARG NEXT_PUBLIC_WHATSAPP_URL
+ARG NEXT_PUBLIC_MAP_URL
+ARG NEXT_PUBLIC_LINKEDIN_URL
+ENV NODE_ENV=production \
+    NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
+    NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL \
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY \
+    NEXT_PUBLIC_IMAGE_HOSTNAME=$NEXT_PUBLIC_IMAGE_HOSTNAME \
+    NEXT_PUBLIC_COMPANY_NAME=$NEXT_PUBLIC_COMPANY_NAME \
+    NEXT_PUBLIC_COMPANY_TAGLINE=$NEXT_PUBLIC_COMPANY_TAGLINE \
+    NEXT_PUBLIC_SALES_EMAIL=$NEXT_PUBLIC_SALES_EMAIL \
+    NEXT_PUBLIC_SALES_PHONE=$NEXT_PUBLIC_SALES_PHONE \
+    NEXT_PUBLIC_COMPANY_ADDRESS=$NEXT_PUBLIC_COMPANY_ADDRESS \
+    NEXT_PUBLIC_BUSINESS_HOURS=$NEXT_PUBLIC_BUSINESS_HOURS \
+    NEXT_PUBLIC_WHATSAPP_URL=$NEXT_PUBLIC_WHATSAPP_URL \
+    NEXT_PUBLIC_MAP_URL=$NEXT_PUBLIC_MAP_URL \
+    NEXT_PUBLIC_LINKEDIN_URL=$NEXT_PUBLIC_LINKEDIN_URL \
+    NEXT_PUBLIC_ENABLE_STARTER_FALLBACK=false \
+    API_BASE_URL=http://127.0.0.1:9/api
+# The build does not depend on, or read, a live production database/API.
+RUN npm run build
+
+FROM node:24.22.1-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS runtime
+ARG GIT_SHA=
+ARG APP_VERSION=development
+LABEL org.opencontainers.image.revision=$GIT_SHA \
+    org.opencontainers.image.version=$APP_VERSION \
+    org.opencontainers.image.source="https://github.com/zsdadisscy/wanshang"
+WORKDIR /app
+# The standalone server runs directly with Node; package managers are build tools.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+        /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/pnpm /usr/local/bin/pnpx
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000 \
+    API_BASE_URL=http://nginx:8080/api
+COPY --from=build --chown=node:node /app/.next/standalone ./
+COPY --from=build --chown=node:node /app/.next/static ./.next/static
+COPY --from=build --chown=node:node /app/public ./public
+RUN mkdir -p /app/.next/cache && chown node:node /app/.next/cache
+USER node
+EXPOSE 3000
+# Official Next.js standalone production server. No development compilation.
+CMD ["node", "server.js"]

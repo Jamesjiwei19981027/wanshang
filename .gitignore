@@ -1,0 +1,33 @@
+# JavaScript
+frontend/node_modules/
+**/node_modules/
+frontend/.next/
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+
+# Playwright CLI artifacts (any package)
+**/.playwright-cli/
+
+# Python
+backend/.venv/
+backend/.uv-cache/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.sqlite3
+backend/media/
+backend/private_media/
+backend/staticfiles/
+
+# Environment and tooling
+.env
+.env.*
+!.env.example
+output/
+deploy/backups/
+deploy/releases/
+deploy/.locks/
+deploy/tls/
+deploy/acme-webroot/
+deploy/**/__pycache__/
+.workbuddy-ai/
+.DS_Store

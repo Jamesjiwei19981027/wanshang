@@ -1,0 +1,47 @@
+from django.urls import path
+
+from .views import (
+    AnalyticsEventCreateView, ApplicationDetailView, ApplicationListView, BannerListView,
+    CategoryDetailView, CategoryListView, ContactCreateView, InquiryCreateView,
+    PageViewCreateView,
+    ProductDetailView, ProductListView, ProductRelatedView, NewsArticleDetailView,
+    NewsArticleListView, VisitSessionCreateView, document_download_view,
+    document_list_view, filter_options_view,
+    health_view, home_view, navigation_view, site_settings_view,
+    company_profile_view,
+)
+
+urlpatterns = [
+    path("health/", health_view, name="health"),
+    path("home/", home_view, name="home"),
+    path("navigation/", navigation_view, name="navigation"),
+    path("categories/", CategoryListView.as_view(), name="categories"),
+    path("categories/<slug:slug>/", CategoryDetailView.as_view(), name="category-detail"),
+    path("product-categories/", CategoryListView.as_view(), name="product-categories"),
+    path(
+        "product-categories/<slug:slug>/",
+        CategoryDetailView.as_view(),
+        name="product-category-detail",
+    ),
+    path("applications/", ApplicationListView.as_view(), name="applications"),
+    path("applications/<slug:slug>/", ApplicationDetailView.as_view(), name="application-detail"),
+    path("products/", ProductListView.as_view(), name="products"),
+    path("products/<slug:slug>/related/", ProductRelatedView.as_view(), name="product-related"),
+    path("products/<slug:slug>/", ProductDetailView.as_view(), name="product-detail"),
+    path("filters/", filter_options_view, name="filters"),
+    path("product-filter-options/", filter_options_view, name="product-filter-options"),
+    path("documents/", document_list_view, name="documents"),
+    path("downloads/", document_list_view, name="downloads"),
+    path("documents/<int:pk>/download/", document_download_view, name="document-download"),
+    path("news/", NewsArticleListView.as_view(), name="news"),
+    path("news/<slug:slug>/", NewsArticleDetailView.as_view(), name="news-detail"),
+    path("banners/", BannerListView.as_view(), name="banners"),
+    path("site-settings/", site_settings_view, name="site-settings"),
+    path("company-profile/", company_profile_view, name="company-profile"),
+    path("inquiries/", InquiryCreateView.as_view(), name="inquiries"),
+    path("contact/", ContactCreateView.as_view(), name="contact"),
+    path("contact-messages/", ContactCreateView.as_view(), name="contact-messages"),
+    path("visit-sessions/", VisitSessionCreateView.as_view(), name="visit-sessions"),
+    path("page-views/", PageViewCreateView.as_view(), name="page-views"),
+    path("events/", AnalyticsEventCreateView.as_view(), name="events"),
+]

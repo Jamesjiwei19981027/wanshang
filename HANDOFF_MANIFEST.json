@@ -1,0 +1,1087 @@
+{
+  "format": 1,
+  "date": "2026-10-31",
+  "scope": "current tracked source plus handoff documentation; no Git history or private env",
+  "files": {
+    ".env.example": {
+      "bytes": 3137,
+      "sha256": "0cdf7de914dff36b0dc116a3b3b625b28da6bc3fe4637bef04ccf6869321a156"
+    },
+    ".gitattributes": {
+      "bytes": 238,
+      "sha256": "f3871b88d04de6b8c65c5d3aa114fa3f6bd468b11a53f1d36064b7e9722468f8"
+    },
+    ".github/workflows/ci.yml": {
+      "bytes": 4892,
+      "sha256": "cfd6e4b44a27fd944d7cee7b7a5a74a0e439caf62c569efe517862155843b75e"
+    },
+    ".gitignore": {
+      "bytes": 533,
+      "sha256": "1881612bf3a7199a662afbaea3d0e4973f8af9393c0bbf8ea3fff9f171d9671d"
+    },
+    "README.md": {
+      "bytes": 21467,
+      "sha256": "d5da39155ceb4f6f9d1738df3b3f0c94c7846b117299402cb0faeeef72d378bb"
+    },
+    "START_HERE.md": {
+      "bytes": 5056,
+      "sha256": "29b48bd7937ef36979fa11e1b8896550d05f0c088d9d0d998f9679613984b99e"
+    },
+    "VERSION": {
+      "bytes": 6,
+      "sha256": "59854984853104df5c353e2f681a15fc7924742f9a2e468c29af248dce45ce03"
+    },
+    "backend/.dockerignore": {
+      "bytes": 184,
+      "sha256": "6a78f2fbec5deb0cf0df5475be7d8386f3f9b459b1f63beb95d772667b0121d6"
+    },
+    "backend/.python-version": {
+      "bytes": 8,
+      "sha256": "57de572f10b591d6dcd9e25db9f59db260aa11f7afa3d6a4ddec4f00bb5f8838"
+    },
+    "backend/Dockerfile": {
+      "bytes": 3227,
+      "sha256": "f40f67f00191cd78b4293736d577fc3328adf73765f6063dc08232d5f4aca9ac"
+    },
+    "backend/catalog/__init__.py": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "backend/catalog/admin.py": {
+      "bytes": 27048,
+      "sha256": "041039291a239376f753addaea7dcc5aa9ebe0a9c65b5458ac172c3de36ab0ce"
+    },
+    "backend/catalog/apps.py": {
+      "bytes": 512,
+      "sha256": "5220aad861cb8ba7e074dcada50e02f42400132fac231168c5321c8f9be00ddd"
+    },
+    "backend/catalog/attribution.py": {
+      "bytes": 9328,
+      "sha256": "316564a104146d6b2ee8ef27bc6cadb5b7da9285236565a4f27e40ccd30fd884"
+    },
+    "backend/catalog/company_data.py": {
+      "bytes": 4779,
+      "sha256": "53c340b15185b5683dfd55a6d2d4c147cd98fcf9fce94f7841e026663c4c6f88"
+    },
+    "backend/catalog/context_processors.py": {
+      "bytes": 1989,
+      "sha256": "b4e5007131b69fd203f94f8e77ad424c3cc89656ddf98eb4058d98eeb56bf7e2"
+    },
+    "backend/catalog/file_security.py": {
+      "bytes": 11221,
+      "sha256": "214a35b7200f178bea0f0c4ec2c849811528305f49aa7342f5acfc91da4b8472"
+    },
+    "backend/catalog/management/__init__.py": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "backend/catalog/management/commands/__init__.py": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "backend/catalog/management/commands/configure_wanshang.py": {
+      "bytes": 1706,
+      "sha256": "b124a7ec0118f8659d3f4680b4b3fbaf893fd60cb3be03083264affa974b3f7d"
+    },
+    "backend/catalog/management/commands/replay_notifications.py": {
+      "bytes": 2441,
+      "sha256": "02a45383eb3deb56fc9b5368b9df4d33967066a0c8e06bd921f3248d754ef5b3"
+    },
+    "backend/catalog/management/commands/scan_attachments.py": {
+      "bytes": 1452,
+      "sha256": "4b400c538775f2defbbc7ac9ffea5bcc5525ce466379598921a20e4ee921b27e"
+    },
+    "backend/catalog/management/commands/seed_demo.py": {
+      "bytes": 7397,
+      "sha256": "61a485dafc9924a424805c9b392a2edddad085b36cfb89bf4d0bdb9aec88a72e"
+    },
+    "backend/catalog/middleware.py": {
+      "bytes": 7665,
+      "sha256": "5a1bb7ffb53bce7e53eac3df5cab8d8ccfa4d82c9d2b9323c816a12d75685c10"
+    },
+    "backend/catalog/migrations/0001_initial.py": {
+      "bytes": 14575,
+      "sha256": "39b5827bfaa6b1321090b2edeeb7de9d68863de982b7f7b690f866346d81865d"
+    },
+    "backend/catalog/migrations/0002_private_attachments_and_source_urls.py": {
+      "bytes": 1611,
+      "sha256": "979102a75e9f81ba0436f441601393903408e0d45f628581422973807fb4e956"
+    },
+    "backend/catalog/migrations/0003_notification_delivery_state.py": {
+      "bytes": 1336,
+      "sha256": "bd3c278254467144e03a1e7fd3d7db49353dedaa25f2e260cecc3350739acb15"
+    },
+    "backend/catalog/migrations/0004_attachment_security_and_notification_queue.py": {
+      "bytes": 1690,
+      "sha256": "9e42b585b934dbc8c8e29171bc89a5f8b77841e2bc1285d6d12ce709558debf2"
+    },
+    "backend/catalog/migrations/0005_sessions_attribution_followups_and_units.py": {
+      "bytes": 12570,
+      "sha256": "d8eab1940bd9118df1e3ce5a4b78e1ea776b5c2d5419d19c61b7835396239bcc"
+    },
+    "backend/catalog/migrations/0006_contact_message_reference.py": {
+      "bytes": 1217,
+      "sha256": "657d21175abe72e837c8dba0810ca63dc539587684706b4966d75c2d2ad8d08b"
+    },
+    "backend/catalog/migrations/0007_content_management_models.py": {
+      "bytes": 6342,
+      "sha256": "496517a94478f60698a48aa013c2cd78b1f6215928ce68f5ec05e2dc04aee02f"
+    },
+    "backend/catalog/migrations/0008_workflow_and_analytics_fields.py": {
+      "bytes": 2878,
+      "sha256": "4f60f4571da8d287027cedc0f3e18c4cba7a3222303efbc834c3339e0f62597e"
+    },
+    "backend/catalog/migrations/0009_inquiry_pipeline_statuses.py": {
+      "bytes": 650,
+      "sha256": "63d419c8d5146e1a90e631f7d6a5ed3ff9098a9713ca3fc50ea723d972d76ba3"
+    },
+    "backend/catalog/migrations/0010_resource_taxonomy.py": {
+      "bytes": 766,
+      "sha256": "7a1ecb39b3972c0c43206640e9014c09aa0936bc47f544a1bd4075c89152ac2f"
+    },
+    "backend/catalog/migrations/0011_document_categories.py": {
+      "bytes": 641,
+      "sha256": "b2456487c51824ea8b94a68baa33b1ae58f0f30119bb85247c43c6354a645835"
+    },
+    "backend/catalog/migrations/0012_publishing_and_notification_delivery.py": {
+      "bytes": 3383,
+      "sha256": "9995be14e500ed6f4a153f56f5c26673f026c48a5c99a91da5c9939742f0679a"
+    },
+    "backend/catalog/migrations/0013_canonical_product_specs.py": {
+      "bytes": 10784,
+      "sha256": "9f250bea5fec9ed57dabada26c26aa339d3ea1686bae333d80d71216f8e23152"
+    },
+    "backend/catalog/migrations/0014_secure_public_external_urls.py": {
+      "bytes": 4806,
+      "sha256": "7b8811873fdd3f3f2e20b1d0ae466b430ab7fe4cb47e4ed1e4e7e5ddf76a7c52"
+    },
+    "backend/catalog/migrations/0015_protect_product_document_files.py": {
+      "bytes": 3956,
+      "sha256": "9ee60b6b045dda2ea7fa39ed9c251d538c606378a4b66a55e5cdaf593e54bad9"
+    },
+    "backend/catalog/migrations/0016_remove_public_inquiry_attachment_copies.py": {
+      "bytes": 10204,
+      "sha256": "1f1c5fd41ea4129c333f124545b00d7480bb6ab6448a0c6d2ec40232af91e9b2"
+    },
+    "backend/catalog/migrations/0017_rename_resource_articles_to_news.py": {
+      "bytes": 510,
+      "sha256": "3cc05890981f1f1d42806cd67b782f40e25ee0adda25edc25b9edc025cc38326"
+    },
+    "backend/catalog/migrations/0018_revalidate_public_external_urls.py": {
+      "bytes": 3355,
+      "sha256": "b0528c7110b5d1c85a4c4ef01429d3d4f29d66d2ddfceaf0725da518fc772791"
+    },
+    "backend/catalog/migrations/0019_alter_banner_button_link_and_more.py": {
+      "bytes": 733,
+      "sha256": "7880d21ca0ae8cf064eb07cd6625af08ff3547f2222f8bddece5e41ff066f2a2"
+    },
+    "backend/catalog/migrations/0020_company_profile_and_submission_retries.py": {
+      "bytes": 4153,
+      "sha256": "ebaa32790090ebc82c6080de51335f4f2d31e35715d4df3252a2466bb1840071"
+    },
+    "backend/catalog/migrations/0021_company_contact_identity.py": {
+      "bytes": 1198,
+      "sha256": "b8621bab3d99d16366e323a28f5d220c7a001f21e2200be83fbb2fbd6620018b"
+    },
+    "backend/catalog/migrations/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "backend/catalog/models.py": {
+      "bytes": 37989,
+      "sha256": "80d16c6a7814e0d039338aefd397284b41f94088c6405abb5a0c8d96de0e1c9e"
+    },
+    "backend/catalog/rate_limits.py": {
+      "bytes": 3376,
+      "sha256": "10cec59f3519363864c56e3e3b3c77a12226163356eecaceb59a29f06ed02ef2"
+    },
+    "backend/catalog/renderers.py": {
+      "bytes": 3021,
+      "sha256": "1e6308b6a6a2da16b9ccb46ca2bba2a46d273d81602f2acd1541c2fb79b73656"
+    },
+    "backend/catalog/serializers.py": {
+      "bytes": 45760,
+      "sha256": "7553b15c61f56adead9c212cf9cdb8cef99edf468d63912a5ccb14113c252525"
+    },
+    "backend/catalog/specification_rules.py": {
+      "bytes": 5318,
+      "sha256": "c4a3787fd475b4d490d6a722da259fd8594b9a871a5e1a5c7cfda3442770d34b"
+    },
+    "backend/catalog/static/catalog/admin/axleforge-admin.css": {
+      "bytes": 10592,
+      "sha256": "43123c6105f007ba97e4a2c75c782dfbb1ba93e20ad5355ed5903e8fd0482e68"
+    },
+    "backend/catalog/static/catalog/admin/favicon.svg": {
+      "bytes": 293,
+      "sha256": "3b6307c245621e7f089515fd3bbac603478626fb35526a910852746c28aeab69"
+    },
+    "backend/catalog/storage.py": {
+      "bytes": 544,
+      "sha256": "2bb974ba8b898eb45259c996ffef8ba689c57e83635f3f443e44c7f8be9dad65"
+    },
+    "backend/catalog/submissions.py": {
+      "bytes": 2808,
+      "sha256": "13e7896ff2d3a911e73f696ae6b9862c97d773849e33d46432d3ded78be08a2e"
+    },
+    "backend/catalog/tasks.py": {
+      "bytes": 16234,
+      "sha256": "9ad0a0a544d6639475cf2578bf55e42a680de8367e39a0a0ccee914ef97db185"
+    },
+    "backend/catalog/test_admin_action_permissions.py": {
+      "bytes": 8965,
+      "sha256": "155802983813733a698bd24674e7cd1c919a4b7311b48981de314f50850207af"
+    },
+    "backend/catalog/test_admin_login_security.py": {
+      "bytes": 13911,
+      "sha256": "b00509075b19ad7de0270a2d98fc4d8f5a4c0e810e45a40f0811eb71a9b48d81"
+    },
+    "backend/catalog/test_atomic_rate_limits.py": {
+      "bytes": 9474,
+      "sha256": "c25a0e48d73382c7b10e1ba83cebbf78582779997b16709d8b0f438efd6a8a1b"
+    },
+    "backend/catalog/test_clamav_scan.py": {
+      "bytes": 14337,
+      "sha256": "eb2ae447db36dac6063105215dd29857a84b4a3d1fab008cb5040d4b39fb90f9"
+    },
+    "backend/catalog/test_company_profile.py": {
+      "bytes": 5960,
+      "sha256": "c3c7c00f7964df3f229111ced192afc9eb35c7830a8c9c91dbe86c5b72ed9e86"
+    },
+    "backend/catalog/test_image_decoder_security.py": {
+      "bytes": 4212,
+      "sha256": "e21cd719f265e6322017b5294326ac5c035bbf29b6689d0f72b272bb44fd0fe0"
+    },
+    "backend/catalog/test_json_validation_limits.py": {
+      "bytes": 5388,
+      "sha256": "174d2e7f0c5b474cf5507134fff8b2ec5d7b09f2203c520302c919196d2f3490"
+    },
+    "backend/catalog/test_mounted_security.py": {
+      "bytes": 8806,
+      "sha256": "73877f8c935bda75484b287075c3e2f251706251698087a7ed72367237e601f6"
+    },
+    "backend/catalog/test_news_listing.py": {
+      "bytes": 3290,
+      "sha256": "bf35b5b654ba78467b6c1517fd01fd57440f6f61edb747f5cd439367174d3623"
+    },
+    "backend/catalog/test_public_endpoint_security.py": {
+      "bytes": 9493,
+      "sha256": "1d05d48462d105297d18514bac2df3ba80e036e9a99e84e560c4a8656241c6f8"
+    },
+    "backend/catalog/test_public_form_throttling.py": {
+      "bytes": 14378,
+      "sha256": "081a7f41584cb22cd1b9b92af0090dbbad37b475e2b6d3d947d028f984c9f99a"
+    },
+    "backend/catalog/test_request_security_boundaries.py": {
+      "bytes": 7139,
+      "sha256": "831a1209bf47dcd0ae62976bd9a26387feee6843fb50edad909c730330d483b1"
+    },
+    "backend/catalog/test_site_setting_permissions.py": {
+      "bytes": 5095,
+      "sha256": "cf59b452f05ec77604b5155f3ee45c15343a2c7d9e40410ce553d01c8956c605"
+    },
+    "backend/catalog/test_specification_security.py": {
+      "bytes": 5164,
+      "sha256": "9220ef621fe08eb0e4eb5a09abb6b5ecaeddd37a38b214d8d8f8edf5787bd20e"
+    },
+    "backend/catalog/test_submission_idempotency.py": {
+      "bytes": 8360,
+      "sha256": "9d98536fc1570681645b65351ef78afca3299d88406e0675ece51153094772b9"
+    },
+    "backend/catalog/test_turnstile_replay.py": {
+      "bytes": 4334,
+      "sha256": "b10bbc63d423bc094d45c25f0a536d5b4ab6867e451b45271581220586a9e32b"
+    },
+    "backend/catalog/test_upload_limits.py": {
+      "bytes": 12127,
+      "sha256": "16cf472d09cf41f20fd5361648c40cd5e53ceb98115d08aecbb835836fb67caa"
+    },
+    "backend/catalog/test_wanshang_configuration.py": {
+      "bytes": 3485,
+      "sha256": "f37fb9822b3cb898a81b481a6827aa6bfbb84a8bd6dff1625e4cab463d252332"
+    },
+    "backend/catalog/tests.py": {
+      "bytes": 186792,
+      "sha256": "021ce706611c11184d45b6bc6815a42356cc48f414c6c329cb959379ea208e0f"
+    },
+    "backend/catalog/throttles.py": {
+      "bytes": 2240,
+      "sha256": "6a32b43919653ab75536e5f24fccf6e10c2b8e42e229f8fa10c5ffd8432640f1"
+    },
+    "backend/catalog/turnstile.py": {
+      "bytes": 4419,
+      "sha256": "a90bd88e7b8f518109d583f556d9e78ccb03f89b522a8a5ab2ef99b71958afbf"
+    },
+    "backend/catalog/upload_limits.py": {
+      "bytes": 5915,
+      "sha256": "20ddfcfeacdd271450b829070b845aef0492cdf381ac5019f66e854d1f7eeabc"
+    },
+    "backend/catalog/urls.py": {
+      "bytes": 2705,
+      "sha256": "28a8a1a5bee51c5fa004375d563275f36e06b729b692b1cceeb70206ffa0e44c"
+    },
+    "backend/catalog/validators.py": {
+      "bytes": 3394,
+      "sha256": "3c80b283b9672560b54c9f045c8a5821b1d9cc0f6537151d9231db03afe1b0d5"
+    },
+    "backend/catalog/views.py": {
+      "bytes": 40603,
+      "sha256": "70b600cc96545243f230c0d977b9de5624ba8ac83328306de424482a4999c6b0"
+    },
+    "backend/config/__init__.py": {
+      "bytes": 66,
+      "sha256": "ab1c477d185c97ed4a39220d9f75ed5f3168e3b6f53acf82c68b9536410e8258"
+    },
+    "backend/config/asgi.py": {
+      "bytes": 245,
+      "sha256": "7535a4119a01819d008f3bdca14ca9fcd634630506bb05176517863ad0c8c117"
+    },
+    "backend/config/cache.py": {
+      "bytes": 1004,
+      "sha256": "d71c7a644cf46140166d03d971702c0168ea36af7daf058628bebf74f9ed8a6c"
+    },
+    "backend/config/celery.py": {
+      "bytes": 229,
+      "sha256": "0341996b02a64d819de1793fd011cdafa09b511fa7858979af1032b85fb129f7"
+    },
+    "backend/config/clamav_scan.py": {
+      "bytes": 13127,
+      "sha256": "3424df60b9f0b05bcc0c443d3949cfdedc8a5e0c514c47d5feb6847c50eb87aa"
+    },
+    "backend/config/connections.py": {
+      "bytes": 1734,
+      "sha256": "d64392d3abea498ab013d9ae91593895724c3eb18149ed78a26d366495d69c42"
+    },
+    "backend/config/runtime_security.py": {
+      "bytes": 4543,
+      "sha256": "57982615b55e55ed8bf359eb512d63623dd88bdd1e6736e7c3c0341790257044"
+    },
+    "backend/config/settings.py": {
+      "bytes": 21488,
+      "sha256": "f48114d52119ccc734da1a93ce66bc246075cdb52492982e0d7ecc98a62a67b4"
+    },
+    "backend/config/test_cache_security.py": {
+      "bytes": 5469,
+      "sha256": "0b68bee7a2d9018fd9fa3154e99c5ee96de7e54b4ea6cd5a3a7dd429f443a29e"
+    },
+    "backend/config/test_connections.py": {
+      "bytes": 6321,
+      "sha256": "69fadb22f25c67a76627626f7f95de27ea4e00b32685aa60bc4fb9bf8bebdc72"
+    },
+    "backend/config/test_security_settings.py": {
+      "bytes": 3884,
+      "sha256": "03b85265a9f79860723412b817394b555fc7d73ec37c20cd36ccbc738d05aa5f"
+    },
+    "backend/config/urls.py": {
+      "bytes": 1175,
+      "sha256": "c0e6530145e2284f496937cfca763dafecdfe8a50f3c7fb6cfd060afb298212b"
+    },
+    "backend/config/wsgi.py": {
+      "bytes": 167,
+      "sha256": "0a7693d31b081f83c2827ab601799bfc96c8f991b29843f9470bceaaff4415f1"
+    },
+    "backend/manage.py": {
+      "bytes": 345,
+      "sha256": "c3b2da1295fdbfe34093fc7f9c1b60ad8b1b0e35bbc6ce5c253b89d301ec3575"
+    },
+    "backend/pyproject.toml": {
+      "bytes": 1720,
+      "sha256": "6a3bd0b40ac23fa469a5712c79a6f0a644b7c0fbe2064e77f06c450af712b72d"
+    },
+    "backend/templates/admin/base_site.html": {
+      "bytes": 1795,
+      "sha256": "76768ea5e7b999fad9cc50e1b974901e3b0651c1f4db6e303ea88d3826a7ce2d"
+    },
+    "backend/templates/admin/index.html": {
+      "bytes": 4783,
+      "sha256": "5a10bb017a85e19a57362398685bc5eb1b979aed2326967fcb4959d271d11218"
+    },
+    "backend/templates/admin/login_throttled.html": {
+      "bytes": 506,
+      "sha256": "34cdb27ef644eaf50bc8e1278a53150fa286b3f3e30c38c33aad558654a6fa90"
+    },
+    "backend/uv.lock": {
+      "bytes": 26246,
+      "sha256": "15db6243451818db4196e774b06a8138881d9ee4324a7df36a51a611c8a4ac7a"
+    },
+    "deploy/bin/backup.sh": {
+      "bytes": 1628,
+      "sha256": "e8183eb6d598ce2a8bfa889c2b230854b86fe246bf2fc39fa63cee56fbae8b76"
+    },
+    "deploy/bin/backup_manifest.py": {
+      "bytes": 5669,
+      "sha256": "e4fa467f23072a3d5c5882d371980c0510527795331e2e211c0d459e2310e869"
+    },
+    "deploy/bin/common.sh": {
+      "bytes": 6176,
+      "sha256": "1625e31350f3c3d4f2e498952c23eb6575363f46fea656e66d5610dde94ae77e"
+    },
+    "deploy/bin/media_archive.py": {
+      "bytes": 7905,
+      "sha256": "88690438bdfe95bdf41d036be04dc005327163ae7ea570a07fc914d076769dfd"
+    },
+    "deploy/bin/migration_guard.py": {
+      "bytes": 1100,
+      "sha256": "ffcd5e9931230d08a6894900c1e4afa823cbecd1c69f237f983beba36aef9380"
+    },
+    "deploy/bin/release_record.py": {
+      "bytes": 3502,
+      "sha256": "8a8da0d8f5030ae79845a53f427d331745ad2b1f893a7907f02377d2e23368b1"
+    },
+    "deploy/bin/renew_tls.py": {
+      "bytes": 4957,
+      "sha256": "ab24e3f0ea9ef49bd5dfc378ed1a8d86816ca15cd298aa05eb89915c656a910b"
+    },
+    "deploy/bin/restore.sh": {
+      "bytes": 1824,
+      "sha256": "d2e083d5942a159a35c1054690a2f0a81545fb73b4530ccd663ddefc326691b7"
+    },
+    "deploy/bin/start.sh": {
+      "bytes": 3591,
+      "sha256": "a6da3716800a1e0486a1d02861280a7644c439f040e3ea97acf486e476b82ff1"
+    },
+    "deploy/bin/status.sh": {
+      "bytes": 227,
+      "sha256": "1aacf84021d400e9d94f18ef93b8883602e9c24bd8cb5cd8d29440f840b2daf0"
+    },
+    "deploy/bin/stop.sh": {
+      "bytes": 356,
+      "sha256": "46c98bb47ab18a7042ac013af5560d2186d36870be93d8fdbaac65a8581a0c1b"
+    },
+    "deploy/bin/update.sh": {
+      "bytes": 145,
+      "sha256": "f4dfe0a43d078d9390551616f7d03ba8c714a4a844119c0f4e884ba40aae04a7"
+    },
+    "deploy/clamav/clamd.conf": {
+      "bytes": 829,
+      "sha256": "602b39e74133883e47886b4d60146accd1d999ca04a18eac17ba4b212fdaf5a8"
+    },
+    "deploy/clamav/freshclam.conf": {
+      "bytes": 541,
+      "sha256": "5b6a5a8381f2896f02d2caf7540ed225ec2e32cb0cd5a6af9f45077ef88075d0"
+    },
+    "deploy/compose.production.yml": {
+      "bytes": 14076,
+      "sha256": "e40955f7b7a47d005f4bcfb7532c7b765e3c6971cfb97bc2374f28efb5db0633"
+    },
+    "deploy/configure.py": {
+      "bytes": 17487,
+      "sha256": "f9f2b2527ee2f4590f54e02c6ae978be9cb56ef42a491975ca42ea65542e6ccb"
+    },
+    "deploy/env.production.example": {
+      "bytes": 2026,
+      "sha256": "94b2106411bb53dbedbc4fb04490d7b1a7f97b5cf0ed939b0af2fafc73c1dfb4"
+    },
+    "deploy/nginx/Dockerfile": {
+      "bytes": 568,
+      "sha256": "99f34b74c2ba319fb2f9b8a587bb2b341a18307fb3b68c8b0aa1bac299daa3ba"
+    },
+    "deploy/nginx/cloudflare-realip.conf": {
+      "bytes": 915,
+      "sha256": "e7e4be7f7f975a7a7b55e2385957d2b08dfe738ef2bb191e06c6325536d0505e"
+    },
+    "deploy/nginx/direct-realip.conf": {
+      "bytes": 71,
+      "sha256": "dc1d7d7e6b796d2f4e0108c2dff52bfa771e061ab152d9adf19009bcb1a1bd9f"
+    },
+    "deploy/nginx/entrypoint.sh": {
+      "bytes": 244,
+      "sha256": "9f8455f1044ff8105ac23d866f58ceb1e5158f4b09901427f8c9a6b1c70224a5"
+    },
+    "deploy/nginx/nginx.conf": {
+      "bytes": 1556,
+      "sha256": "4d026922b28c3834155c2e79ed2ce4f45bde5a8b791faf113fd5966d5b953902"
+    },
+    "deploy/nginx/templates/default.conf.template": {
+      "bytes": 2820,
+      "sha256": "18d65e5247213c3eead1b25946dc706a3a77d7b78a32c8413a909c8bf5b2de6d"
+    },
+    "deploy/nginx/templates/includes/api-proxy.conf.template": {
+      "bytes": 443,
+      "sha256": "12569296e584881a07854388d985350800764c71d580758366700b02d827d23d"
+    },
+    "deploy/postgres/init-app-role.sh": {
+      "bytes": 1845,
+      "sha256": "6620901238f9dcd135973bd43b4c54bc3eac0e7b8aa44298b83e24660b41e909"
+    },
+    "deploy/test_configure.py": {
+      "bytes": 7337,
+      "sha256": "27bd01ff738550f173aa02951ae9aef8a82f80bbb6ab85fdb363ef2533c35647"
+    },
+    "deploy/tests/check_compose_operations.py": {
+      "bytes": 5439,
+      "sha256": "dd61bbef04757e5a66919544800afeebad16c0455fc6de17ba64463fa1e128ba"
+    },
+    "deploy/tests/check_postgres_role.py": {
+      "bytes": 7358,
+      "sha256": "4015b6d7b9316bdb1cbd6d21941f1c0199507bf1f68af89b2cb58d24b2b9b612"
+    },
+    "deploy/tests/mock_docker.py": {
+      "bytes": 4566,
+      "sha256": "0a2db1e71816789822f62cb6b3749aaf39b15de936777c3ed5a0283995609dd6"
+    },
+    "deploy/tests/test_operations.py": {
+      "bytes": 18769,
+      "sha256": "037102e6c12d08a454ee2019c2392a3476900ee6a62a560081935c8a1eda6db2"
+    },
+    "docker-compose.yml": {
+      "bytes": 5407,
+      "sha256": "f4616a3f31564472df5a7211deef4e093fa1f01ec55afa0007b3e266ce129b6a"
+    },
+    "docs/AI_INTEGRATION.md": {
+      "bytes": 6591,
+      "sha256": "2ed943f8d9dd35e0e85a822b9597f4439045da464c0b9abca113048c8e4cad8b"
+    },
+    "docs/linux-deployment.md": {
+      "bytes": 29694,
+      "sha256": "e1f7d1b662061630998056f535c90407108f49a1d33910c83732766a47a005ae"
+    },
+    "docs/security-recheck-2026-10-24.md": {
+      "bytes": 13604,
+      "sha256": "5534dd08b5a96a2caa93812217a4806a84c09dace9406fa9e9426d5104c068ca"
+    },
+    "docs/security-remediation-2026-10-24.md": {
+      "bytes": 11615,
+      "sha256": "77efb6ff11381893057e8efdccd47a477621311e62e8bf548f79543b4e17d020"
+    },
+    "docs/security-review-2026-10-24.md": {
+      "bytes": 12963,
+      "sha256": "1134213ff234b9809454de46962501474abd04a9cfc21f1245bef74b532fc326"
+    },
+    "docs/security-risk-assessment-2026-10-24.md": {
+      "bytes": 12791,
+      "sha256": "66ab9c1ead5de4bdaec448716f4b40657fabdc6b62d37999938c1278ccd4b913"
+    },
+    "frontend/.dockerignore": {
+      "bytes": 109,
+      "sha256": "aab52ff6502819fe7d5e28dca094b164b7b010d1e6a14e871a963b3f73620e72"
+    },
+    "frontend/AGENTS.md": {
+      "bytes": 679,
+      "sha256": "063098f6cb31bb44c6f8fbea25b3876de7ee1e5f7d00a50dbab506f6415eb7f0"
+    },
+    "frontend/Dockerfile.production": {
+      "bytes": 3059,
+      "sha256": "625833c1a7d767130bdb9e1a5562e3fd762e4e9584c37d5894e84009c9db0659"
+    },
+    "frontend/eslint.config.mjs": {
+      "bytes": 225,
+      "sha256": "317f939481421fbb15d7b27640256b722ed824b9d90b124c881ac44ff8e693ac"
+    },
+    "frontend/next.config.ts": {
+      "bytes": 8793,
+      "sha256": "90d9812c2832880ddb9cc4a2b139751fc8107bf0b5afff34a744f1fee8300c14"
+    },
+    "frontend/package-lock.json": {
+      "bytes": 215056,
+      "sha256": "b2bc50d1c22ced80ce0d2e6421def20a520dd344154a5dd9edf1853bcad34ad8"
+    },
+    "frontend/package.json": {
+      "bytes": 859,
+      "sha256": "29ba4f125b5498bb7af585fc7d816734ca296c4e417314bf6f2bad082f9f6d40"
+    },
+    "frontend/public/images/agricultural-trailer.svg": {
+      "bytes": 1103,
+      "sha256": "53bd015bb184eafdb141fab31e1d20f64f67b95b2a4461b7a23d42b474691d5e"
+    },
+    "frontend/public/images/axle-assembly.svg": {
+      "bytes": 1759,
+      "sha256": "fd8665f14ddfac60cfc7697aed5efa482449402dd61dc18822b4fe76561c0a49"
+    },
+    "frontend/public/images/brake-assembly.svg": {
+      "bytes": 1411,
+      "sha256": "1ba2c7d499a7f9178cae45d84ce2d4307929faede0640c47199e99d5250df82f"
+    },
+    "frontend/public/images/hauler.svg": {
+      "bytes": 1288,
+      "sha256": "cb04c14718b43c2021974c2dafd29a845e4c07eb57b701845a4002d13ea41358"
+    },
+    "frontend/public/images/marine-axle.svg": {
+      "bytes": 1167,
+      "sha256": "26d6a10650bc2b79f9ce17e087304a43f46b030145a750a9fe8100529383e44b"
+    },
+    "frontend/public/images/workshop.svg": {
+      "bytes": 1645,
+      "sha256": "a0c08fbdccf1752cd10a31799c48c5e5b35af8ef51452ca93a1f629899e18f41"
+    },
+    "frontend/src/app/about/page.tsx": {
+      "bytes": 5749,
+      "sha256": "f41547797a66280192b50f73245855e31d1e09fcfbfe4c8ded07ec01c42496ec"
+    },
+    "frontend/src/app/applications/[slug]/page.tsx": {
+      "bytes": 4944,
+      "sha256": "e69af294f3874accb9bc3d095f8c24dcec80e21acf9f95d6a9177ecd60b42e76"
+    },
+    "frontend/src/app/applications/page.tsx": {
+      "bytes": 2591,
+      "sha256": "79b422cce84cd280a862fd39538d4ad3c5ff144690985bdda2cd517583f424f3"
+    },
+    "frontend/src/app/contact/page.tsx": {
+      "bytes": 2828,
+      "sha256": "96e01a9d7e4a56433dc69bac66382db3f075d16a8ac767bc9aca11046c76c51c"
+    },
+    "frontend/src/app/cookie-policy/page.tsx": {
+      "bytes": 8156,
+      "sha256": "d6736e9ad1c21129d01d1eb5ff5f5c81bde6b76b246f6145ce1ebba970f2510d"
+    },
+    "frontend/src/app/downloads/page.tsx": {
+      "bytes": 815,
+      "sha256": "8c4002db3da81e3ac1754e92fbbbc5923b9d8ec525f95c4e5167280f8b77cddb"
+    },
+    "frontend/src/app/error.tsx": {
+      "bytes": 773,
+      "sha256": "24840752a32051df73544405dca7cd42797e77a9aff548f3e3b634528ad8e7ca"
+    },
+    "frontend/src/app/faq/page.tsx": {
+      "bytes": 5066,
+      "sha256": "462116531e4bd4f6d3857885127a33ec5d3dd12507e1a38b5fd3c501f4d17f74"
+    },
+    "frontend/src/app/global-error.tsx": {
+      "bytes": 765,
+      "sha256": "d207a085c004dd87536443b94e11fe131e35eb557c9e948885bf0a7b7c4b46ab"
+    },
+    "frontend/src/app/globals.css": {
+      "bytes": 48486,
+      "sha256": "2a170f96c3d2cfe55809451786914d10367f053012cf65da335de0f3faeeb7ae"
+    },
+    "frontend/src/app/icon.svg": {
+      "bytes": 293,
+      "sha256": "915818a7261a1f041e3d6a9d8003d50e92cadcd2ea5db8284ffebe9ead65c789"
+    },
+    "frontend/src/app/layout.tsx": {
+      "bytes": 2638,
+      "sha256": "87aca3fc23b815f4081922995e24855413467b2f6c4496a1bbd3428077fff6d8"
+    },
+    "frontend/src/app/llms-full.txt/route.ts": {
+      "bytes": 2758,
+      "sha256": "f1116f8d42474c18ee86fe4731401905989fa45bf2aa7f9a6819b978bd549a11"
+    },
+    "frontend/src/app/llms.txt/route.ts": {
+      "bytes": 3186,
+      "sha256": "11c940ae0fbf04ffbe06d5c9610a46de9eb6725d7cce1c410bdbf94842731a1f"
+    },
+    "frontend/src/app/loading.tsx": {
+      "bytes": 851,
+      "sha256": "d566b86cbf676eafdc71e127ecb37fce67ca312de57d01e07a4bf728c3e2eec0"
+    },
+    "frontend/src/app/news/[slug]/page.tsx": {
+      "bytes": 4512,
+      "sha256": "31b942a406225c95e4c82929e28f8d150eba9e2a3b943a0d3d888d7b06e70875"
+    },
+    "frontend/src/app/news/page.tsx": {
+      "bytes": 1006,
+      "sha256": "1ea541d6d2b318db7feda1d14fbb6e264c958b597953483d69ef0e48980c6f05"
+    },
+    "frontend/src/app/not-found.tsx": {
+      "bytes": 706,
+      "sha256": "fb548b51b070f7948b319f2e32b7b8ba6c4474f70bb95082e5a540bb17a99993"
+    },
+    "frontend/src/app/page.tsx": {
+      "bytes": 10320,
+      "sha256": "a4e82a65b7cf58aa23dcd6c8f955cdf071eac31fcdbc201fb3ca6f1e9aa12750"
+    },
+    "frontend/src/app/privacy-policy/page.tsx": {
+      "bytes": 10091,
+      "sha256": "f2e9d4031ab25f1980543a438b57bdda6dc1fb8c4b1c639848b9018b97e97889"
+    },
+    "frontend/src/app/products/[slug]/[productSlug]/page.tsx": {
+      "bytes": 636,
+      "sha256": "2c28d014cd1a29a8255a52e212c66902363c2ed65d071fc32768216eab3a63e2"
+    },
+    "frontend/src/app/products/[slug]/page.tsx": {
+      "bytes": 2867,
+      "sha256": "a5b873df396f11996b653dcad6a2e8058f33f55a77c163b752e36f13bb9a434e"
+    },
+    "frontend/src/app/products/page.tsx": {
+      "bytes": 1313,
+      "sha256": "109cf713ee0fb6cf0a9706143bbfa95510e247e8a04c0b0b6f75a33390228913"
+    },
+    "frontend/src/app/products/trailer-axles/page.tsx": {
+      "bytes": 1975,
+      "sha256": "698fab3c1ed897688cae7bb71c763e1c5f3c14abfcc535387f2163ee8b5efc4a"
+    },
+    "frontend/src/app/request-a-quote/page.tsx": {
+      "bytes": 2795,
+      "sha256": "6e60ea9319cb2be4332c031679d80dece7c8816d479a2784201a56e3aae90259"
+    },
+    "frontend/src/app/robots.ts": {
+      "bytes": 839,
+      "sha256": "e658daa7a1e327bb8883a38b6b50591840f9933d70e7a543708cc86f4fce764f"
+    },
+    "frontend/src/app/search/page.tsx": {
+      "bytes": 4755,
+      "sha256": "4a9fec52b89a1e4838b110b17e3c32719215d649492f664b418d0b76c492ea3d"
+    },
+    "frontend/src/app/sitemap.ts": {
+      "bytes": 1805,
+      "sha256": "9a784fab90bfe7887e01f8b814141f8d7cef7fd412c42969ef343a19f9922a78"
+    },
+    "frontend/src/components/AttachmentInput.tsx": {
+      "bytes": 1733,
+      "sha256": "2f2523e2d6e2497bc20a92060d8f00cf7008a2add54f7ddade3b4b6145b43dc9"
+    },
+    "frontend/src/components/BackToTop.tsx": {
+      "bytes": 563,
+      "sha256": "b5a3c17159b8b6138a0dd864f54de3198945536941d529bedf96b6361e26ba86"
+    },
+    "frontend/src/components/ConsentAnalytics.tsx": {
+      "bytes": 3170,
+      "sha256": "3c30ab192d77d25a94e825c502e5a9856147cf1e3054e2c227b8157bc8013fd2"
+    },
+    "frontend/src/components/ContactForm.tsx": {
+      "bytes": 4950,
+      "sha256": "4ae45d53a4173468f1322f7c54e171f63e1b561f77b393e2a400f685e9f73cc2"
+    },
+    "frontend/src/components/CookieBanner.tsx": {
+      "bytes": 2305,
+      "sha256": "982c2928b0348f364a1389e099d6ac4d7dbfffe4ba8f2010cd35e66c8000245a"
+    },
+    "frontend/src/components/DocumentDownloadLink.tsx": {
+      "bytes": 483,
+      "sha256": "2d8a508dd8ecfba9f29b2b8fc0648e2f44442675aa6eefa355719f849db01e06"
+    },
+    "frontend/src/components/DownloadsBrowser.tsx": {
+      "bytes": 7266,
+      "sha256": "88ff333bcc5faab09f1cec5a9107ff9f06bf5415ee66aab91c9c7500c590cd6a"
+    },
+    "frontend/src/components/FloatingContact.tsx": {
+      "bytes": 1000,
+      "sha256": "0358d915d84df78162ba73ac4acf95fcd9a8728309145680d47e1dfb44f67ea4"
+    },
+    "frontend/src/components/Footer.tsx": {
+      "bytes": 2740,
+      "sha256": "92941e610e2d5ab7b78d7012a3fd4ba9d34e9789b954cf43573e6ae135e32d3d"
+    },
+    "frontend/src/components/Header.tsx": {
+      "bytes": 4982,
+      "sha256": "62f6c19a5b15803a9f2b4a74995be4933bdd76b869e363043ec0a4202993c251"
+    },
+    "frontend/src/components/HeroCarousel.tsx": {
+      "bytes": 6718,
+      "sha256": "397d15d5b5f8bff4521df5e709332e854616a70bc979fe7b1b573325bb259a97"
+    },
+    "frontend/src/components/NewsBrowser.tsx": {
+      "bytes": 3647,
+      "sha256": "6f96f157dd530976562fea162c6d6ef72d1ee70e5774344fe6f4aec9529e130d"
+    },
+    "frontend/src/components/PageHero.tsx": {
+      "bytes": 478,
+      "sha256": "5b81c35514ab80fe9a103b5f5ddee78337e66c422ab3bc540270a54b868db642"
+    },
+    "frontend/src/components/PageViewTracker.tsx": {
+      "bytes": 579,
+      "sha256": "a68fa9901b08c4de4fbca219fd637f20aa1d1b15032bf3374df0564f3aa9cff5"
+    },
+    "frontend/src/components/ProductCard.tsx": {
+      "bytes": 3048,
+      "sha256": "a58c3057fe10892a5459535684dca1176312c927af80949b92fd75e9426e9a14"
+    },
+    "frontend/src/components/ProductCatalog.tsx": {
+      "bytes": 36888,
+      "sha256": "71a6fd362f87256ffe2344967ee245bc05abe146d911ec9e52ac61e6910cbb87"
+    },
+    "frontend/src/components/ProductDetailActions.tsx": {
+      "bytes": 1845,
+      "sha256": "af0cbfd98f9260ac4ca76d4f89a8c67a19835e6dbf1bdf64ea472ecda5615858"
+    },
+    "frontend/src/components/ProductDetailPage.tsx": {
+      "bytes": 12298,
+      "sha256": "28d4c9d74afc581fc817abb08c461a06f3242f6a2fb3464ff3f1fd9a1c5603d0"
+    },
+    "frontend/src/components/ProductGallery.tsx": {
+      "bytes": 3571,
+      "sha256": "fc0346eef87ac8593c179aeb4e5f69cad7af5afd8afc18cfbcc5ab5e22d6a779"
+    },
+    "frontend/src/components/ProductInquiryForm.tsx": {
+      "bytes": 7069,
+      "sha256": "a48dd340a53a1e905d3e1c0ced9c3dff7c8d5dbfdb18c2c3aee554c25638f20c"
+    },
+    "frontend/src/components/RFQForm.tsx": {
+      "bytes": 20238,
+      "sha256": "1f23911404292ed2931c5068d0e25f1f963e92bd20a5d11ae3bf7d8d58d482d3"
+    },
+    "frontend/src/components/RfqSummary.tsx": {
+      "bytes": 2358,
+      "sha256": "b7a1cab043477e64369a548cc51ce575a68552009429c8cd337400ecd38eb917"
+    },
+    "frontend/src/components/RfqToast.tsx": {
+      "bytes": 1040,
+      "sha256": "e7bfe7f06f6e24dc193abbca678c90fdb136a433f9f1e31a7bdb9a1471065dcd"
+    },
+    "frontend/src/components/SearchEventTracker.tsx": {
+      "bytes": 747,
+      "sha256": "b675c9a026c42893d059c449861e3996326f15c835847e6bde21a9103c8e8056"
+    },
+    "frontend/src/components/SiteConfigProvider.tsx": {
+      "bytes": 498,
+      "sha256": "0e6eca77a53654cafbe4a1c5de339a006db0eab29706a3a5dd17663c76db6e33"
+    },
+    "frontend/src/components/TrackedContactLink.tsx": {
+      "bytes": 613,
+      "sha256": "f1037b52aeb549378491bb4b3eec12a15917f3cf1d8477b7f9a610a0cfedcf9d"
+    },
+    "frontend/src/components/TurnstileWidget.tsx": {
+      "bytes": 2249,
+      "sha256": "51d93db8c08aff39c7b6461bef4206015e79ec63b05ccb63f2da6bc0d9b3ec81"
+    },
+    "frontend/src/lib/api.ts": {
+      "bytes": 15607,
+      "sha256": "c443db9345f7f79e6d0799dab11d49645a6dad1511ef94c5ada4ed0249462054"
+    },
+    "frontend/src/lib/application-guidance.ts": {
+      "bytes": 8781,
+      "sha256": "37f702d68aa9765945ac7014d336e7045409e90739e136e32ca33145e9647a93"
+    },
+    "frontend/src/lib/attribution.ts": {
+      "bytes": 5071,
+      "sha256": "5ffc471465d261dc1e167e93346c2c383959f0d9b9f84be3abe9f59a9f8d974f"
+    },
+    "frontend/src/lib/browser-storage.ts": {
+      "bytes": 1501,
+      "sha256": "d4241f71e4369aee8023c5d9b23cf4f5322d8735fc2f1427e4bbf772fa33d25c"
+    },
+    "frontend/src/lib/catalog-inquiry.ts": {
+      "bytes": 3609,
+      "sha256": "92a57bc9585d5f9b73847751a53a92faffb8cb8578581c8598a9e78f15b94648"
+    },
+    "frontend/src/lib/catalog-query.ts": {
+      "bytes": 1876,
+      "sha256": "518e8286d57e052faf03bf1b7f526b9466099f8e0b949764ade0c539bafed98c"
+    },
+    "frontend/src/lib/consent.ts": {
+      "bytes": 2269,
+      "sha256": "e29f0f3fee022f517ba52be11d948a0b28c772e704f5c06ea3649fc66ec92596"
+    },
+    "frontend/src/lib/data.ts": {
+      "bytes": 8518,
+      "sha256": "d509e8ed5eecea900c3600deb121dd0754da95ef998e9f907450844cbccb2116"
+    },
+    "frontend/src/lib/dates.ts": {
+      "bytes": 957,
+      "sha256": "21763d151307ca567bc3f727eb6a90722ab8cbce3f0601c3da815fd93975d7d6"
+    },
+    "frontend/src/lib/events.ts": {
+      "bytes": 1020,
+      "sha256": "616c0ec03889bb9ca5e99fb39410c1281ba01bb061c8ad2933c57ee3a4e317c3"
+    },
+    "frontend/src/lib/fetch-with-timeout.ts": {
+      "bytes": 1066,
+      "sha256": "c1ed3074abdeb1d0e00589153ddc33c28e0238683f549fe88f32cc2b18bf60db"
+    },
+    "frontend/src/lib/form-errors.ts": {
+      "bytes": 434,
+      "sha256": "f9246e09e0d4af254c267eecc4eb9321c8676dcf546ab1fa0b3d117571fba549"
+    },
+    "frontend/src/lib/inquiry-attachments.ts": {
+      "bytes": 912,
+      "sha256": "9f3034a5fde78d39d4e780d218d9cc8c499335f63ea1c61cae02382f71350d61"
+    },
+    "frontend/src/lib/news.ts": {
+      "bytes": 6126,
+      "sha256": "cccaa1298326332d62d31b940b203430cc8487ad52a237a0a83a8ce567e3a4ac"
+    },
+    "frontend/src/lib/privacy-notice.ts": {
+      "bytes": 311,
+      "sha256": "f32e197097acc9f7056585ad6be74fb45c0a4ba2d2dded4f3512a7f75b73f6b1"
+    },
+    "frontend/src/lib/product-url.ts": {
+      "bytes": 281,
+      "sha256": "dec5f7be91738f724f9ca835b31e7bd20f579a138ca35fc8cdb00b93a9e49144"
+    },
+    "frontend/src/lib/rfq.ts": {
+      "bytes": 4708,
+      "sha256": "d78aea87b33bb3487762974a2589e494dc955e2adce0d06916ed69488be57559"
+    },
+    "frontend/src/lib/seo.ts": {
+      "bytes": 456,
+      "sha256": "0fa24f91d96fc8e9c27d725321822e12015046aa20331a617622d4922814b244"
+    },
+    "frontend/src/lib/site.ts": {
+      "bytes": 4251,
+      "sha256": "e0155f812f7ebcad087513c78bcf850d0136d501eaf567aa14b12d5fcc0acb09"
+    },
+    "frontend/src/lib/structured-data.ts": {
+      "bytes": 4997,
+      "sha256": "0ae7db467461ee7a157d23f8f362c953e84b928d847bb080044e0544836de87c"
+    },
+    "frontend/src/lib/submission.ts": {
+      "bytes": 2285,
+      "sha256": "642db887047e42387cd257249a21bd5bc4334638d96d0ad608c34dc116283d2f"
+    },
+    "frontend/src/lib/tracking-url.ts": {
+      "bytes": 972,
+      "sha256": "453bd4b4847aa09371f665f8b45f50dd3d545733e3dd53e4307d195f5beb0ddf"
+    },
+    "frontend/src/lib/types.ts": {
+      "bytes": 1956,
+      "sha256": "935d8d083efd8a51b1c2f41986e67f009e70f0d9e306d8ebf1de3ab048d77c90"
+    },
+    "frontend/src/lib/units.ts": {
+      "bytes": 1930,
+      "sha256": "e713b984c57e2aa22d0b03a029057e479ea2c58704b2e22961819ec8442b726a"
+    },
+    "frontend/src/proxy.ts": {
+      "bytes": 4591,
+      "sha256": "19769a5535d2c547b1a833f02546c039f7896e2e8daf4a7a67c224d63e7486db"
+    },
+    "frontend/tests/minimatch-compat.test.mjs": {
+      "bytes": 2015,
+      "sha256": "960d0b74555d1732a751340ecdcfbe42c98bc5b4877c7b020f94df488a51ac8f"
+    },
+    "frontend/tests/security.test.mjs": {
+      "bytes": 26794,
+      "sha256": "fd88d41da8ea3c37f7789ba2ab5846ec8112c87da4f215d2f2243a497dd765ea"
+    },
+    "frontend/tsconfig.json": {
+      "bytes": 703,
+      "sha256": "32f0a59b5e4ca1d51ffe5346573b4808e14d261d1c4e49382f8edd139f7bb6b2"
+    },
+    "frontend/vendor/minimatch-compat/README.md": {
+      "bytes": 1135,
+      "sha256": "79ea92f9edd41a88401bfa9c51f74e8e835126e589fd47fc0d0e1d3f044acd24"
+    },
+    "frontend/vendor/minimatch-compat/index.cjs": {
+      "bytes": 279,
+      "sha256": "c3b87fadaf1874a58f2c081f4fb93b20a6a7c0e372b65cdbc669ee6d4afcc2f0"
+    },
+    "frontend/vendor/minimatch-compat/index.mjs": {
+      "bytes": 91,
+      "sha256": "b6b2e48e0e66f9130464c68986ff5cce5f3585812db9ac24ab831cc4e2960f0c"
+    },
+    "frontend/vendor/minimatch-compat/package.json": {
+      "bytes": 411,
+      "sha256": "2dd62a72a402cf6f6ac310351f31888be3a8e21fe285aa268a017876bef1f116"
+    },
+    "scripts/check_linux_stack.py": {
+      "bytes": 14120,
+      "sha256": "29d7b5e16767dc951c0bbf6f54dd813146ba3f1cf62f290d79e3e68df6c1dea7"
+    },
+    "stitch_industrial_axle_pro/about_axion_industrial_manufacturing/code.html": {
+      "bytes": 26956,
+      "sha256": "f48243ed78f92ab3b2b115b6a753e5179285f8ab132a62f85848c28c6b0fea24"
+    },
+    "stitch_industrial_axle_pro/about_axion_industrial_manufacturing/screen.png": {
+      "bytes": 704628,
+      "sha256": "42663f2dc31c3f17975f314a908b34c297e5223729fe5523e8d040769aa5129b"
+    },
+    "stitch_industrial_axle_pro/article_how_to_measure_a_trailer_axle/code.html": {
+      "bytes": 25011,
+      "sha256": "33d1fead6529af42d7f2678be896c34e1100eea8712c2b09db53031735c026ef"
+    },
+    "stitch_industrial_axle_pro/article_how_to_measure_a_trailer_axle/screen.png": {
+      "bytes": 323479,
+      "sha256": "968c34558f9994fd78bbb98afb6bf0499ff82f192bd87a1d0ed460f57da654b1"
+    },
+    "stitch_industrial_axle_pro/axle_selector_recommended_results/code.html": {
+      "bytes": 22075,
+      "sha256": "bad7a92b1532acd85db915954c8e30b1057d3e97cf08bba2f7f1737e7888533a"
+    },
+    "stitch_industrial_axle_pro/axle_selector_recommended_results/screen.png": {
+      "bytes": 420411,
+      "sha256": "c45686a4ee530c7614b471dc77afd8c8c31d086427ed873fe0de44126c94e73d"
+    },
+    "stitch_industrial_axle_pro/axle_selector_step_1_application/code.html": {
+      "bytes": 22756,
+      "sha256": "edb40481b1c25f217a04ded70340095a6dda6eab51854daf786ad432d2a7b128"
+    },
+    "stitch_industrial_axle_pro/axle_selector_step_1_application/screen.png": {
+      "bytes": 206356,
+      "sha256": "ba4154a0ec75701b6a0d14e63b144a9ec37e66ae22847d67ba8dd58b1054e69b"
+    },
+    "stitch_industrial_axle_pro/boat_trailer_engineering_solutions/code.html": {
+      "bytes": 29578,
+      "sha256": "bb9dbafb6b0eaae520e88db631f1916aff3edaef58ed3183a540b8b7e71c3252"
+    },
+    "stitch_industrial_axle_pro/boat_trailer_engineering_solutions/screen.png": {
+      "bytes": 1715766,
+      "sha256": "b6a89e0ccb73b2ab975d7f682d0e1a3ef0f3274f2d780691522cfe6b5efc6110"
+    },
+    "stitch_industrial_axle_pro/home_page_axion_industrial/code.html": {
+      "bytes": 29676,
+      "sha256": "56a1a4cfab88ab4c47587b8e92ce946acee84301e22cda7268871cb6b7497f5b"
+    },
+    "stitch_industrial_axle_pro/home_page_axion_industrial/screen.png": {
+      "bytes": 574493,
+      "sha256": "f9b5665558b4d8ead14d5890d44ee020614b1c4d27349a0c953411ad18fe4aec"
+    },
+    "stitch_industrial_axle_pro/industrial_engineering_system/DESIGN.md": {
+      "bytes": 7080,
+      "sha256": "b5b39119ccbc85cb153f37b42da34b4e0704ebc7f70b42c250e8ad34659f5936"
+    },
+    "stitch_industrial_axle_pro/interactive_axle_selector_wizard/code.html": {
+      "bytes": 23309,
+      "sha256": "10726e4f66bc532ab342466d7a46cc23d16c22579cccfc4690116cdbedb5f520"
+    },
+    "stitch_industrial_axle_pro/interactive_axle_selector_wizard/screen.png": {
+      "bytes": 344659,
+      "sha256": "914ff37804c03eaeb3a2e7b451364763d63dc3aff1bd99d48c073aa8c5a1392a"
+    },
+    "stitch_industrial_axle_pro/manufacturing_quality_capabilities/code.html": {
+      "bytes": 23603,
+      "sha256": "19ceea4a93e65ba9074d1a9847fd60283ad659b6f400ab4cab5ae20a9f4c0a24"
+    },
+    "stitch_industrial_axle_pro/manufacturing_quality_capabilities/screen.png": {
+      "bytes": 1807897,
+      "sha256": "ae43974b4cd6641ebf6f8e8091de5e0525ced2f7a638d62ec4265f15dbf2a191"
+    },
+    "stitch_industrial_axle_pro/product_detail_ta_3500_eb_axle/code.html": {
+      "bytes": 28639,
+      "sha256": "e5dfd41d9609767862af076592a4be54f0894414de6666b3eebda4331332a42b"
+    },
+    "stitch_industrial_axle_pro/product_detail_ta_3500_eb_axle/screen.png": {
+      "bytes": 1086568,
+      "sha256": "7b6a6c7dd787adb024c99e57344700178aca43712dc4785d2659a38edac76e9b"
+    },
+    "stitch_industrial_axle_pro/product_listing_trailer_axles/code.html": {
+      "bytes": 36449,
+      "sha256": "f848c91c39a30f944a19af3f669149118d5b79f3611612c91c3ad385175b130b"
+    },
+    "stitch_industrial_axle_pro/product_listing_trailer_axles/screen.png": {
+      "bytes": 756550,
+      "sha256": "3cb937877aec0e6a7ac67ab7badbe5fecec5f07c6e6ae24dbab2cfa56c6677ce"
+    },
+    "stitch_industrial_axle_pro/request_a_quote_rfq_form/code.html": {
+      "bytes": 21795,
+      "sha256": "7989775ff6a63cdfddd007a24f90f9b13f4df64d2693dd51a4af51e3f1a2c85b"
+    },
+    "stitch_industrial_axle_pro/request_a_quote_rfq_form/screen.png": {
+      "bytes": 332078,
+      "sha256": "5cde947b6cea5087a4c29aa1629458dbc89cb26ad89ea149feff3f1aab34c354"
+    },
+    "stitch_industrial_axle_pro/rfq_submission_success/code.html": {
+      "bytes": 12025,
+      "sha256": "5501a9503fd5bdb447c6a4d549f7b2dddc92177c6b6a55a23df3590b66f5cb34"
+    },
+    "stitch_industrial_axle_pro/rfq_submission_success/screen.png": {
+      "bytes": 702353,
+      "sha256": "d9ea7c304809ac92de068f588ad09eb0800273d1c98b7a2e239f71cdd5c11b6e"
+    },
+    "stitch_industrial_axle_pro/technical_download_center/code.html": {
+      "bytes": 28299,
+      "sha256": "20f92b011b410fbbd4c2f3148780293caec0f5440f9a172a08404e9751aaf834"
+    },
+    "stitch_industrial_axle_pro/technical_download_center/screen.png": {
+      "bytes": 570096,
+      "sha256": "4c4e8aff9b6b10af38afba70be9d9b5cd82dd025546b8f5da89e529b38edcaa9"
+    },
+    "stitch_industrial_axle_pro/technical_resources_guides/code.html": {
+      "bytes": 26484,
+      "sha256": "f3ca937591abc1f06387478266ec579e27e5ebdfa4ca916df113d89cb493eac0"
+    },
+    "stitch_industrial_axle_pro/technical_resources_guides/screen.png": {
+      "bytes": 1283990,
+      "sha256": "44e7ea563fed9b26adf4e886f0c5b1df2a9048ad53483056c1d9fdc4869fe0be"
+    },
+    "stitch_industrial_axle_pro/trailer_applications_overview/code.html": {
+      "bytes": 27784,
+      "sha256": "52553cc301fb326ce4d5f30b342bd3b6b91defc6911f6836287fd1ef3e82c65a"
+    },
+    "stitch_industrial_axle_pro/trailer_applications_overview/screen.png": {
+      "bytes": 1431462,
+      "sha256": "8cc6f7e756c310b82e7fc4904abd0003b397a3148a06778704aa69506e66fcd0"
+    },
+    "挂车零件企业官网设计与开发方案.md": {
+      "bytes": 76176,
+      "sha256": "fb7f5dfea8388ad8ed1b14f83c3be233951ffe4278bfc9566355f6dddefe7519"
+    }
+  }
+}

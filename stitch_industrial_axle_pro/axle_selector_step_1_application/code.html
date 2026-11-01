@@ -1,0 +1,370 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .step-transition { transition: all 0.3s ease-in-out; }
+        .option-card:hover .check-icon { opacity: 1; transform: scale(1); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1e4ff; border-radius: 10px; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#d6e4f0",
+                        "primary-container": "#102a43",
+                        "secondary-fixed-dim": "#a0cbf0",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#cedce8",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed": "#001e30",
+                        "inverse-on-surface": "#e5f3ff",
+                        "on-surface-variant": "#43474d",
+                        "tertiary": "#250d00",
+                        "outline-variant": "#c3c6ce",
+                        "on-primary-fixed": "#011d35",
+                        "surface-tint": "#49607c",
+                        "surface-container-high": "#dceaf6",
+                        "on-background": "#101d26",
+                        "on-surface": "#101d26",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed": "#ffdcc6",
+                        "tertiary-container": "#441e00",
+                        "outline": "#74777e",
+                        "tertiary-fixed-dim": "#ffb786",
+                        "secondary-fixed": "#cae6ff",
+                        "on-primary-container": "#7a92b0",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#f6faff",
+                        "primary-fixed": "#d1e4ff",
+                        "secondary-container": "#aed9ff",
+                        "on-error": "#ffffff",
+                        "surface-container": "#e2f0fc",
+                        "background": "#f6faff",
+                        "inverse-primary": "#b0c9e8",
+                        "primary-fixed-dim": "#b0c9e8",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#25323b",
+                        "surface-bright": "#f6faff",
+                        "on-tertiary-fixed-variant": "#723600",
+                        "secondary": "#366383",
+                        "on-tertiary-container": "#df7108",
+                        "primary": "#00152a",
+                        "on-secondary-container": "#33607f",
+                        "on-tertiary-fixed": "#311300",
+                        "on-secondary-fixed-variant": "#1b4b69",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#314863",
+                        "surface-container-low": "#eaf5ff",
+                        "surface-container-highest": "#d6e4f0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-lg": "24px",
+                        "stack-sm": "4px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "container-max": "1280px",
+                        "margin-desktop": "40px",
+                        "stack-md": "12px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "technical-data": ["JetBrains Mono"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "technical-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-hidden h-screen flex flex-col">
+<!-- Top Navigation Shell (Suppressed context check: This is a task-focused wizard, but keeping branded header for authority) -->
+<header class="w-full h-16 bg-primary flex items-center justify-between px-margin-desktop border-b border-outline-variant/20 z-50">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-on-primary font-black tracking-tighter">AXION INDUSTRIAL</span>
+<div class="h-6 w-[1px] bg-on-primary/20 mx-2"></div>
+<span class="font-label-caps text-on-primary-container tracking-widest uppercase">Axle Configurator v2.4</span>
+</div>
+<div class="flex items-center gap-6">
+<button class="flex items-center gap-2 text-on-primary opacity-80 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+<span class="font-label-caps">Technical Support</span>
+</button>
+<button class="bg-on-tertiary-container text-on-primary font-bold px-6 py-2 rounded-lg text-body-sm hover:brightness-110 transition-all">
+                Save Progress
+            </button>
+</div>
+</header>
+<main class="flex-1 flex overflow-hidden">
+<!-- Sidebar Summary (Design System Level 1 Card styling) -->
+<aside class="w-80 bg-surface-container-low border-r border-outline-variant flex flex-col hidden lg:flex">
+<div class="p-stack-lg border-b border-outline-variant">
+<h3 class="font-label-caps text-on-surface-variant mb-stack-sm">CONFIGURATION SUMMARY</h3>
+<div class="flex items-center justify-between">
+<span class="font-headline-md text-primary-container font-bold">Step 01<span class="text-on-primary-container font-normal">/10</span></span>
+<span class="text-on-tertiary-container font-technical-data">10% Complete</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full bg-surface-variant h-1.5 rounded-full mt-stack-md overflow-hidden">
+<div class="bg-on-tertiary-container h-full w-[10%] transition-all duration-500"></div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-stack-lg custom-scrollbar space-y-stack-lg">
+<div class="space-y-stack-sm">
+<div class="flex items-center gap-2 text-on-primary-container">
+<span class="material-symbols-outlined text-[18px]">fact_check</span>
+<span class="font-label-caps">CURRENT SELECTION</span>
+</div>
+<div class="p-stack-md bg-white border border-on-tertiary-container/30 rounded-lg shadow-sm">
+<p class="font-body-sm text-on-surface-variant italic">Please select a trailer application...</p>
+</div>
+</div>
+<div class="space-y-stack-md opacity-40">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+<span class="font-label-caps">UPCOMING SPECS</span>
+</div>
+<ul class="space-y-3 font-body-sm">
+<li class="flex justify-between border-b border-outline-variant/30 pb-1"><span>Load Capacity</span><span class="font-technical-data">--</span></li>
+<li class="flex justify-between border-b border-outline-variant/30 pb-1"><span>Hub Pattern</span><span class="font-technical-data">--</span></li>
+<li class="flex justify-between border-b border-outline-variant/30 pb-1"><span>Braking System</span><span class="font-technical-data">--</span></li>
+<li class="flex justify-between border-b border-outline-variant/30 pb-1"><span>Axle Length</span><span class="font-technical-data">--</span></li>
+<li class="flex justify-between border-b border-outline-variant/30 pb-1"><span>Suspension Type</span><span class="font-technical-data">--</span></li>
+</ul>
+</div>
+</div>
+<div class="p-stack-lg bg-primary-container text-on-primary-container">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined" data-weight="fill">verified_user</span>
+<span class="font-label-caps text-white">OEM CERTIFIED TOOL</span>
+</div>
+<p class="text-[11px] leading-relaxed opacity-70">Configuration results are engineered based on Axion Industrial standard safety margins (SF 2.0).</p>
+</div>
+</aside>
+<!-- Content Canvas -->
+<section class="flex-1 overflow-y-auto bg-surface-bright flex flex-col">
+<!-- Header Section -->
+<div class="px-margin-desktop pt-12 pb-8 max-w-5xl mx-auto w-full">
+<div class="flex items-center gap-3 text-on-tertiary-container font-label-caps mb-2">
+<span class="material-symbols-outlined text-[20px]">engineering</span>
+<span>COMPONENT SELECTION</span>
+</div>
+<h1 class="font-headline-lg text-primary-container mb-2">Trailer Application</h1>
+<p class="font-body-lg text-on-surface-variant max-w-2xl">Specify the intended use of the trailer. This selection determines dynamic load factors and recommended structural metallurgy.</p>
+</div>
+<!-- Options Grid (Bento/Card Layout) -->
+<div class="px-margin-desktop pb-32 max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Option: Utility -->
+<label class="group cursor-pointer">
+<input checked="" class="hidden peer" name="application" type="radio">
+<div class="option-card h-full p-stack-lg bg-white border border-outline-variant rounded-xl peer-checked:border-on-tertiary-container peer-checked:bg-surface-container-low transition-all hover:border-on-tertiary-container/50 flex flex-col gap-4 relative overflow-hidden">
+<div class="w-12 h-12 bg-surface-variant flex items-center justify-center rounded-lg group-hover:bg-on-tertiary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary-container group-hover:text-on-tertiary-container">inventory_2</span>
+</div>
+<div class="absolute top-4 right-4 check-icon opacity-0 transition-all scale-50 peer-checked:opacity-100 peer-checked:scale-100">
+<span class="material-symbols-outlined text-on-tertiary-container">check_circle</span>
+</div>
+<div>
+<h4 class="font-headline-md text-primary-container text-[18px]">Utility</h4>
+<p class="font-body-sm text-on-surface-variant mt-1">General purpose hauling, landscape, and light debris.</p>
+</div>
+</div>
+</label>
+<!-- Option: Boat -->
+<label class="group cursor-pointer">
+<input class="hidden peer" name="application" type="radio">
+<div class="option-card h-full p-stack-lg bg-white border border-outline-variant rounded-xl peer-checked:border-on-tertiary-container peer-checked:bg-surface-container-low transition-all hover:border-on-tertiary-container/50 flex flex-col gap-4 relative overflow-hidden">
+<div class="w-12 h-12 bg-surface-variant flex items-center justify-center rounded-lg group-hover:bg-on-tertiary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary-container group-hover:text-on-tertiary-container">directions_boat</span>
+</div>
+<div class="absolute top-4 right-4 check-icon opacity-0 transition-all scale-50 peer-checked:opacity-100 peer-checked:scale-100">
+<span class="material-symbols-outlined text-on-tertiary-container">check_circle</span>
+</div>
+<div>
+<h4 class="font-headline-md text-primary-container text-[18px]">Boat</h4>
+<p class="font-body-sm text-on-surface-variant mt-1">Corrosion-resistant components for marine environments.</p>
+</div>
+</div>
+</label>
+<!-- Option: Agricultural -->
+<label class="group cursor-pointer">
+<input class="hidden peer" name="application" type="radio">
+<div class="option-card h-full p-stack-lg bg-white border border-outline-variant rounded-xl peer-checked:border-on-tertiary-container peer-checked:bg-surface-container-low transition-all hover:border-on-tertiary-container/50 flex flex-col gap-4 relative overflow-hidden">
+<div class="w-12 h-12 bg-surface-variant flex items-center justify-center rounded-lg group-hover:bg-on-tertiary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary-container group-hover:text-on-tertiary-container">agriculture</span>
+</div>
+<div class="absolute top-4 right-4 check-icon opacity-0 transition-all scale-50 peer-checked:opacity-100 peer-checked:scale-100">
+<span class="material-symbols-outlined text-on-tertiary-container">check_circle</span>
+</div>
+<div>
+<h4 class="font-headline-md text-primary-container text-[18px]">Agricultural</h4>
+<p class="font-body-sm text-on-surface-variant mt-1">Heavy-duty debris handling for farming and livestock.</p>
+</div>
+</div>
+</label>
+<!-- Option: RV/Caravan -->
+<label class="group cursor-pointer">
+<input class="hidden peer" name="application" type="radio">
+<div class="option-card h-full p-stack-lg bg-white border border-outline-variant rounded-xl peer-checked:border-on-tertiary-container peer-checked:bg-surface-container-low transition-all hover:border-on-tertiary-container/50 flex flex-col gap-4 relative overflow-hidden">
+<div class="w-12 h-12 bg-surface-variant flex items-center justify-center rounded-lg group-hover:bg-on-tertiary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary-container group-hover:text-on-tertiary-container">rv_hookup</span>
+</div>
+<div class="absolute top-4 right-4 check-icon opacity-0 transition-all scale-50 peer-checked:opacity-100 peer-checked:scale-100">
+<span class="material-symbols-outlined text-on-tertiary-container">check_circle</span>
+</div>
+<div>
+<h4 class="font-headline-md text-primary-container text-[18px]">RV/Caravan</h4>
+<p class="font-body-sm text-on-surface-variant mt-1">Focus on ride comfort and stability for travel trailers.</p>
+</div>
+</div>
+</label>
+<!-- Option: Car Hauler -->
+<label class="group cursor-pointer">
+<input class="hidden peer" name="application" type="radio">
+<div class="option-card h-full p-stack-lg bg-white border border-outline-variant rounded-xl peer-checked:border-on-tertiary-container peer-checked:bg-surface-container-low transition-all hover:border-on-tertiary-container/50 flex flex-col gap-4 relative overflow-hidden">
+<div class="w-12 h-12 bg-surface-variant flex items-center justify-center rounded-lg group-hover:bg-on-tertiary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary-container group-hover:text-on-tertiary-container">directions_car</span>
+</div>
+<div class="absolute top-4 right-4 check-icon opacity-0 transition-all scale-50 peer-checked:opacity-100 peer-checked:scale-100">
+<span class="material-symbols-outlined text-on-tertiary-container">check_circle</span>
+</div>
+<div>
+<h4 class="font-headline-md text-primary-container text-[18px]">Car Hauler</h4>
+<p class="font-body-sm text-on-surface-variant mt-1">High-precision low-deck axles for vehicle transport.</p>
+</div>
+</div>
+</label>
+<!-- Option: Construction -->
+<label class="group cursor-pointer">
+<input class="hidden peer" name="application" type="radio">
+<div class="option-card h-full p-stack-lg bg-white border border-outline-variant rounded-xl peer-checked:border-on-tertiary-container peer-checked:bg-surface-container-low transition-all hover:border-on-tertiary-container/50 flex flex-col gap-4 relative overflow-hidden">
+<div class="w-12 h-12 bg-surface-variant flex items-center justify-center rounded-lg group-hover:bg-on-tertiary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary-container group-hover:text-on-tertiary-container">construction</span>
+</div>
+<div class="absolute top-4 right-4 check-icon opacity-0 transition-all scale-50 peer-checked:opacity-100 peer-checked:scale-100">
+<span class="material-symbols-outlined text-on-tertiary-container">check_circle</span>
+</div>
+<div>
+<h4 class="font-headline-md text-primary-container text-[18px]">Construction</h4>
+<p class="font-body-sm text-on-surface-variant mt-1">Ruggedized builds for dump and equipment trailers.</p>
+</div>
+</div>
+</label>
+<!-- Option: Heavy-Duty -->
+<label class="group cursor-pointer">
+<input class="hidden peer" name="application" type="radio">
+<div class="option-card h-full p-stack-lg bg-white border border-outline-variant rounded-xl peer-checked:border-on-tertiary-container peer-checked:bg-surface-container-low transition-all hover:border-on-tertiary-container/50 flex flex-col gap-4 relative overflow-hidden">
+<div class="w-12 h-12 bg-surface-variant flex items-center justify-center rounded-lg group-hover:bg-on-tertiary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary-container group-hover:text-on-tertiary-container">settings_input_component</span>
+</div>
+<div class="absolute top-4 right-4 check-icon opacity-0 transition-all scale-50 peer-checked:opacity-100 peer-checked:scale-100">
+<span class="material-symbols-outlined text-on-tertiary-container">check_circle</span>
+</div>
+<div>
+<h4 class="font-headline-md text-primary-container text-[18px]">Heavy-Duty</h4>
+<p class="font-body-sm text-on-surface-variant mt-1">Multi-axle configurations for industrial payloads.</p>
+</div>
+</div>
+</label>
+<!-- Option: Other -->
+<label class="group cursor-pointer">
+<input class="hidden peer" name="application" type="radio">
+<div class="option-card h-full p-stack-lg bg-white border border-outline-variant rounded-xl peer-checked:border-on-tertiary-container peer-checked:bg-surface-container-low transition-all hover:border-on-tertiary-container/50 flex flex-col gap-4 relative overflow-hidden">
+<div class="w-12 h-12 bg-surface-variant flex items-center justify-center rounded-lg group-hover:bg-on-tertiary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary-container group-hover:text-on-tertiary-container">more_horiz</span>
+</div>
+<div class="absolute top-4 right-4 check-icon opacity-0 transition-all scale-50 peer-checked:opacity-100 peer-checked:scale-100">
+<span class="material-symbols-outlined text-on-tertiary-container">check_circle</span>
+</div>
+<div>
+<h4 class="font-headline-md text-primary-container text-[18px]">Other</h4>
+<p class="font-body-sm text-on-surface-variant mt-1">Custom engineering for non-standard applications.</p>
+</div>
+</div>
+</label>
+</div>
+<!-- Sticky Footer Controls -->
+<div class="mt-auto border-t border-outline-variant bg-white p-6 sticky bottom-0 z-40">
+<div class="max-w-5xl mx-auto w-full flex items-center justify-between">
+<button class="flex items-center gap-2 text-primary opacity-50 cursor-not-allowed font-bold px-4 py-2">
+<span class="material-symbols-outlined">arrow_back</span>
+<span class="font-label-caps">BACK</span>
+</button>
+<div class="flex items-center gap-4">
+<span class="text-on-surface-variant font-technical-data text-body-sm">Acknowledge selection to proceed</span>
+<button class="bg-on-tertiary-container text-on-primary font-bold px-10 py-3 rounded-lg flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-md" onclick="alert('Proceeding to Step 2: Load Capacity')">
+<span class="font-label-caps">CONTINUE</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Industrial Footer (Shared Component JSON Mapping) -->
+<footer class="w-full py-stack-sm px-margin-desktop bg-primary text-on-primary mt-auto text-[12px] opacity-80 border-t border-outline-variant/10">
+<div class="flex flex-col md:flex-row justify-between items-center gap-2">
+<span class="font-technical-data">© 2024 Axion Industrial Manufacturing. Precision Engineered for Heavy-Duty Performance.</span>
+<div class="flex gap-4 font-label-caps">
+<a class="hover:text-on-tertiary-container transition-colors" href="#">ISO Certification</a>
+<a class="hover:text-on-tertiary-container transition-colors" href="#">Global Logistics</a>
+<a class="hover:text-on-tertiary-container transition-colors" href="#">Privacy Policy</a>
+</div>
+</div>
+</footer>
+<script>
+        // Update sidebar summary dynamically based on selection
+        const radioButtons = document.querySelectorAll('input[name="application"]');
+        const summaryCard = document.querySelector('.lg\\:flex .p-stack-md p');
+
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const label = e.target.closest('label');
+                const title = label.querySelector('h4').textContent;
+                const icon = label.querySelector('.material-symbols-outlined').textContent;
+                
+                summaryCard.parentElement.classList.remove('border-on-tertiary-container/30');
+                summaryCard.parentElement.classList.add('border-on-tertiary-container');
+                summaryCard.classList.remove('italic', 'text-on-surface-variant');
+                summaryCard.classList.add('text-primary-container', 'font-bold', 'flex', 'items-center', 'gap-2');
+                summaryCard.innerHTML = `<span class="material-symbols-outlined text-on-tertiary-container text-[20px]">${icon}</span> ${title}`;
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,487 @@
+<!DOCTYPE html><html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Boat Trailer Applications | Axion Industrial</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#d6e4f0",
+                    "primary-container": "#102a43",
+                    "secondary-fixed-dim": "#a0cbf0",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#cedce8",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed": "#001e30",
+                    "inverse-on-surface": "#e5f3ff",
+                    "on-surface-variant": "#43474d",
+                    "tertiary": "#250d00",
+                    "outline-variant": "#c3c6ce",
+                    "on-primary-fixed": "#011d35",
+                    "surface-tint": "#49607c",
+                    "surface-container-high": "#dceaf6",
+                    "on-background": "#101d26",
+                    "on-surface": "#101d26",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed": "#ffdcc6",
+                    "tertiary-container": "#441e00",
+                    "outline": "#74777e",
+                    "tertiary-fixed-dim": "#ffb786",
+                    "secondary-fixed": "#cae6ff",
+                    "on-primary-container": "#7a92b0",
+                    "on-error-container": "#93000a",
+                    "surface-container-lowest": "#ffffff",
+                    "surface": "#f6faff",
+                    "primary-fixed": "#d1e4ff",
+                    "secondary-container": "#aed9ff",
+                    "on-error": "#ffffff",
+                    "surface-container": "#e2f0fc",
+                    "background": "#f6faff",
+                    "inverse-primary": "#b0c9e8",
+                    "primary-fixed-dim": "#b0c9e8",
+                    "on-secondary": "#ffffff",
+                    "inverse-surface": "#25323b",
+                    "surface-bright": "#f6faff",
+                    "on-tertiary-fixed-variant": "#723600",
+                    "secondary": "#366383",
+                    "on-tertiary-container": "#df7108",
+                    "primary": "#00152a",
+                    "on-secondary-container": "#33607f",
+                    "on-tertiary-fixed": "#311300",
+                    "on-secondary-fixed-variant": "#1b4b69",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#314863",
+                    "surface-container-low": "#eaf5ff",
+                    "surface-container-highest": "#d6e4f0"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "stack-lg": "24px",
+                    "stack-sm": "4px",
+                    "gutter": "24px",
+                    "margin-mobile": "16px",
+                    "container-max": "1280px",
+                    "margin-desktop": "40px",
+                    "stack-md": "12px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "technical-data": ["JetBrains Mono"],
+                    "headline-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "technical-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .spec-row:nth-child(even) { background-color: #f4f6f8; }
+        .blueprint-grid {
+            background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .hero-overlay {
+            background: linear-gradient(90deg, rgba(36, 49, 58, 0.9) 0%, rgba(36, 49, 58, 0.4) 100%);
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-surface">
+<!-- TopNavBar (JSON Managed) -->
+<header class="bg-primary sticky top-0 z-50 w-full border-b border-outline-variant opacity-100">
+<div class="flex flex-col w-full max-w-container-max mx-auto px-margin-desktop">
+<div class="flex items-center justify-between h-20">
+<div class="font-headline-lg text-headline-lg font-bold text-on-primary">
+                    Axion Industrial
+                </div>
+<nav class="hidden md:flex items-center space-x-gutter">
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">Products</a>
+<a class="font-body-md text-body-md text-on-tertiary-container border-b-2 border-on-tertiary-container pb-1" href="#">OEM Solutions</a>
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">Compliance</a>
+<a class="font-body-md text-body-md text-on-primary opacity-80 hover:opacity-100 hover:text-on-tertiary-container transition-colors duration-200" href="#">Resources</a>
+</nav>
+<div class="flex items-center gap-stack-lg">
+<button class="hidden lg:flex items-center text-on-primary opacity-80">
+<span class="material-symbols-outlined mr-2">search</span>
+</button>
+<button class="px-6 py-2 bg-[#F58220] text-white font-bold rounded-lg hover:opacity-90 transition-all">
+                        Request Quote
+                    </button>
+</div>
+</div>
+</div>
+</header>
+<div class="flex max-w-container-max mx-auto">
+<!-- SideNavBar (JSON Managed) -->
+<aside class="hidden lg:flex flex-col h-screen sticky top-20 w-64 bg-primary text-on-primary shrink-0 border-r border-outline-variant/20">
+<div class="p-stack-lg border-b border-outline-variant/10">
+<div class="font-headline-md text-headline-md font-black text-on-primary">Product Catalog</div>
+<div class="font-label-caps text-label-caps opacity-60">Technical Specifications</div>
+</div>
+<nav class="flex-grow py-stack-md overflow-y-auto">
+<div class="px-4 py-2 font-label-caps text-label-caps opacity-40">Categories</div>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">settings_input_component</span> Axle Assemblies
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">settings_ethernet</span> Suspension Systems
+                </a>
+<a class="flex items-center gap-3 border-l-4 border-on-tertiary-container bg-tertiary-container text-on-tertiary-container font-bold px-4 py-3" href="#">
+<span class="material-symbols-outlined">settings_applications</span> Braking Components
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">lightbulb</span> Electrical &amp; Lighting
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container opacity-70 hover:opacity-100 hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">construction</span> Hardware
+                </a>
+</nav>
+<div class="p-stack-lg border-t border-outline-variant/10">
+<button class="w-full py-2 border border-on-primary text-on-primary font-bold hover:bg-on-primary hover:text-primary transition-all">
+                    Download Full Catalog
+                </button>
+<div class="mt-stack-lg flex flex-col gap-2">
+<a class="flex items-center gap-2 text-sm opacity-60 hover:opacity-100" href="#">
+<span class="material-symbols-outlined text-[18px]">engineering</span> Technical Support
+                    </a>
+<a class="flex items-center gap-2 text-sm opacity-60 hover:opacity-100" href="#">
+<span class="material-symbols-outlined text-[18px]">verified_user</span> Warranty
+                    </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-grow bg-white min-h-screen">
+<!-- Industrial Hero -->
+<section class="relative h-[480px] w-full overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A high-contrast cinematic photograph of a heavy-duty boat trailer axle submerged in clear seawater, highlighting the metallic sheen of hot-dip galvanized coating. The lighting is dramatic, with cool blue tones and sharp reflections on the water's surface. Industrial textures and mechanical precision are emphasized, conveying a sense of extreme corrosion resistance and reliability in harsh marine environments." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDrkx9Ugyrj2q1WVMkjtXABR8LkpqXPZ07rUjZU3xUpiF2XdnDgpRBjGEexr38cmx7KaRuBtjkmLv9KDW-X8AsBexL682G26Rw358f1QhFFHysEb5cJ5t-Pdq9lgKqpkvhEVlWNMtJM-wcdG9_JEmmaC5xjgy7ZeWi8j9indPbFCktUbETcnuMAhq3SNMNWx-xWHrhG94-psrrKJh-y1HVliY1v8L8HaSf54-ZHm_YD55YHnauiF_6M')"></div>
+<div class="absolute inset-0 hero-overlay"></div>
+<div class="relative z-10 h-full flex flex-col justify-center px-margin-desktop max-w-4xl">
+<span class="inline-block bg-[#F58220] text-white font-label-caps text-label-caps px-3 py-1 mb-stack-md uppercase tracking-widest">Marine Application Series</span>
+<h1 class="font-display-lg text-display-lg text-white mb-stack-lg">Superior Corrosion Resistance for Marine Environments</h1>
+<p class="font-body-lg text-body-lg text-white opacity-90 mb-stack-lg max-w-2xl">
+                        Engineering heavy-duty boat trailer components designed for continuous saltwater immersion. Featuring hot-dip galvanized finishes and pressurized bearing protection.
+                    </p>
+<div class="flex gap-stack-lg">
+<button class="px-8 py-3 bg-[#F58220] text-white font-bold text-body-md hover:scale-105 transition-transform">
+                            View Marine Catalog
+                        </button>
+<button class="px-8 py-3 border-2 border-white text-white font-bold text-body-md hover:bg-white hover:text-primary transition-all">
+                            Technical Data
+                        </button>
+</div>
+</div>
+</section>
+<!-- Key Features - Bento Grid Style -->
+<section class="py-16 px-margin-desktop bg-surface">
+<div class="mb-12">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-2">Marine Performance Engineering</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Precision components built to withstand the rigors of marine transport and frequent saltwater exposure.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Feature Card 1 -->
+<div class="col-span-1 md:col-span-2 bg-white border border-[#DDE1E6] p-stack-lg flex flex-col justify-between hover:border-primary transition-all group">
+<div>
+<div class="flex items-center gap-stack-md mb-stack-lg">
+<span class="material-symbols-outlined text-[#F58220] text-3xl">waves</span>
+<h3 class="font-headline-md text-headline-md text-primary">Hot-Dip Galvanized Coating</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-stack-lg max-w-lg">
+                                Our axles undergo a multi-stage hot-dip galvanization process, resulting in a 3.5mm thick zinc barrier that metallurgically bonds with the steel, providing cathodic protection that self-heals minor scratches.
+                            </p>
+</div>
+<div class="mt-4 flex gap-4">
+<span class="bg-surface-variant text-primary px-3 py-1 text-xs font-bold rounded">ASTM A123</span>
+<span class="bg-surface-variant text-primary px-3 py-1 text-xs font-bold rounded">720HR Salt Spray Tested</span>
+</div>
+</div>
+<!-- Feature Card 2 -->
+<div class="bg-primary-container p-stack-lg flex flex-col text-white">
+<span class="material-symbols-outlined text-4xl text-[#F58220] mb-4">oil_barrel</span>
+<h3 class="font-headline-md text-headline-md mb-4">Pressurized Bearing Protection</h3>
+<p class="font-body-sm text-body-sm opacity-80 leading-relaxed">
+                            Maintain positive pressure inside the hub to prevent water ingress during hot-to-cold immersion. Features stainless steel springs and integrated grease nipples for easy maintenance.
+                        </p>
+<div class="mt-auto pt-8">
+<div class="text-3xl font-bold">100%</div>
+<div class="text-xs uppercase opacity-60 tracking-widest">Waterproof Seal Integrity</div>
+</div>
+</div>
+<!-- Feature Card 3 -->
+<div class="bg-white border border-[#DDE1E6] p-stack-lg">
+<span class="material-symbols-outlined text-primary mb-4 text-3xl">anchor</span>
+<h3 class="font-headline-md text-headline-md text-primary mb-4">Marine Disc Brakes</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                            Ventilated rotor design with dacromet-coated calipers to ensure consistent stopping power without seizing in high-salinity environments.
+                        </p>
+</div>
+<!-- Feature Card 4 -->
+<div class="bg-white border border-[#DDE1E6] p-stack-lg flex items-center justify-between col-span-1 md:col-span-2 overflow-hidden">
+<div class="z-10">
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Integrated Tie-Down Points</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-sm">
+                                Reinforced frame attachment points engineered for high-tension straps.
+                            </p>
+</div>
+<div class="w-32 h-32 bg-surface-variant rounded-full flex items-center justify-center -mr-8">
+<span class="material-symbols-outlined text-5xl text-primary opacity-20">link</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Technical Specifications Table -->
+<section class="py-16 px-margin-desktop blueprint-grid">
+<div class="bg-white border border-[#DDE1E6] overflow-hidden">
+<div class="bg-primary-container text-white px-stack-lg py-stack-md flex justify-between items-center">
+<h2 class="font-headline-md text-headline-md">Marine Axle Series - Technical Specifications</h2>
+<div class="text-xs font-technical-data bg-white/10 px-3 py-1 rounded">REV: 2024.04-MAR</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-primary text-on-primary font-label-caps text-label-caps">
+<tr>
+<th class="p-stack-md border-r border-white/10">Part Number</th>
+<th class="p-stack-md border-r border-white/10">Capacity (LBS)</th>
+<th class="p-stack-md border-r border-white/10">Finish Type</th>
+<th class="p-stack-md border-r border-white/10">Hub Configuration</th>
+<th class="p-stack-md">Brake Mount</th>
+</tr>
+</thead>
+<tbody class="font-technical-data text-technical-data text-on-surface">
+<tr class="spec-row border-b border-outline-variant/20">
+<td class="p-stack-md font-bold text-primary">AXM-3500-G</td>
+<td class="p-stack-md">3,500</td>
+<td class="p-stack-md">Hot-Dip Galv</td>
+<td class="p-stack-md">5 on 4.5"</td>
+<td class="p-stack-md">4-Bolt Flange</td>
+</tr>
+<tr class="spec-row border-b border-outline-variant/20">
+<td class="p-stack-md font-bold text-primary">AXM-5200-G</td>
+<td class="p-stack-md">5,200</td>
+<td class="p-stack-md">Hot-Dip Galv</td>
+<td class="p-stack-md">6 on 5.5"</td>
+<td class="p-stack-md">5-Bolt Flange</td>
+</tr>
+<tr class="spec-row border-b border-outline-variant/20">
+<td class="p-stack-md font-bold text-primary">AXM-7000-G</td>
+<td class="p-stack-md">7,000</td>
+<td class="p-stack-md">Hot-Dip Galv</td>
+<td class="p-stack-md">8 on 6.5"</td>
+<td class="p-stack-md">Universal Flange</td>
+</tr>
+<tr class="spec-row">
+<td class="p-stack-md font-bold text-primary">AXM-8000-HDG</td>
+<td class="p-stack-md">8,000</td>
+<td class="p-stack-md">Premium Galv</td>
+<td class="p-stack-md">8 on 6.5"</td>
+<td class="p-stack-md">Integrated Boss</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-stack-md bg-surface border-t border-[#DDE1E6]">
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+<strong>Note:</strong> All marine axles include our proprietary <em>Vortex-Plus™</em> bearing protection system as standard. Custom lengths available upon request for fleet orders.
+                        </p>
+</div>
+</div>
+</section>
+<!-- Recommended Products Section -->
+<section class="py-16 px-margin-desktop">
+<div class="flex items-center justify-between mb-12">
+<h2 class="font-headline-lg text-headline-lg text-primary">System Integration Components</h2>
+<a class="text-[#F58220] font-bold flex items-center hover:underline" href="#">
+                        Explore Full Range <span class="material-symbols-outlined ml-1">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-gutter">
+<!-- Product 1 -->
+<div class="bg-white border border-[#DDE1E6] rounded group overflow-hidden">
+<div class="h-48 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" data-alt="A clean, studio-lit photograph of a heavy-duty stainless steel boat trailer leaf spring assembly. The metal surfaces reflect soft light, emphasizing the industrial build quality. The background is a neutral light gray, keeping the focus entirely on the engineering details of the suspension system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIAe1n7I8J4h1S9XtuNIwBw3lrz5dNj4faqOIKyHC0m1DuFz4Gd5LofjR7RI7KlH-tkWbJ5C-eeT7RLpS1ZIWuP0rp8bgS7SlTZUWOlU1yDjKqlJFfzCXErtczGWVB7i30XuH0pG5pMr3xf6jXOgFGNSlFHbU-yDapcghc6PQEwKzsF9TR9rNNlI6Ra3iUtnMsEFoOlQ1UOuhbixVXzz5Rj1ENMIhLKq6P4GL2XDehVcZ4HJ233_9X">
+<span class="absolute top-2 right-2 bg-primary text-white text-[10px] px-2 py-1 font-bold">IN STOCK</span>
+</div>
+<div class="p-stack-lg">
+<div class="flex items-center gap-2 mb-2">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+<span class="text-xs font-bold text-on-surface-variant uppercase">Suspension</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-primary text-lg mb-4">SS Marine Leaf Spring</h4>
+<div class="grid grid-cols-2 gap-2 text-xs font-technical-data text-on-surface-variant border-t border-outline-variant/10 pt-4">
+<div>CAP: 3,500 LBS</div>
+<div>MAT: 316 STAINLESS</div>
+</div>
+<button class="w-full mt-6 py-2 border border-primary text-primary font-bold text-sm hover:bg-primary hover:text-white transition-all">
+                                Add to Quote
+                            </button>
+</div>
+</div>
+<!-- Product 2 -->
+<div class="bg-white border border-[#DDE1E6] rounded group overflow-hidden">
+<div class="h-48 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" data-alt="A high-resolution technical product shot of a waterproof LED boat trailer tail light assembly. The lens is vibrant red and clear, showing the high-density LED array inside. The housing is rugged black industrial plastic with visible gaskets for waterproofing. The style is professional and informative, set against a pristine white studio background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoUMJyyMm99EYFDuzRq1_Iu8H5CSsCCobun4VN3u77qs6hD-O0GTH0WvRNimcagQe9c9vjkmRJabfJkyec8tcy7yQajDJfcl2UkBQfYXLryn7N4meRhtLLNEOa-2moSkGKESzQWHIbekQ05Wyz5ULjXCv01uKiuN-BdVsSng0G9kP3S3fSjuygxP_CqEqSlwZByLCkhuxXZbs5BwrotEgwUN57Eko-Feb7l_CcS6TGPCk5ng75nXuv">
+</div>
+<div class="p-stack-lg">
+<div class="flex items-center gap-2 mb-2">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+<span class="text-xs font-bold text-on-surface-variant uppercase">Lighting</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-primary text-lg mb-4">IP68 Submersible LED Kit</h4>
+<div class="grid grid-cols-2 gap-2 text-xs font-technical-data text-on-surface-variant border-t border-outline-variant/10 pt-4">
+<div>CERT: IP68</div>
+<div>VOLT: 12V/24V</div>
+</div>
+<button class="w-full mt-6 py-2 border border-primary text-primary font-bold text-sm hover:bg-primary hover:text-white transition-all">
+                                Add to Quote
+                            </button>
+</div>
+</div>
+<!-- Product 3 -->
+<div class="bg-white border border-[#DDE1E6] rounded group overflow-hidden">
+<div class="h-48 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" data-alt="A macro photograph focusing on a heavy-duty dacromet coated boat trailer brake caliper and rotor. The grey, non-reflective coating of the dacromet is clearly visible, providing a textured industrial appearance. The assembly looks robust and precision-machined, positioned in a high-tech workshop setting with soft overhead industrial lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDY_Pd1B98JKZYLY5v-KRtjWN2Z-hWGKCYTHt8sOR9dUYEuB40bz6kxym5qklvFdKsupR8TGmlPS6FijgaU9-VAvsQKG3JOR8SRCpUbNeLWrBudQdbuMAhu3qGjGSkt-w2k55m550FbLHnqctpL30X7GW57svIOI6EIlrP6RdQDsCa3cdOb1vkDrQXo--t1Gu4H0ltDcvC-mSY-h3goRHIPz0131z953X-ksStLBg3qjmG1w9PgJjj-">
+</div>
+<div class="p-stack-lg">
+<div class="flex items-center gap-2 mb-2">
+<span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+<span class="text-xs font-bold text-on-surface-variant uppercase">Braking</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-primary text-lg mb-4">Dacromet Disc Caliper</h4>
+<div class="grid grid-cols-2 gap-2 text-xs font-technical-data text-on-surface-variant border-t border-outline-variant/10 pt-4">
+<div>TYPE: HYDRAULIC</div>
+<div>COAT: DACROMET</div>
+</div>
+<button class="w-full mt-6 py-2 border border-primary text-primary font-bold text-sm hover:bg-primary hover:text-white transition-all">
+                                Add to Quote
+                            </button>
+</div>
+</div>
+<!-- Product 4 -->
+<div class="bg-white border border-[#DDE1E6] rounded group overflow-hidden">
+<div class="h-48 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" data-alt="A professional engineering product photograph of a large, heavy-duty boat trailer winch with a synthetic blue rope. The metal body of the winch has a rugged galvanized finish. The shot is angled to show the gear mechanism and the sturdy mounting base, set against a minimalist dark grey industrial background with soft focus on the edges." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8DXUvHIXdRnB--TGlMsi_E2Et6bdbXBroNaelxW_z0WldHWVRXvGuAfuLj1zUiUKK6_Ez_Ie9T2U9voEWc85WLdXTdsLwf7f_skkATbtHiUgvxrRLqNR8pQfs4mzUH8kXFbyyb4YqPYDYSIs0KGL7VnKAm-4TRn9HTFUqCdMykUUu66mF-lTMFVwkGtDjnMK_k86LAi86kiY1-JoYlFp5H9DziAbE6eStgOBg3O9nJwYiClXjQeu3">
+</div>
+<div class="p-stack-lg">
+<div class="flex items-center gap-2 mb-2">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+<span class="text-xs font-bold text-on-surface-variant uppercase">Hardware</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-primary text-lg mb-4">Marine Recovery Winch</h4>
+<div class="grid grid-cols-2 gap-2 text-xs font-technical-data text-on-surface-variant border-t border-outline-variant/10 pt-4">
+<div>RAT: 2,500 LBS</div>
+<div>GEAR: 12.1:1</div>
+</div>
+<button class="w-full mt-6 py-2 border border-primary text-primary font-bold text-sm hover:bg-primary hover:text-white transition-all">
+                                Add to Quote
+                            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- RFQ Form Section -->
+<section class="py-24 px-margin-desktop bg-primary-container relative overflow-hidden">
+<div class="absolute right-0 top-0 w-1/3 h-full opacity-10 pointer-events-none">
+
+</div>
+<div class="relative z-10 max-w-4xl mx-auto bg-white p-10 shadow-2xl">
+<div class="mb-10 text-center">
+<h2 class="font-display-lg text-headline-lg text-primary mb-2">Request a Technical Quote</h2>
+<p class="text-on-surface-variant">Configure your fleet requirements and receive a formal estimate within 24 hours.</p>
+</div>
+<form class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="flex flex-col gap-2">
+<label class="font-label-caps text-label-caps text-primary">Company Name</label>
+<input class="border-[#DDE1E6] focus:border-[#F58220] focus:ring-0 rounded" placeholder="e.g. Marine Logistics Corp" type="text">
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-caps text-label-caps text-primary">Technical Contact</label>
+<input class="border-[#DDE1E6] focus:border-[#F58220] focus:ring-0 rounded" placeholder="engineer@example.com" type="email">
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-caps text-label-caps text-primary">Primary Application</label>
+<select class="border-[#DDE1E6] focus:border-[#F58220] focus:ring-0 rounded">
+<option>Leisure Boat Trailers</option>
+<option>Commercial Ship Tenders</option>
+<option>Industrial Port Logistics</option>
+<option>Custom Marine OEM</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-caps text-label-caps text-primary">Order Volume (Annual)</label>
+<input class="border-[#DDE1E6] focus:border-[#F58220] focus:ring-0 rounded" placeholder="Units per year" type="number">
+</div>
+<div class="md:col-span-2 flex flex-col gap-2">
+<label class="font-label-caps text-label-caps text-primary">Technical Requirements &amp; Notes</label>
+<textarea class="border-[#DDE1E6] focus:border-[#F58220] focus:ring-0 rounded" placeholder="Specify axle width, load requirements, or custom hub patterns..." rows="4"></textarea>
+</div>
+<div class="md:col-span-2 mt-4">
+<button class="w-full py-4 bg-[#F58220] text-white font-bold text-lg hover:bg-on-tertiary-container transition-colors shadow-lg">
+                                Submit Quote Request
+                            </button>
+</div>
+</form>
+</div>
+</section>
+</main>
+</div>
+<!-- Footer (JSON Managed) -->
+<footer class="w-full py-stack-lg px-margin-desktop bg-primary text-on-primary mt-auto border-t border-outline">
+<div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-stack-lg">
+<div class="font-headline-md text-headline-md text-on-primary">Axion Industrial</div>
+<div class="flex flex-wrap justify-center gap-gutter">
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Terms of Service</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">ISO Certification</a>
+<a class="font-body-sm text-body-sm text-on-primary opacity-60 hover:text-on-tertiary-container underline" href="#">Global Logistics</a>
+</div>
+<div class="font-body-sm text-body-sm text-on-primary opacity-60 text-center md:text-right">
+                © 2024 Axion Industrial Manufacturing. All rights reserved. Precision Engineered for Heavy-Duty Performance.
+            </div>
+</div>
+</footer>
+<!-- Floating Action Button (JSON Constraint: Suppressed on Details/Transactional) -->
+<!-- Determined as transactional detail page, FAB suppressed to prioritize RFQ flow. -->
+<script>
+        // Micro-interaction for hover states on technical cards
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.boxShadow = '0 10px 30px -10px rgba(16, 42, 67, 0.2)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+                card.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body></html>
