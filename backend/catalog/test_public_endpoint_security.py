@@ -70,10 +70,9 @@ class PublicDocumentFilterSecurityTests(TestCase):
         # These selectors have separate syntax/choice validators. Keep their
         # database boundary covered alongside the free-form document model.
         for path in ("/api/products/", "/api/v1/products/"):
-            for field in ("q", "category", "application", "axle_type", "type",
-                          "brake_type", "brake", "bolt_pattern", "finish",
-                          "tube_shape", "capacity_unit", "dimension_unit",
-                          "ordering", "sort"):
+            for field in ("q", "category", "application", "units",
+                          "spec.rated_capacity", "spec.rated_capacity__min",
+                          "spec.brake_type", "ordering", "sort"):
                 with self.subTest(path=path, field=field), self.assertNumQueries(0):
                     response = self.client.get(path, {field: "value\x00unsafe"})
                     self.assertEqual(response.status_code, 400)

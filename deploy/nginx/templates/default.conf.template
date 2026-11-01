@@ -64,6 +64,17 @@ server {
         include /tmp/nginx-conf/includes/api-proxy.conf;
     }
 
+    # Website assistant: separate service, long-lived streamed answers.
+    location ~ ^/api/(?:v1/)?assistant/chat/?$ {
+        limit_req zone=public_forms burst=4 nodelay;
+        include /tmp/nginx-conf/includes/assistant-proxy.conf;
+    }
+
+    location ~ ^/api/(?:v1/)?assistant/ {
+        limit_req zone=public_api burst=40 nodelay;
+        include /tmp/nginx-conf/includes/assistant-proxy.conf;
+    }
+
     location /api/ {
         limit_req zone=public_api burst=40 nodelay;
         include /tmp/nginx-conf/includes/api-proxy.conf;

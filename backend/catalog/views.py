@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import logging
-import math
 import re
-from decimal import Decimal
 
 from django.contrib.admin.models import CHANGE, LogEntry
 from django.contrib.admin.views.decorators import staff_member_required
@@ -12,17 +10,7 @@ from django.core.cache import cache
 from django.core.validators import validate_slug
 from django.db import IntegrityError, transaction
 from django.db import connection
-from django.db.models import (
-    Case,
-    Count,
-    ExpressionWrapper,
-    F,
-    FloatField,
-    Prefetch,
-    Q,
-    Value,
-    When,
-)
+from django.db.models import Count, F, Prefetch, Q
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -34,8 +22,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from .models import (
+    FAQ,
     Application,
-    AxleSpec,
     Banner,
     Category,
     ContactMessage,
@@ -45,13 +33,14 @@ from .models import (
     Product,
     ProductDocument,
     ProductImage,
+    ProductSpecValue,
     NewsArticle,
     SiteSetting,
 )
 from .file_security import validate_product_document_upload
 from .serializers import (
     AnalyticsEventSerializer, ApplicationSerializer, BannerSerializer,
-    CategorySerializer, ContactMessageSerializer, InquirySerializer,
+    CategorySerializer, ContactMessageSerializer, FAQSerializer, InquirySerializer,
     MAX_BIG_AUTO_FIELD_VALUE,
     PageViewSerializer, ProductDetailSerializer, ProductDocumentSerializer,
     ProductListSerializer, NewsArticleDetailSerializer,
@@ -59,13 +48,9 @@ from .serializers import (
     CompanyProfileSerializer,
     VisitSessionSerializer,
 )
-from .specification_rules import (
-    BRAKE_ALIASES as BRAKE_FILTER_ALIASES,
-    SURFACE_FINISH_ALIASES as SURFACE_FINISH_FILTER_ALIASES,
-    TUBE_SHAPE_ALIASES as TUBE_SHAPE_FILTER_ALIASES,
-    normalize_choice_value,
-    parse_dimension_value,
-)
+from . import search as site_search
+from .specs import apply_spec_filters, fields_for_categories, filter_options
+from .units import IMPERIAL, UNIT_SYSTEMS, public_registry
 from .tasks import (
     enqueue_contact_notification,
     enqueue_inquiry_notification,
@@ -84,58 +69,16 @@ from .throttles import (
 
 logger = logging.getLogger(__name__)
 
-APPLICATION_FILTER_ALIASES = {
-    "utility-trailer": "utility-trailers",
-    "boat-trailer": "boat-trailers",
-    "agricultural-trailer": "agricultural-trailers",
-    "car-hauler": "car-haulers",
-    "construction-trailer": "construction-trailers",
-    "heavy-duty-trailer": "heavy-duty-transport",
-    "rv": "rv-caravan",
-}
-
-BOLT_PATTERN_FILTER_PATTERN = re.compile(
-    r"^(?P<stud_count>[1-9]\d?)\s*(?:x|on)\s*"
-    r"(?P<diameter>\d{1,3}(?:\.\d{1,3})?)$",
-    re.IGNORECASE,
-)
-LUG_COUNT_FILTER_PATTERN = re.compile(
-    r"^(?P<lug_count>[4-9])\s*lug(?:s)?$",
-    re.IGNORECASE,
-)
 PRODUCT_ORDERING_FIELDS = {
-    "capacity_asc": "rated_capacity_lb",
-    "capacity_desc": "-rated_capacity_lb",
     "model": "model",
     "newest": "-created_at",
     "published_at": "created_at",
     "-published_at": "-created_at",
     "updated_at": "updated_at",
     "-updated_at": "-updated_at",
+    "relevance": "relevance",
 }
 MAX_PRODUCT_PAGE = 10_000
-
-
-def normalize_choice_filter(
-    value: str,
-    *,
-    aliases: dict[str, str],
-    allowed: list[str],
-    field_name: str,
-    max_length: int,
-) -> str:
-    if len(value) > max_length:
-        raise ValidationError(
-            {field_name: f"{field_name.replace('_', ' ').title()} filter is too long."}
-        )
-    normalized = normalize_choice_value(
-        value,
-        aliases=aliases,
-        allowed=allowed,
-    )
-    if normalized is None:
-        raise ValidationError({field_name: f"Unsupported {field_name.replace('_', ' ')}."})
-    return normalized
 
 
 def validate_slug_filter(value: str, *, field_name: str, max_length: int) -> str:
@@ -158,91 +101,40 @@ def validate_boolean_filter(value: str, field_name: str) -> bool:
     return value.lower() == "true"
 
 
-def parse_capacity_filter(value: str, field_name: str) -> float:
-    if len(value) > 32:
-        raise ValidationError({field_name: "Capacity filter is too long."})
-    try:
-        number = float(value)
-    except ValueError as exc:
-        raise ValidationError({field_name: "Capacity must be a number."}) from exc
-    if not math.isfinite(number) or number < 0:
-        raise ValidationError(
-            {field_name: "Capacity must be finite and cannot be negative."}
+def requested_unit_system(params) -> str:
+    system = params.get("units", "")
+    if not system:
+        return (
+            SiteSetting.objects.filter(pk=1).values_list("default_unit_system", flat=True).first()
+            or IMPERIAL
         )
-    return number
+    if system not in UNIT_SYSTEMS:
+        raise ValidationError({"units": "Use imperial or metric."})
+    return system
 
 
-def normalize_bolt_pattern_filter(value: str) -> tuple[str, int | None]:
-    max_length = Product._meta.get_field("bolt_pattern").max_length
-    if len(value) > max_length:
-        raise ValidationError({"bolt_pattern": "Bolt pattern filter is too long."})
-    candidate = value.strip()
-    lug_match = LUG_COUNT_FILTER_PATTERN.fullmatch(candidate)
-    if lug_match is not None:
-        lug_count = int(lug_match.group("lug_count"))
-        return f"{lug_count} lug", lug_count
-
-    match = BOLT_PATTERN_FILTER_PATTERN.fullmatch(candidate)
-    if match is None or Decimal(match.group("diameter")) <= 0:
-        raise ValidationError(
-            {
-                "bolt_pattern": (
-                    "Use a lug count such as '4 lug', or a complete pattern "
-                    "such as '5 on 4.5' or '5x4.5'."
-                )
-            }
-        )
-    return f"{match.group('stud_count')} on {match.group('diameter')}", None
-
-
-def is_safe_bolt_pattern_option(value: object) -> bool:
-    return (
-        isinstance(value, str)
-        and bool(value.strip())
-        and len(value) <= Product._meta.get_field("bolt_pattern").max_length
-        and value.isprintable()
-    )
-
-
-def bolt_pattern_matches(product_pattern: str, requested_pattern: str) -> bool:
-    if not requested_pattern:
-        return False
-    normalized, lug_count = normalize_bolt_pattern_filter(requested_pattern)
-    if lug_count is not None:
-        candidate = product_pattern.strip().casefold()
-        return candidate.startswith(f"{lug_count} ") or candidate.startswith(
-            f"{lug_count}x"
-        )
-    return product_pattern.strip().casefold() == normalized.casefold()
-
-
-def parse_dimension_filter(value: str, field_name: str) -> tuple[Decimal, str | None]:
-    if len(value) > 60:
-        raise ValidationError({field_name: f"{field_name.replace('_', ' ').title()} filter is too long."})
-    try:
-        return parse_dimension_value(value)
-    except ValueError as exc:
-        raise ValidationError({field_name: str(exc)}) from exc
-
-
-def dimension_in_inches(value: Decimal, unit: str) -> float:
-    if unit == Product.DimensionUnit.MM:
-        return float(value / Decimal("25.4"))
-    return float(value)
-
-
-def normalized_dimension_annotation(field_name: str) -> Case:
-    return Case(
-        When(
-            dimension_unit=Product.DimensionUnit.MM,
-            then=ExpressionWrapper(
-                F(field_name) / Value(25.4),
-                output_field=FloatField(),
-            ),
-        ),
-        default=F(field_name),
-        output_field=FloatField(),
-    )
+def precheck_product_filters(params) -> None:
+    """Reject malformed filter text before any database query is made."""
+    for name in ("category", "application"):
+        if value := params.get(name):
+            validate_slug_filter(value, field_name=name, max_length=50)
+    if (system := params.get("units")) and system not in UNIT_SYSTEMS:
+        raise ValidationError({"units": "Use imperial or metric."})
+    if raw_query := params.get("q"):
+        if len(raw_query) > site_search.MAX_QUERY_LENGTH:
+            raise ValidationError({"q": "Search query must be at most 120 characters."})
+        try:
+            site_search.normalize_query(raw_query)
+        except ValueError as exc:
+            raise ValidationError({"q": str(exc)}) from exc
+    for name in ("ordering", "sort"):
+        if (value := params.get(name)) and (len(value) > 30 or value not in PRODUCT_ORDERING_FIELDS):
+            raise ValidationError({name: "Unsupported product ordering."})
+    for name in params:
+        if name.startswith("spec."):
+            value = params.get(name, "")
+            if len(name) > 80 or len(value) > 255 or not value.isprintable():
+                raise ValidationError({name[:80]: "Unsupported filter value."})
 
 
 def active_applications_prefetch() -> Prefetch:
@@ -261,12 +153,42 @@ def card_images_prefetch() -> Prefetch:
     )
 
 
+def spec_values_prefetch() -> Prefetch:
+    return Prefetch(
+        "spec_values",
+        queryset=ProductSpecValue.objects.select_related("field"),
+        to_attr="prefetched_spec_values",
+    )
+
+
+def category_queryset():
+    return Category.objects.select_related("parent", "parent__parent").prefetch_related(
+        "spec_fields",
+        "parent__spec_fields",
+        "parent__parent__spec_fields",
+    )
+
+
+def published_products():
+    return Product.objects.filter(
+        status=Product.Status.PUBLISHED,
+        category__is_active=True,
+    )
+
+
+def category_with_descendants(slug: str) -> tuple[Category, set[int]]:
+    category = Category.objects.filter(slug=slug, is_active=True).first()
+    if category is None:
+        return None, set()
+    return category, category.descendant_ids()
+
+
 class CategoryListView(generics.ListAPIView):
     serializer_class = CategorySerializer
     pagination_class = None
 
     def get_queryset(self):
-        return Category.objects.filter(is_active=True).annotate(product_count=Count("products", filter=Q(products__status=Product.Status.PUBLISHED)))
+        return category_queryset().filter(is_active=True).annotate(product_count=Count("products", filter=Q(products__status=Product.Status.PUBLISHED)))
 
 
 class CategoryDetailView(generics.RetrieveAPIView):
@@ -274,7 +196,7 @@ class CategoryDetailView(generics.RetrieveAPIView):
     lookup_field = "slug"
 
     def get_queryset(self):
-        return Category.objects.filter(is_active=True).annotate(
+        return category_queryset().filter(is_active=True).annotate(
             product_count=Count(
                 "products",
                 filter=Q(products__status=Product.Status.PUBLISHED),
@@ -318,235 +240,44 @@ class ProductListView(generics.ListAPIView):
                         )
                     }
                 )
-        queryset = Product.objects.filter(
-            status=Product.Status.PUBLISHED,
-            category__is_active=True,
-        ).annotate(
-            rated_capacity_lb=Case(
-                When(
-                    capacity_unit=Product.CapacityUnit.KG,
-                    then=F("rated_capacity") * Value(2.2046226218),
-                ),
-                default=F("rated_capacity"),
-                output_field=FloatField(),
-            ),
-            hub_face_inches=normalized_dimension_annotation("hub_face_length"),
-            spring_center_inches=normalized_dimension_annotation("spring_center"),
-        ).select_related("category").prefetch_related(
-            active_applications_prefetch(),
-            card_images_prefetch(),
-        )
-        if category := params.get("category"):
-            category = validate_slug_filter(
-                category,
+        precheck_product_filters(params)
+        system = requested_unit_system(params)
+        queryset = published_products()
+        categories: list[Category] = []
+        if category_slug := params.get("category"):
+            category_slug = validate_slug_filter(
+                category_slug,
                 field_name="category",
                 max_length=Category._meta.get_field("slug").max_length,
             )
-            queryset = queryset.filter(category__slug=category)
-        if raw_query := params.get("q"):
-            if len(raw_query) > 120:
-                raise ValidationError({"q": "Search query must be at most 120 characters."})
-            query = raw_query.strip()
-            if query and not query.isprintable():
-                raise ValidationError({"q": "Search query contains unsupported characters."})
-            if query:
-                queryset = queryset.filter(
-                    Q(title__icontains=query)
-                    | Q(model__icontains=query)
-                    | Q(sku__icontains=query)
-                    | Q(short_description__icontains=query)
-                    | Q(category__name__icontains=query)
-                    | Q(brake_type__icontains=query)
-                    | Q(bolt_pattern__icontains=query)
-                    | Q(surface_finish__icontains=query)
-                    | (
-                        Q(applications__is_active=True)
-                        & (
-                            Q(applications__name__icontains=query)
-                            | Q(applications__slug__icontains=query)
-                        )
-                    )
-                )
-
-        axle_filters = {}
-        axle_type_max_length = Product._meta.get_field("axle_type").max_length
-        for field_name in ("axle_type", "type"):
-            if value := params.get(field_name):
-                if (
-                    len(value) > axle_type_max_length
-                    or value not in Product.AxleType.values
-                ):
-                    raise ValidationError({field_name: "Unsupported axle type."})
-                axle_filters[field_name] = value
-        if len(set(axle_filters.values())) > 1:
-            raise ValidationError(
-                {"axle_type": "axle_type and type filters must not conflict."}
-            )
-        if axle_type := (
-            axle_filters.get("axle_type") or axle_filters.get("type")
-        ):
-            queryset = queryset.filter(axle_type=axle_type)
-
-        brake_filters = {}
-        for field_name in ("brake_type", "brake"):
-            if value := params.get(field_name):
-                brake_filters[field_name] = normalize_choice_filter(
-                    value,
-                    aliases=BRAKE_FILTER_ALIASES,
-                    allowed=Product.BrakeType.values,
-                    field_name=field_name,
-                    max_length=Product._meta.get_field("brake_type").max_length,
-                )
-        if len(set(brake_filters.values())) > 1:
-            raise ValidationError(
-                {"brake_type": "brake_type and brake filters must not conflict."}
-            )
-        if brake_type := (
-            brake_filters.get("brake_type") or brake_filters.get("brake")
-        ):
-            queryset = queryset.filter(brake_type__iexact=brake_type)
-        if raw_bolt_pattern := params.get("bolt_pattern"):
-            try:
-                bolt_pattern, lug_count = normalize_bolt_pattern_filter(
-                    raw_bolt_pattern
-                )
-            except ValidationError:
-                is_published_option = (
-                    is_safe_bolt_pattern_option(raw_bolt_pattern)
-                    and Product.objects.filter(
-                        status=Product.Status.PUBLISHED,
-                        category__is_active=True,
-                        bolt_pattern__iexact=raw_bolt_pattern,
-                    ).exists()
-                )
-                if not is_published_option:
-                    raise
-                queryset = queryset.filter(
-                    bolt_pattern__iexact=raw_bolt_pattern
-                )
+            category, category_ids = category_with_descendants(category_slug)
+            if category is None:
+                queryset = queryset.none()
             else:
-                if lug_count is not None:
-                    queryset = queryset.filter(
-                        Q(bolt_pattern__istartswith=f"{lug_count} ")
-                        | Q(bolt_pattern__istartswith=f"{lug_count}x")
-                    )
-                else:
-                    queryset = queryset.filter(
-                        Q(bolt_pattern__iexact=raw_bolt_pattern)
-                        | Q(bolt_pattern__iexact=bolt_pattern)
-                    )
-        if finish := params.get("finish"):
-            finish = normalize_choice_filter(
-                finish,
-                aliases=SURFACE_FINISH_FILTER_ALIASES,
-                allowed=Product.SurfaceFinish.values,
-                field_name="finish",
-                max_length=Product._meta.get_field("surface_finish").max_length,
-            )
-            queryset = queryset.filter(surface_finish=finish)
-        dimension_unit = params.get("dimension_unit")
-        if dimension_unit and (
-            len(dimension_unit) > Product._meta.get_field("dimension_unit").max_length
-            or dimension_unit not in Product.DimensionUnit.values
+                categories = [category]
+                queryset = queryset.filter(category_id__in=category_ids)
+        if not categories:
+            categories = list(Category.objects.filter(is_active=True).select_related("parent"))
+        queryset = apply_spec_filters(queryset, params, fields_for_categories(categories), system)
+
+        for parameter, field_name in (
+            ("customizable", "is_customizable"),
+            ("made_to_order", "made_to_order"),
+            ("oem", "oem_available"),
         ):
-            raise ValidationError(
-                {"dimension_unit": "Dimension unit must be in or mm."}
-            )
-        hub_face = params.get("hub_face")
-        spring_center = params.get("spring_center")
-        for parameter, annotation, raw_value in (
-            ("hub_face", "hub_face_inches", hub_face),
-            ("spring_center", "spring_center_inches", spring_center),
-        ):
-            if not raw_value:
-                continue
-            requested, explicit_unit = parse_dimension_filter(raw_value, parameter)
-            if explicit_unit and dimension_unit and explicit_unit != dimension_unit:
-                raise ValidationError(
-                    {parameter: "The value unit conflicts with dimension_unit."}
-                )
-            requested_inches = dimension_in_inches(
-                requested,
-                explicit_unit or dimension_unit or Product.DimensionUnit.IN,
-            )
-            tolerance = max(abs(requested_inches) * 1e-9, 0.005)
-            queryset = queryset.filter(
-                **{
-                    f"{annotation}__gte": requested_inches - tolerance,
-                    f"{annotation}__lte": requested_inches + tolerance,
-                }
-            )
-        if dimension_unit and not hub_face and not spring_center:
-            queryset = queryset.filter(dimension_unit=dimension_unit)
-        if tube_shape := params.get("tube_shape"):
-            tube_shape = normalize_choice_filter(
-                tube_shape,
-                aliases=TUBE_SHAPE_FILTER_ALIASES,
-                allowed=AxleSpec.TubeShape.values,
-                field_name="tube_shape",
-                max_length=AxleSpec._meta.get_field("tube_shape").max_length,
-            )
-            queryset = queryset.filter(axle_spec__tube_shape=tube_shape)
-        if customizable := params.get("customizable"):
-            queryset = queryset.filter(
-                is_customizable=validate_boolean_filter(customizable, "customizable")
-            )
-        if made_to_order := params.get("made_to_order"):
-            queryset = queryset.filter(
-                made_to_order=validate_boolean_filter(made_to_order, "made_to_order")
-            )
-        if oem := params.get("oem"):
-            queryset = queryset.filter(
-                oem_available=validate_boolean_filter(oem, "oem")
-            )
-        capacity_unit = params.get("capacity_unit")
-        capacity_min = params.get("capacity_min")
-        capacity_max = params.get("capacity_max")
-        if capacity_unit:
-            if (
-                len(capacity_unit) > Product._meta.get_field("capacity_unit").max_length
-                or capacity_unit not in Product.CapacityUnit.values
-            ):
-                raise ValidationError(
-                    {"capacity_unit": "Capacity unit must be lb or kg."}
-                )
-            if not capacity_min and not capacity_max:
-                queryset = queryset.filter(capacity_unit=capacity_unit)
-        if capacity := params.get("capacity"):
-            threshold = parse_capacity_filter(capacity, "capacity")
-            queryset = queryset.filter(
-                capacity_unit=capacity_unit or Product.CapacityUnit.LB,
-                rated_capacity__gte=threshold,
-            )
-        if capacity_min or capacity_max:
-            minimum = (
-                parse_capacity_filter(capacity_min, "capacity")
-                if capacity_min
-                else None
-            )
-            maximum = (
-                parse_capacity_filter(capacity_max, "capacity")
-                if capacity_max
-                else None
-            )
-            if minimum is not None and maximum is not None and minimum > maximum:
-                raise ValidationError({"capacity": "Minimum capacity cannot exceed maximum capacity."})
-            conversion = 2.2046226218 if capacity_unit == Product.CapacityUnit.KG else 1
-            if minimum is not None:
-                queryset = queryset.filter(rated_capacity_lb__gte=minimum * conversion)
-            if maximum is not None:
-                queryset = queryset.filter(rated_capacity_lb__lte=maximum * conversion)
+            if raw := params.get(parameter):
+                queryset = queryset.filter(**{field_name: validate_boolean_filter(raw, parameter)})
         if application := params.get("application"):
             application = validate_slug_filter(
                 application,
                 field_name="application",
                 max_length=Application._meta.get_field("slug").max_length,
             )
-            application = APPLICATION_FILTER_ALIASES.get(application, application)
             queryset = queryset.filter(
                 applications__slug=application,
                 applications__is_active=True,
             )
+
         ordering_filters = {}
         for field_name in ("ordering", "sort"):
             if value := params.get(field_name):
@@ -560,8 +291,28 @@ class ProductListView(generics.ListAPIView):
         requested_ordering = (
             ordering_filters.get("ordering") or ordering_filters.get("sort")
         )
+
+        queryset = queryset.distinct().select_related("category", "category__parent").prefetch_related(
+            active_applications_prefetch(),
+            card_images_prefetch(),
+            spec_values_prefetch(),
+        )
+        if raw_query := params.get("q"):
+            if len(raw_query) > site_search.MAX_QUERY_LENGTH:
+                raise ValidationError({"q": "Search query must be at most 120 characters."})
+            try:
+                parsed = site_search.parse_query(raw_query)
+            except ValueError as exc:
+                raise ValidationError({"q": str(exc)}) from exc
+            if parsed.groups or parsed.quantities:
+                ranked = site_search.search_products(queryset, parsed)
+                if requested_ordering in (None, "relevance"):
+                    return ranked
+                return ranked.order_by(PRODUCT_ORDERING_FIELDS[requested_ordering], "pk")
+        if requested_ordering == "relevance":
+            requested_ordering = None
         ordering = PRODUCT_ORDERING_FIELDS.get(requested_ordering, "position")
-        return queryset.order_by(ordering).distinct()
+        return queryset.order_by(ordering, "pk")
 
 
 class ProductDetailView(generics.RetrieveAPIView):
@@ -569,11 +320,9 @@ class ProductDetailView(generics.RetrieveAPIView):
     lookup_field = "slug"
 
     def get_queryset(self):
-        return Product.objects.filter(
-            status=Product.Status.PUBLISHED,
-            category__is_active=True,
-        ).select_related("category", "axle_spec").prefetch_related(
+        return published_products().select_related("category", "category__parent").prefetch_related(
             active_applications_prefetch(),
+            spec_values_prefetch(),
             "images",
             Prefetch(
                 "documents",
@@ -600,10 +349,11 @@ class ProductRelatedView(generics.GenericAPIView):
                 category=product.category,
             )
             .exclude(pk=product.pk)
-            .select_related("category")
+            .select_related("category", "category__parent")
             .prefetch_related(
                 active_applications_prefetch(),
                 card_images_prefetch(),
+                spec_values_prefetch(),
             )
             .order_by("position", "title")[:3]
         )
@@ -819,14 +569,11 @@ def health_view(request):
 
 @api_view(["GET"])
 def home_view(request):
-    categories = Category.objects.filter(is_active=True).annotate(product_count=Count("products", filter=Q(products__status=Product.Status.PUBLISHED)))[:6]
-    products = Product.objects.filter(
-        status=Product.Status.PUBLISHED,
-        featured=True,
-        category__is_active=True,
-    ).select_related("category").prefetch_related(
+    categories = category_queryset().filter(is_active=True, parent__isnull=True).annotate(product_count=Count("products", filter=Q(products__status=Product.Status.PUBLISHED)))[:6]
+    products = published_products().filter(featured=True).select_related("category", "category__parent").prefetch_related(
         active_applications_prefetch(),
         card_images_prefetch(),
+        spec_values_prefetch(),
     )[:3]
     return Response({
         "categories": CategorySerializer(categories, many=True).data,
@@ -844,17 +591,18 @@ def home_view(request):
 
 @api_view(["GET"])
 def navigation_view(request):
-    categories = Category.objects.filter(is_active=True).annotate(
+    categories = category_queryset().filter(is_active=True).annotate(
         product_count=Count(
             "products",
             filter=Q(products__status=Product.Status.PUBLISHED),
         )
     )
+    has_applications = Application.objects.filter(is_active=True).exists()
     return Response(
         {
             "items": [
                 {"label": "Products", "url": "/products"},
-                {"label": "Applications", "url": "/applications"},
+                *([{"label": "Applications", "url": "/applications"}] if has_applications else []),
                 {"label": "News", "url": "/news"},
                 {"label": "About us", "url": "/about"},
                 {"label": "Contact", "url": "/contact"},
@@ -870,52 +618,76 @@ def navigation_view(request):
 
 @api_view(["GET"])
 def filter_options_view(request):
-    products = Product.objects.filter(
-        status=Product.Status.PUBLISHED,
-        category__is_active=True,
-    )
-    capacities_by_unit = {
-        unit: sorted(
-            {
-                item
-                for item in products.filter(capacity_unit=unit).values_list(
-                    "rated_capacity",
-                    flat=True,
-                )
-                if item
-            }
+    params = request.query_params
+    system = requested_unit_system(params)
+    products = published_products()
+    if category_slug := params.get("category"):
+        category_slug = validate_slug_filter(
+            category_slug,
+            field_name="category",
+            max_length=Category._meta.get_field("slug").max_length,
         )
-        for unit in Product.CapacityUnit.values
-    }
+        category, category_ids = category_with_descendants(category_slug)
+        if category is None:
+            raise ValidationError({"category": "Unknown category."})
+        categories = [category]
+        products = products.filter(category_id__in=category_ids)
+    else:
+        categories = list(Category.objects.filter(is_active=True).select_related("parent"))
     return Response({
-        "capacities": capacities_by_unit[Product.CapacityUnit.LB],
-        "capacities_by_unit": capacities_by_unit,
-        "capacity_units": [
-            {"value": value, "label": label}
-            for value, label in Product.CapacityUnit.choices
-        ],
-        "brake_types": sorted({item for item in products.values_list("brake_type", flat=True) if item}),
-        "axle_types": [{"value": value, "label": label} for value, label in Product.AxleType.choices],
-        "bolt_patterns": sorted(
-            {
-                item
-                for item in products.values_list("bolt_pattern", flat=True)
-                if is_safe_bolt_pattern_option(item)
-            }
-        ),
-        "surface_finishes": sorted({item for item in products.values_list("surface_finish", flat=True) if item}),
-        "tube_shapes": sorted(
-            {
-                item
-                for item in products.values_list("axle_spec__tube_shape", flat=True)
-                if item
-            }
-        ),
+        "unit_system": system,
+        "parameters": filter_options(products, fields_for_categories(categories), system),
         "made_to_order": [
             {"value": "true", "label": "Made to order / configurable"},
             {"value": "false", "label": "Standard only"},
         ],
     })
+
+
+@api_view(["GET"])
+def units_view(request):
+    return Response({"systems": list(UNIT_SYSTEMS), "quantities": public_registry()})
+
+
+@api_view(["GET"])
+def faq_list_view(request):
+    faqs = FAQ.objects.filter(is_published=True)
+    return Response(FAQSerializer(faqs, many=True).data)
+
+
+@api_view(["GET"])
+def site_search_view(request):
+    raw_query = request.query_params.get("q", "")
+    if len(raw_query) > site_search.MAX_QUERY_LENGTH:
+        raise ValidationError({"q": "Search query must be at most 120 characters."})
+    try:
+        parsed = site_search.parse_query(raw_query)
+    except ValueError as exc:
+        raise ValidationError({"q": str(exc)}) from exc
+    if not parsed.groups and not parsed.quantities:
+        return Response({"query": parsed.raw, "products": [], "news": [], "documents": [], "corrections": {}})
+    products = site_search.search_products(
+        published_products().select_related("category", "category__parent").prefetch_related(
+            active_applications_prefetch(),
+            card_images_prefetch(),
+            spec_values_prefetch(),
+        ),
+        parsed,
+    )[:48]
+    news = site_search.search_news(parsed)
+    documents = site_search.search_documents(parsed)
+    return Response(
+        {
+            "query": parsed.raw,
+            "corrections": parsed.corrections,
+            "quantities": [
+                {"text": mention.text, "quantity": mention.quantity} for mention in parsed.quantities
+            ],
+            "products": ProductListSerializer(products, many=True, context={"request": request}).data,
+            "news": NewsArticleListSerializer(news, many=True, context={"request": request}).data,
+            "documents": ProductDocumentSerializer(documents, many=True, context={"request": request}).data,
+        }
+    )
 
 
 @api_view(["GET"])

@@ -81,8 +81,8 @@ class AdminActionPermissionTests(TestCase):
             "catalog.admin.enqueue_contact_notification", return_value=True,
         ))
         self.scan = self.enterContext(patch(
-            "catalog.admin.scan_inquiry_attachment",
-            return_value=InquiryAttachment.ScanStatus.CLEAN,
+            "catalog.admin.schedule_inquiry_attachment_scan",
+            return_value=InquiryAttachment.ScanStatus.PENDING,
         ))
 
     def action_url(self, obj):

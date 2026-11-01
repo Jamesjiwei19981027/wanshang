@@ -51,6 +51,7 @@ COPY --from=builder /app/.venv /app/.venv
 # Copy only application sources. Never import a host .venv, .env, or media store.
 COPY pyproject.toml uv.lock .python-version manage.py ./
 COPY catalog ./catalog
+COPY assistant ./assistant
 COPY config ./config
 COPY templates ./templates
 RUN addgroup -g 10001 app && adduser -D -u 10001 -G app -s /sbin/nologin app \

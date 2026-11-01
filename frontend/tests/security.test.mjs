@@ -220,6 +220,23 @@ test("site search events measure usage without persisting visitors' free-text qu
   assert.ok(!requests[0].init.body.includes("private"));
 });
 
+test("only a harmless search term that found nothing is shared for synonym review", () => {
+  const send = (query, resultCount) => {
+    const { load, window, requests } = browserHarness({
+      allowNetwork: true,
+      moduleMocks: { react: { useEffect: (effect) => effect(), useRef: (value) => ({ current: value }) } },
+    });
+    window.localStorage.setItem("axleforge-cookie-consent", "accepted");
+    load("components/SearchEventTracker.tsx").SearchEventTracker({ query, resultCount });
+    return JSON.parse(requests[0].init.body).metadata;
+  };
+  assert.equal(send("landing leg crank", 0).query, "landing leg crank");
+  assert.equal(Object.hasOwn(send("landing leg crank", 3), "query"), false);
+  for (const unsafe of ["call 13800138000", "https://example.com/x", "key=abc"]) {
+    assert.equal(Object.hasOwn(send(unsafe, 0), "query"), false, unsafe);
+  }
+});
+
 test("the rendered built-in GA config overrides full page and referral URLs with sanitized values", () => {
   const ScriptType = "next-script";
   const jsx = (type, props) => ({ type, props });
@@ -303,14 +320,18 @@ function rfqDraftHarness() {
       "@/lib/form-errors": { apiErrorMessage: () => "Unexpected form submission" },
       "@/components/AttachmentInput": { AttachmentInput: "attachment-input" },
       "@/lib/inquiry-attachments": { validateInquiryAttachments: () => "" },
+      "@/components/SiteConfigProvider": { useSiteConfig: () => ({ defaultUnitSystem: "imperial" }) },
+      "@/components/RfqCategoryFields": { RfqCategoryFields: "rfq-category-fields" },
+      "@/lib/units": { useUnitSystem: () => "imperial" },
     },
   });
   const controls = [
     new Input("name", "Test buyer"),
     new Input("email", "buyer@example.com", "email"),
     new Input("privacy_consent", "true", "checkbox", true),
-    new Input("specifications.capacity", "3500", "number"),
-    new Select("specifications.capacity_unit", "lb"),
+    new Input("requested_categories.trailer-axles", "true", "checkbox", true),
+    new Input("specifications.trailer-axles.rated_capacity", "3500"),
+    new Select("specifications.trailer-axles.brake_type", "Electric drum"),
     new Textarea("message", "Please quote the axle configuration."),
     new Input("turnstile_token", "fresh-turnstile-token", "hidden"),
     new Input("cf-turnstile-response", "fresh-cloudflare-response", "hidden"),
@@ -335,8 +356,9 @@ test("the actual RFQ change handler saves contact/specification drafts without s
   assert.equal(draft.name, "Test buyer");
   assert.equal(draft.email, "buyer@example.com");
   assert.equal(draft.privacy_consent, true);
-  assert.equal(draft["specifications.capacity"], "3500");
-  assert.equal(draft["specifications.capacity_unit"], "lb");
+  assert.equal(draft["requested_categories.trailer-axles"], true);
+  assert.equal(draft["specifications.trailer-axles.rated_capacity"], "3500");
+  assert.equal(draft["specifications.trailer-axles.brake_type"], "Electric drum");
   assert.equal(draft.message, "Please quote the axle configuration.");
   for (const field of ["turnstile_token", "cf-turnstile-response", "attachments", "website"]) {
     assert.equal(Object.hasOwn(draft, field), false, `${field} must not be persisted`);
@@ -351,7 +373,7 @@ test("the actual RFQ mount sanitizes legacy drafts without restoring stale verif
   const { window, controls, restoreDraft } = rfqDraftHarness();
   window.sessionStorage.setItem("axleforge-rfq-draft", JSON.stringify({
     name: "Restored buyer", email: "restored@example.com", privacy_consent: false,
-    "specifications.capacity": "7000", "specifications.capacity_unit": "lb",
+    "specifications.trailer-axles.rated_capacity": "7000", "specifications.trailer-axles.brake_type": "Electric drum",
     message: "Please keep this legitimate unsent requirement.",
     turnstile_token: "legacy-spent-token", "cf-turnstile-response": "legacy-cloudflare-token",
     attachments: "legacy-confidential-drawing.pdf", website: "legacy-honeypot",
@@ -360,7 +382,7 @@ test("the actual RFQ mount sanitizes legacy drafts without restoring stale verif
   assert.equal(controls.namedItem("name").value, "Restored buyer");
   assert.equal(controls.namedItem("email").value, "restored@example.com");
   assert.equal(controls.namedItem("privacy_consent").checked, false);
-  assert.equal(controls.namedItem("specifications.capacity").value, "7000");
+  assert.equal(controls.namedItem("specifications.trailer-axles.rated_capacity").value, "7000");
   assert.equal(controls.namedItem("message").value, "Please keep this legitimate unsent requirement.");
   assert.equal(controls.namedItem("turnstile_token").value, "fresh-turnstile-token");
   assert.equal(controls.namedItem("cf-turnstile-response").value, "fresh-cloudflare-response");
@@ -467,7 +489,9 @@ function submissionFormHarness(kind, respond) {
       "@/lib/form-errors": { apiErrorMessage: () => "Submission failed" },
       "@/components/AttachmentInput": { AttachmentInput: "attachment-input" },
       "@/lib/inquiry-attachments": { validateInquiryAttachments: () => "" },
-      "@/components/SiteConfigProvider": { useSiteConfig: () => ({ whatsappUrl: "" }) },
+      "@/components/SiteConfigProvider": { useSiteConfig: () => ({ whatsappUrl: "", defaultUnitSystem: "imperial" }) },
+      "@/components/RfqCategoryFields": { RfqCategoryFields: "rfq-category-fields" },
+      "@/lib/units": { useUnitSystem: () => "imperial" },
     },
   });
   const name = { rfq: "RFQForm", contact: "ContactForm", product: "ProductInquiryForm" }[kind];

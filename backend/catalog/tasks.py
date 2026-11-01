@@ -1,5 +1,4 @@
 import logging
-import json
 from datetime import datetime, timedelta
 from string import Formatter
 from typing import Callable
@@ -188,6 +187,38 @@ def _deliver_once(
     return True
 
 
+GENERAL_REQUIREMENT_LABELS = {
+    "oem_requirement": "OEM requirement",
+    "odm_requirement": "ODM requirement",
+    "special_requirements": "Special requirements",
+    "selected_product": "Selected product",
+}
+
+
+def specification_lines(inquiry) -> list[str]:
+    """Readable lines for {"general": {...}, "<category>": {key: row}}."""
+    from .models import Category
+
+    specifications = inquiry.specifications if isinstance(inquiry.specifications, dict) else {}
+    names = dict(Category.objects.filter(slug__in=list(specifications)).values_list("slug", "name"))
+    lines: list[str] = []
+    for section, values in specifications.items():
+        if not isinstance(values, dict):
+            # RFQs submitted before category parameter lists were flat.
+            lines.append(f"- {section}: {values}")
+            continue
+        if section == "general":
+            lines += [f"- {GENERAL_REQUIREMENT_LABELS.get(key, key)}: {value}" for key, value in values.items()]
+            continue
+        lines.append(f"{names.get(section, section)}:")
+        for key, row in values.items():
+            if isinstance(row, dict):
+                lines.append(f"  - {row.get('label', key)}: {row.get('value', '')}")
+            else:
+                lines.append(f"  - {key}: {row}")
+    return lines or ["- None"]
+
+
 def _email_context(instance, site_setting) -> dict[str, str]:
     company = getattr(instance, "company", "") or ""
     return {
@@ -264,7 +295,8 @@ def send_inquiry_notification(self, inquiry_id: int) -> None:
             "Products:",
             *(item_lines or ["- No catalogue product selected"]),
             "",
-            f"Specifications: {json.dumps(inquiry.specifications, ensure_ascii=False)}",
+            "Requested specifications:",
+            *specification_lines(inquiry),
             f"Attachments ({len(attachment_lines)}):",
             *(attachment_lines or ["- None"]),
             "",
@@ -484,4 +516,53 @@ def enqueue_contact_notification(message_id: int) -> bool:
         pk=message_id,
         notification_error__startswith=QUEUE_ERROR_PREFIX,
     ).update(notification_error="")
+    return True
+
+
+MAX_EXTRACTED_DOCUMENT_CHARACTERS = 200_000
+MAX_EXTRACTED_DOCUMENT_PAGES = 200
+
+
+def extract_pdf_text(file_obj) -> str:
+    """Text layer of a staff-uploaded PDF; scanned pages simply yield nothing."""
+    from pypdf import PdfReader
+
+    reader = PdfReader(file_obj)
+    if reader.is_encrypted:
+        return ""
+    parts: list[str] = []
+    total = 0
+    for page in reader.pages[:MAX_EXTRACTED_DOCUMENT_PAGES]:
+        text = " ".join((page.extract_text() or "").split())
+        if not text:
+            continue
+        parts.append(text)
+        total += len(text)
+        if total >= MAX_EXTRACTED_DOCUMENT_CHARACTERS:
+            break
+    return "\n".join(parts)[:MAX_EXTRACTED_DOCUMENT_CHARACTERS].replace("\x00", "")
+
+
+@shared_task(ignore_result=True, soft_time_limit=120, time_limit=150)
+def extract_document_text_task(document_id: int) -> None:
+    from .models import ProductDocument
+
+    document = ProductDocument.objects.filter(pk=document_id).first()
+    if document is None or not document.file or not document.file.name.lower().endswith(".pdf"):
+        return
+    try:
+        with document.file.open("rb") as handle:
+            text = extract_pdf_text(handle)
+    except Exception:
+        logger.exception("PDF text extraction failed", extra={"document_id": document_id})
+        text = ""
+    ProductDocument.objects.filter(pk=document_id).update(extracted_text=text, extracted_at=timezone.now())
+
+
+def enqueue_document_text_extraction(document_id: int) -> bool:
+    try:
+        extract_document_text_task.delay(document_id)
+    except Exception:
+        logger.exception("Unable to enqueue document text extraction", extra={"document_id": document_id})
+        return False
     return True

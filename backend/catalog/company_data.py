@@ -51,8 +51,8 @@ PROFILE_DEFAULTS = {
     "is_published": True,
 }
 
-# The current CMS has flat categories. The three source catalogue groups are
-# represented by axles, suspension and the four individual accessory families.
+# Six top-level categories as supplied. Subcategories (e.g. American-type
+# axles) can be added under them in the admin.
 CATEGORIES = (
     ("Trailer Axles", "trailer-axles", ", ".join(AXLE_FAMILIES) + ".", "◉"),
     ("Suspension Systems", "suspension-parts", ", ".join(SUSPENSION_FAMILIES) + ".", "⌁"),
@@ -60,4 +60,13 @@ CATEGORIES = (
     ("Brake Drums", "brake-drums", "Trailer brake drums. Send the part reference, dimensions and axle configuration for matching.", "◌"),
     ("Automotive Parts", "automotive-parts", "Automotive replacement parts. Share the vehicle model, part number or drawing with your enquiry.", "⚙"),
     ("Trailer Landing Gear", "landing-gear", "Trailer support legs and landing gear. Confirm mounting dimensions and required configuration with your enquiry.", "⌑"),
+)
+
+# Starter quick prompts for the assistant panel; staff replace them in the admin.
+QUICK_PROMPTS = (
+    ("any", "Help me choose a product"),
+    ("any", "What information do I need for a quotation?"),
+    ("product", "What are the key specifications of this product?"),
+    ("product", "Which similar models do you offer?"),
+    ("rfq", "Help me fill in this quotation request"),
 )

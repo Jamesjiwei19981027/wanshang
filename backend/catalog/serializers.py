@@ -19,20 +19,13 @@ from .file_security import (
     validate_attachment_content,
 )
 from .models import (
-    AnalyticsEvent, Application, AxleSpec, Banner, Category, ContactMessage,
-    CompanyPhoto, CompanyProfile,
+    FAQ, AnalyticsEvent, Application, Banner, Category, ContactMessage,
+    CompanyPhoto, CompanyProfile, KnowledgeEntry,
     Inquiry, InquiryAttachment, InquiryItem, PageView, Product, ProductDocument,
     ProductImage, NewsArticle, SiteSetting, VisitSession,
 )
-from .specification_rules import (
-    BRAKE_ALIASES,
-    SURFACE_FINISH_ALIASES,
-    TUBE_SHAPE_ALIASES,
-    compact_decimal,
-    normalize_choice_value,
-    parse_dimension_value,
-    parse_positive_number,
-)
+from .specification_rules import normalize_choice_value
+from .specs import parse_spec_input, serialize_field, serialize_spec_values
 from .turnstile import TurnstileVerificationError, verify_turnstile_token
 from .validators import (
     sanitize_upload_filename,
@@ -43,55 +36,13 @@ from .validators import (
 
 SESSION_KEY_PATTERN = re.compile(r"^[A-Za-z0-9._:-]{8,100}$")
 PHONE_PATTERN = re.compile(r"^[0-9+().\-\s]{6,60}$")
-RFQ_APPLICATIONS = {
-    "utility-trailers",
-    "boat-trailers",
-    "agricultural-trailers",
-    "car-haulers",
-    "rv-caravan",
-    "construction-trailers",
-    "heavy-duty-transport",
-    "other",
-}
-RFQ_SPECIFICATION_KEYS = frozenset(
-    {
-        "estimated_trailer_weight",
-        "capacity",
-        "capacity_unit",
-        "axle_count",
-        "axle_type",
-        "brake",
-        "environment",
-        "hub_face",
-        "spring_center",
-        "overall_length",
-        "tube_shape",
-        "tube_size",
-        "drop_height",
-        "dimension_unit",
-        "bolt_pattern",
-        "stud_size",
-        "hub_type",
-        "bearing_type",
-        "brake_size",
-        "finish",
-        "oem_requirement",
-        "odm_requirement",
-        "special_requirements",
-        # ProductInquiryForm submits this human-readable convenience value;
-        # the authoritative historical link remains items[].product_id/snapshot.
-        "selected_product",
-    }
-)
-RFQ_NUMERIC_SPECIFICATION_KEYS = frozenset(
-    {"estimated_trailer_weight", "capacity"}
-)
-RFQ_DIMENSION_SPECIFICATION_KEYS = frozenset(
-    {"hub_face", "spring_center", "overall_length", "drop_height"}
+# General requirement fields asked for every RFQ, whatever the category.
+RFQ_GENERAL_KEYS = frozenset(
+    {"oem_requirement", "odm_requirement", "special_requirements", "selected_product"}
 )
 RFQ_LONG_SPECIFICATION_KEYS = frozenset({"special_requirements"})
-RFQ_AXLE_COUNTS = ["single", "tandem", "triple", "unknown"]
 RFQ_REQUIREMENT_CHOICES = ["yes", "no", "discuss"]
+MAX_RFQ_CATEGORIES = 10
 POSITIVE_DECIMAL_INTEGER_PATTERN = re.compile(r"^[0-9]+$")
 MAX_BIG_AUTO_FIELD_VALUE = 9_223_372_036_854_775_807
 MAX_PUBLIC_JSON_NODES = 500
@@ -245,6 +196,9 @@ class SecureExternalURLField(serializers.URLField):
 class CategorySerializer(serializers.ModelSerializer):
     product_count = serializers.IntegerField(read_only=True)
     image_url = SecureExternalURLField(required=False, allow_blank=True)
+    parent = serializers.SlugRelatedField(slug_field="slug", read_only=True)
+    path = serializers.SerializerMethodField()
+    rfq_fields = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
@@ -252,13 +206,23 @@ class CategorySerializer(serializers.ModelSerializer):
             "id",
             "name",
             "slug",
+            "parent",
+            "path",
             "description",
             "icon",
             "image_url",
             "product_count",
             "meta_title",
             "meta_description",
+            "rfq_fields",
+            "translations",
         )
+
+    def get_path(self, obj: Category) -> list[dict]:
+        return [{"name": item.name, "slug": item.slug} for item in obj.lineage()]
+
+    def get_rfq_fields(self, obj: Category) -> list[dict]:
+        return [serialize_field(field) for field in obj.effective_spec_fields() if field.ask_in_rfq]
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
@@ -266,13 +230,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Application
-        fields = ("id", "name", "slug", "summary", "image_url", "recommended_finish")
-
-
-class AxleSpecSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AxleSpec
-        exclude = ("id", "product", "created_at", "updated_at")
+        fields = ("id", "name", "slug", "summary", "image_url", "recommended_finish", "translations")
 
 
 class ProductDocumentSerializer(serializers.ModelSerializer):
@@ -306,6 +264,7 @@ class ProductDocumentSerializer(serializers.ModelSerializer):
 
     def get_url(self, obj: ProductDocument) -> str:
         request = self.context.get("request")
+        # Unversioned path: the same plain error format as other site downloads.
         path = reverse("document-download", kwargs={"pk": obj.pk})
         return request.build_absolute_uri(path) if request else path
 
@@ -345,17 +304,20 @@ class ProductListSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     applications = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
+    specs = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = (
             "id", "title", "slug", "model", "sku", "short_description", "image_url",
-            "rated_capacity", "capacity_unit", "dimension_unit", "axle_type",
-            "brake_type", "bolt_pattern", "stud_size", "grease_cap_type", "tube_size",
-            "hub_face_length", "spring_center", "surface_finish", "is_customizable",
-            "oem_available", "made_to_order", "packaging", "featured", "category",
+            "specs", "is_customizable", "oem_available", "made_to_order", "packaging",
+            "moq", "lead_time", "loading_port", "featured", "category",
             "applications", "updated_at",
         )
+
+    def get_specs(self, obj: Product) -> list[dict]:
+        values = getattr(obj, "prefetched_spec_values", None)
+        return serialize_spec_values(obj, values)
 
     def get_applications(self, obj: Product) -> list[dict]:
         applications = getattr(obj, "active_applications", None)
@@ -381,19 +343,30 @@ class ProductListSerializer(serializers.ModelSerializer):
 
 
 class ProductDetailSerializer(ProductListSerializer):
-    axle_spec = AxleSpecSerializer(read_only=True)
     documents = ProductDocumentSerializer(many=True, read_only=True, source="active_documents")
     images = ProductImageSerializer(many=True, read_only=True)
 
     class Meta(ProductListSerializer.Meta):
         fields = ProductListSerializer.Meta.fields + (
             "description",
-            "axle_spec",
             "images",
             "documents",
             "meta_title",
             "meta_description",
+            "translations",
         )
+
+
+class FAQSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FAQ
+        fields = ("id", "question", "answer", "group", "translations")
+
+
+class KnowledgeEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KnowledgeEntry
+        fields = ("id", "title", "slug", "body", "translations", "updated_at")
 
 
 class NewsArticleListSerializer(serializers.ModelSerializer):
@@ -504,6 +477,7 @@ class SiteSettingSerializer(serializers.ModelSerializer):
             "google_analytics_id",
             "google_tag_manager_id",
             "footer_text",
+            "default_unit_system",
         )
 
     def get_site_logo_url(self, obj: SiteSetting) -> str:
@@ -687,6 +661,14 @@ class InquirySerializer(serializers.ModelSerializer):
         max_value=100_000_000,
     )
     specifications = serializers.JSONField(required=False, default=dict)
+    requested_categories = serializers.JSONField(required=False, default=list)
+    assistant_conversation = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_blank=True,
+        max_length=64,
+        default="",
+    )
     website = serializers.CharField(write_only=True, required=False, allow_blank=True, default="")
     session_id = serializers.CharField(
         write_only=True,
@@ -716,7 +698,8 @@ class InquirySerializer(serializers.ModelSerializer):
         fields = (
             "reference", "name", "email", "phone", "company", "country", "quantity",
             "application", "destination_port", "target_delivery_date", "message",
-            "specifications", "privacy_consent", "items", "website",
+            "requested_categories", "specifications", "privacy_consent", "items", "website",
+            "assistant_conversation",
             "session_id", "turnstile_token", "attachments", "source_url",
             "referrer_url",
             "first_touch_source", "last_touch_source", "utm_source", "utm_medium",
@@ -746,153 +729,105 @@ class InquirySerializer(serializers.ModelSerializer):
 
     def validate_application(self, value: str) -> str:
         value = value.strip()
-        if value and value not in RFQ_APPLICATIONS:
+        if (
+            value
+            and value != "other"
+            and not Application.objects.filter(slug=value, is_active=True).exists()
+        ):
             raise serializers.ValidationError("Select a supported application or Other.")
         return value
+
+    def validate_requested_categories(self, value: object) -> list[str]:
+        if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+            raise serializers.ValidationError("Categories must be a list of category identifiers.")
+        slugs = list(dict.fromkeys(item.strip() for item in value if item.strip()))
+        if len(slugs) > MAX_RFQ_CATEGORIES:
+            raise serializers.ValidationError(f"Select no more than {MAX_RFQ_CATEGORIES} categories.")
+        found = set(
+            Category.objects.filter(slug__in=slugs, is_active=True).values_list("slug", flat=True)
+        )
+        if missing := [slug for slug in slugs if slug not in found]:
+            raise serializers.ValidationError(f"Unknown or inactive categories: {', '.join(missing[:5])}.")
+        return slugs
 
     def validate_specifications(self, value: object) -> dict:
         if not isinstance(value, dict):
             raise serializers.ValidationError(
                 "Technical specifications must be an object."
             )
-        unknown_keys = [
-            key for key in value if not isinstance(key, str) or key not in RFQ_SPECIFICATION_KEYS
-        ]
-        if unknown_keys:
-            rendered_keys = ", ".join(sorted(repr(key) for key in unknown_keys))
-            raise serializers.ValidationError(
-                {"unknown_keys": f"Unsupported specification fields: {rendered_keys}."}
-            )
+        return value
 
-        normalized: dict[str, str] = {}
-        errors: dict[str, str] = {}
-        explicit_dimension_units: dict[str, str] = {}
-        for key, raw_value in value.items():
-            if (
-                raw_value is None
-                or isinstance(raw_value, bool)
-                or not isinstance(raw_value, (str, int, float))
-            ):
-                errors[key] = "Use a string or number; nested, boolean and null values are not accepted."
-                continue
-            if isinstance(raw_value, float) and not math.isfinite(raw_value):
-                errors[key] = "Use a finite value."
-                continue
+    def _normalize_specifications(self, value: dict, categories: list[str]) -> dict:
+        """Validate {"general": {...}, "<category>": {"<parameter>": value}}.
 
-            rendered = str(raw_value).strip()
-            try:
-                validate_public_text(rendered)
-            except ValueError as exc:
-                errors[key] = str(exc)
+        Category sections accept only the parameters that the category's
+        parameter list marks "ask in RFQ". Values are stored with their label
+        so the enquiry stays readable after the parameter list changes.
+        """
+        errors: dict[str, object] = {}
+        normalized: dict[str, dict] = {}
+        unit_system = SiteSetting.objects.filter(pk=1).values_list("default_unit_system", flat=True).first() or "imperial"
+        category_objects = {
+            category.slug: category
+            for category in Category.objects.filter(slug__in=categories, is_active=True).select_related("parent")
+        }
+        for section, entries in value.items():
+            if not isinstance(section, str) or not isinstance(entries, dict):
+                errors[str(section)[:60]] = "Each section must be an object of parameter values."
                 continue
-            maximum_length = 4_000 if key in RFQ_LONG_SPECIFICATION_KEYS else 160
-            if len(rendered) > maximum_length:
-                errors[key] = f"Ensure this value has at most {maximum_length} characters."
+            if section == "general":
+                unknown = [key for key in entries if key not in RFQ_GENERAL_KEYS]
+                if unknown:
+                    errors["general"] = f"Unsupported fields: {', '.join(sorted(map(str, unknown))[:5])}."
+                    continue
+                general: dict[str, str] = {}
+                for key, raw in entries.items():
+                    if raw is None or isinstance(raw, (bool, dict, list)):
+                        errors[f"general.{key}"] = "Use text."
+                        continue
+                    text = str(raw).strip()
+                    try:
+                        validate_public_text(text)
+                    except ValueError as exc:
+                        errors[f"general.{key}"] = str(exc)
+                        continue
+                    limit = 4_000 if key in RFQ_LONG_SPECIFICATION_KEYS else 160
+                    if len(text) > limit:
+                        errors[f"general.{key}"] = f"Ensure this value has at most {limit} characters."
+                        continue
+                    if key in {"oem_requirement", "odm_requirement"} and text:
+                        choice = normalize_choice_value(text, aliases={}, allowed=RFQ_REQUIREMENT_CHOICES)
+                        if choice is None:
+                            errors[f"general.{key}"] = "Select yes, no or discuss."
+                            continue
+                        text = choice
+                    if text:
+                        general[key] = text
+                if general:
+                    normalized["general"] = general
                 continue
-            if not rendered:
-                normalized[key] = ""
+            category = category_objects.get(section)
+            if category is None:
+                errors[section[:60]] = "Select this category before entering its parameters."
                 continue
-
-            try:
-                if key in RFQ_NUMERIC_SPECIFICATION_KEYS:
-                    number = parse_positive_number(
-                        rendered,
-                        maximum=Decimal("100000000"),
-                        allow_commas=True,
-                    )
-                    normalized[key] = compact_decimal(number)
-                elif key in RFQ_DIMENSION_SPECIFICATION_KEYS:
-                    number, unit = parse_dimension_value(rendered)
-                    if number > Decimal("99999999.99"):
-                        raise ValueError("Dimension is out of range.")
-                    normalized[key] = compact_decimal(number)
-                    if unit:
-                        explicit_dimension_units[key] = unit
-                        normalized[key] += f" {unit}"
-                elif key == "capacity_unit":
-                    choice = normalize_choice_value(
-                        rendered,
-                        aliases={},
-                        allowed=Product.CapacityUnit.values,
-                    )
-                    if choice is None:
-                        raise ValueError("Capacity unit must be lb or kg.")
-                    normalized[key] = choice
-                elif key == "dimension_unit":
-                    choice = normalize_choice_value(
-                        rendered,
-                        aliases={},
-                        allowed=Product.DimensionUnit.values,
-                    )
-                    if choice is None:
-                        raise ValueError("Dimension unit must be in or mm.")
-                    normalized[key] = choice
-                elif key == "axle_count":
-                    choice = normalize_choice_value(
-                        rendered,
-                        aliases={},
-                        allowed=RFQ_AXLE_COUNTS,
-                    )
-                    if choice is None:
-                        raise ValueError("Select single, tandem, triple or unknown.")
-                    normalized[key] = choice
-                elif key == "axle_type":
-                    choice = normalize_choice_value(
-                        rendered,
-                        aliases={},
-                        allowed=Product.AxleType.values,
-                    )
-                    if choice is None:
-                        raise ValueError("Select a supported axle type.")
-                    normalized[key] = choice
-                elif key == "brake":
-                    choice = normalize_choice_value(
-                        rendered,
-                        aliases=BRAKE_ALIASES,
-                        allowed=Product.BrakeType.values,
-                    )
-                    if choice is None:
-                        raise ValueError("Select a supported brake type.")
-                    normalized[key] = choice
-                elif key == "tube_shape":
-                    choice = normalize_choice_value(
-                        rendered,
-                        aliases=TUBE_SHAPE_ALIASES,
-                        allowed=AxleSpec.TubeShape.values,
-                    )
-                    if choice is None:
-                        raise ValueError("Select round, square or other.")
-                    normalized[key] = choice
-                elif key == "finish":
-                    choice = normalize_choice_value(
-                        rendered,
-                        aliases=SURFACE_FINISH_ALIASES,
-                        allowed=Product.SurfaceFinish.values,
-                    )
-                    if choice is None:
-                        raise ValueError("Select a supported surface finish.")
-                    normalized[key] = choice
-                elif key in {"oem_requirement", "odm_requirement"}:
-                    choice = normalize_choice_value(
-                        rendered,
-                        aliases={},
-                        allowed=RFQ_REQUIREMENT_CHOICES,
-                    )
-                    if choice is None:
-                        raise ValueError("Select yes, no or discuss.")
-                    normalized[key] = choice
-                else:
-                    normalized[key] = rendered
-            except ValueError as exc:
-                errors[key] = str(exc)
-
-        declared_dimension_unit = normalized.get("dimension_unit", "")
-        if declared_dimension_unit:
-            for key, explicit_unit in explicit_dimension_units.items():
-                if explicit_unit != declared_dimension_unit:
-                    errors[key] = (
-                        "The value unit conflicts with the submitted dimension_unit."
-                    )
+            fields = {field.key: field for field in category.effective_spec_fields() if field.ask_in_rfq}
+            rows: dict[str, dict] = {}
+            for key, raw in entries.items():
+                field = fields.get(key) if isinstance(key, str) else None
+                if field is None:
+                    errors[f"{section}.{str(key)[:60]}"] = "This parameter is not asked for this category."
+                    continue
+                try:
+                    if isinstance(raw, str):
+                        validate_public_text(raw)
+                    row = parse_spec_input(field, raw, default_system=unit_system)
+                except ValueError as exc:
+                    errors[f"{section}.{key}"] = str(exc)
+                    continue
+                if row:
+                    rows[key] = row
+            if rows:
+                normalized[section] = rows
         if errors:
             raise serializers.ValidationError(errors)
         return normalized
@@ -952,6 +887,14 @@ class InquirySerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Unable to process this request.")
         if not attrs.get("privacy_consent"):
             raise serializers.ValidationError({"privacy_consent": "Privacy consent is required."})
+        # Reject malformed parameters before spending the single-use CAPTCHA.
+        try:
+            attrs["specifications"] = self._normalize_specifications(
+                attrs.get("specifications", {}),
+                attrs.get("requested_categories", []),
+            )
+        except serializers.ValidationError as exc:
+            raise serializers.ValidationError({"specifications": exc.detail}) from exc
         turnstile_token = attrs.pop("turnstile_token", "")
         try:
             verify_turnstile_token(
@@ -979,7 +922,7 @@ class InquirySerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"attachments": f"{uploaded_file.name}: {exc}"}
                 ) from exc
-        specifications = attrs.get("specifications", {})
+        specifications = attrs["specifications"]
         try:
             encode_safe_public_json(
                 specifications,
@@ -994,6 +937,7 @@ class InquirySerializer(serializers.ModelSerializer):
 
     def create(self, validated_data: dict) -> Inquiry:
         items = validated_data.pop("items", [])
+        conversation_id = validated_data.pop("assistant_conversation", "")
         session_key = validated_data.pop("session_id", "")
         request = self.context["request"]
         session, attribution = build_submission_attribution(
@@ -1014,15 +958,21 @@ class InquirySerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "One or more selected products are no longer available."
                 )
+            # The product's own parameters as published when the buyer asked,
+            # kept apart from the buyer's requested specifications.
             snapshot = {
                 "model": product.model,
                 "title": product.title,
                 "sku": product.sku,
-                "rated_capacity": product.rated_capacity,
-                "capacity_unit": product.capacity_unit,
-                "dimension_unit": product.dimension_unit,
-                "brake_type": product.brake_type,
-                "bolt_pattern": product.bolt_pattern,
+                "category": product.category.name,
+                "specs": {
+                    row["key"]: {
+                        "label": row["label"],
+                        "value": row["display"]["imperial"],
+                        "metric": row["display"]["metric"],
+                    }
+                    for row in serialize_spec_values(product)
+                },
             }
             InquiryItem.objects.create(
                 inquiry=inquiry,
@@ -1041,6 +991,10 @@ class InquirySerializer(serializers.ModelSerializer):
                 declared_mime_type=(uploaded_file.content_type or "")[:120],
             )
             schedule_inquiry_attachment_scan(attachment)
+        if conversation_id:
+            from assistant.leads import link_conversation_to_inquiry
+
+            link_conversation_to_inquiry(conversation_id, inquiry, request)
         AnalyticsEvent.objects.create(
             event_name="submit_inquiry",
             path=inquiry.source_url[:500],
@@ -1223,6 +1177,15 @@ class AnalyticsEventSerializer(serializers.ModelSerializer):
         return validate_session_key(value) if value else ""
 
     def create(self, validated_data: dict) -> AnalyticsEvent:
+        metadata = validated_data.get("metadata", {})
+        if validated_data["event_name"] == "search_product" and "query" in metadata:
+            # Only consenting visitors send events. Keep the no-result term in
+            # the search-miss list, never in the event log itself.
+            query = metadata.pop("query")
+            if isinstance(query, str) and metadata.get("results") == 0:
+                from .search import record_search_miss
+
+                record_search_miss(query)
         session_key = validated_data.get("session_id", "")
         if session_key:
             validated_data["visit_session"] = upsert_visit_session(

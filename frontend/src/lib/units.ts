@@ -1,44 +1,36 @@
-export function formatDimension(
-  value: string | number | null | undefined,
-  unit = "in",
-): string {
-  if (value === null || value === undefined || String(value).trim() === "") return "—";
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return String(value);
-  const formatted = new Intl.NumberFormat("en", { maximumFractionDigits: 2 }).format(numeric);
-  return `${formatted} ${unit === "mm" ? "mm" : "in"}`;
+"use client";
+
+import { useSyncExternalStore } from "react";
+import { storageGet, storageSet } from "@/lib/browser-storage";
+import { DEFAULT_UNIT_SYSTEM, isUnitSystem } from "@/lib/unit-format";
+import type { UnitSystem } from "@/lib/types";
+
+export { cardSpecs, specText } from "@/lib/unit-format";
+
+const KEY = "wanshang-unit-system";
+const EVENT = "unit-system-change";
+
+function readSystem(): UnitSystem | null {
+  const stored = storageGet("localStorage", KEY);
+  return isUnitSystem(stored) ? stored : null;
 }
 
-function parseProductNumber(value: string | number | null | undefined): number | null {
-  if (value === null || value === undefined) return null;
-  if (typeof value === "number") return Number.isFinite(value) ? value : null;
-  const parsed = Number.parseFloat(String(value).trim());
-  return Number.isFinite(parsed) ? parsed : null;
+const subscribe = (listener: () => void) => {
+  window.addEventListener(EVENT, listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    window.removeEventListener(EVENT, listener);
+    window.removeEventListener("storage", listener);
+  };
+};
+
+/** The visitor's chosen unit system, falling back to the site default. */
+export function useUnitSystem(siteDefault: UnitSystem = DEFAULT_UNIT_SYSTEM): UnitSystem {
+  const chosen = useSyncExternalStore(subscribe, readSystem, () => null);
+  return chosen ?? siteDefault;
 }
 
-export function dimensionMatches(
-  productValue: string | number | null | undefined,
-  requestedValue: string,
-  productUnit = "in",
-): boolean {
-  const requested = requestedValue.trim();
-  if (!requested) return true;
-  const match = requested.match(/^([0-9]+(?:\.[0-9]+)?)\s*(mm|in|inch|inches|")?$/i);
-  const productNumber = parseProductNumber(productValue);
-  if (!match) {
-    if (productNumber !== null && Number.isFinite(Number.parseFloat(requested))) {
-      return Math.abs(productNumber - Number.parseFloat(requested)) < 0.01;
-    }
-    return String(productValue ?? "").toLocaleLowerCase("en").includes(requested.toLocaleLowerCase("en"));
-  }
-  if (productNumber === null) {
-    return String(productValue ?? "").toLocaleLowerCase("en").includes(requested.toLocaleLowerCase("en"));
-  }
-  let numeric = Number(match[1]);
-  const requestedUnit = (match[2] || productUnit).toLocaleLowerCase("en");
-  const normalizedRequestedUnit = requestedUnit === "mm" ? "mm" : "in";
-  if (normalizedRequestedUnit !== productUnit) {
-    numeric = productUnit === "mm" ? numeric * 25.4 : numeric / 25.4;
-  }
-  return Math.abs(productNumber - numeric) < 0.01;
+export function setUnitSystem(system: UnitSystem) {
+  storageSet("localStorage", KEY, system);
+  window.dispatchEvent(new Event(EVENT));
 }

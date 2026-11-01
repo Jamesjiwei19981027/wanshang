@@ -45,12 +45,10 @@ export async function GET(): Promise<Response> {
     lines.push("");
     lines.push(`- Title: ${product.title}`);
     lines.push(`- Category: ${product.category.name}`);
-    lines.push(`- Capacity: ${product.rated_capacity ?? "confirm with RFQ"} ${product.capacity_unit || "lb"}`);
-    lines.push(`- Axle type: ${product.axle_type || "confirm with RFQ"}`);
-    lines.push(`- Brake type: ${product.brake_type || "confirm with RFQ"}`);
-    lines.push(`- Bolt pattern: ${product.bolt_pattern || "confirm with RFQ"}`);
-    lines.push(`- Hub face: ${product.hub_face_length || "confirm with RFQ"}`);
-    lines.push(`- Spring centre: ${product.spring_center || "confirm with RFQ"}`);
+    for (const spec of product.specs ?? []) {
+      const { imperial, metric } = spec.display;
+      lines.push(`- ${spec.label}: ${imperial}${metric && metric !== imperial ? ` (${metric})` : ""}`);
+    }
     lines.push(`- Path: ${getProductPath(product)}`);
     lines.push(`- Summary: ${product.short_description}`);
     lines.push("");

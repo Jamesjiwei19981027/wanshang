@@ -53,7 +53,7 @@ export function RfqSummary() {
       {items.map((item) => (
         <div className="summary-item" key={item.id}>
           <b>{item.title}</b>
-          <span>{item.model} · {item.rated_capacity?.toLocaleString() ?? "—"} {item.capacity_unit || "lb"}</span>
+          <span>{item.model} · {item.sku}</span>
           <RfqQuantityInput id={item.id} title={item.title} quantity={item.quantity} />
           <button
             className="remove-button"

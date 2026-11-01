@@ -244,6 +244,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "catalog",
+    "assistant",
 ]
 
 MIDDLEWARE = [
@@ -356,6 +357,11 @@ TURNSTILE_REQUIRED = (
 )
 TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 TURNSTILE_TIMEOUT = positive_integer_from_env("TURNSTILE_TIMEOUT", "8")
+
+# Website assistant. The API key is read from the server environment only.
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "").strip()
+DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com").strip().rstrip("/")
+DEEPSEEK_CONNECT_TIMEOUT = positive_float_from_env("DEEPSEEK_CONNECT_TIMEOUT", "10")
 if DJANGO_ENV == "production" and not TURNSTILE_SECRET_KEY:
     raise ImproperlyConfigured("TURNSTILE_SECRET_KEY is required in production.")
 if DJANGO_ENV == "production" and TURNSTILE_SECRET_KEY in {

@@ -40,22 +40,14 @@ function normalizeRfqItems(value: unknown): RfqItem[] {
     const quantity = Number.isFinite(rawQuantity)
       ? Math.max(1, Math.min(MAX_QUANTITY, Math.trunc(rawQuantity)))
       : 1;
-    const rawCapacity = item.rated_capacity;
-    const ratedCapacity = typeof rawCapacity === "number"
-      && Number.isFinite(rawCapacity)
-      && rawCapacity >= 0
-      ? rawCapacity
-      : null;
-    const capacityUnit = boundedText(item.capacity_unit, 8);
+    const category = boundedText(item.category, 50);
     seen.add(id);
     items.push({
       id,
       title,
       model,
       sku,
-      rated_capacity: ratedCapacity,
-      capacity_unit: capacityUnit === "lb" || capacityUnit === "kg" ? capacityUnit : undefined,
-      brake_type: boundedText(item.brake_type, 80),
+      category: /^[a-z0-9_-]+$/i.test(category) ? category : undefined,
       quantity,
     });
     if (items.length === MAX_ITEMS) break;
@@ -112,7 +104,7 @@ export const addToRfq = (product: Product) => {
     }));
     return false;
   }
-  save([...items, { id: product.id, title: product.title, model: product.model, sku: product.sku, rated_capacity: product.rated_capacity, capacity_unit: product.capacity_unit, brake_type: product.brake_type, quantity: 1 }]);
+  save([...items, { id: product.id, title: product.title, model: product.model, sku: product.sku, category: product.category?.slug, quantity: 1 }]);
   window.dispatchEvent(new CustomEvent("rfq-toast", { detail: { title: product.title } }));
   return true;
 };

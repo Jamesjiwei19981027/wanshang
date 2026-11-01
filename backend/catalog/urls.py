@@ -8,7 +8,7 @@ from .views import (
     NewsArticleListView, VisitSessionCreateView, document_download_view,
     document_list_view, filter_options_view,
     health_view, home_view, navigation_view, site_settings_view,
-    company_profile_view,
+    company_profile_view, faq_list_view, site_search_view, units_view,
 )
 
 urlpatterns = [
@@ -30,6 +30,9 @@ urlpatterns = [
     path("products/<slug:slug>/", ProductDetailView.as_view(), name="product-detail"),
     path("filters/", filter_options_view, name="filters"),
     path("product-filter-options/", filter_options_view, name="product-filter-options"),
+    path("units/", units_view, name="units"),
+    path("faqs/", faq_list_view, name="faqs"),
+    path("search/", site_search_view, name="site-search"),
     path("documents/", document_list_view, name="documents"),
     path("downloads/", document_list_view, name="downloads"),
     path("documents/<int:pk>/download/", document_download_view, name="document-download"),

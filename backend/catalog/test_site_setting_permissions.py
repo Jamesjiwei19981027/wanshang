@@ -51,6 +51,7 @@ class SiteSettingAdminPermissionTests(TestCase):
         self.payload = {
             "site_name": "Permission test site",
             "sales_email": "new-sales@example.com",
+            "default_unit_system": "imperial",
             "_save": "Save",
         }
 

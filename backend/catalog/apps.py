@@ -9,7 +9,10 @@ class CatalogConfig(AppConfig):
     def ready(self):
         from django.contrib.auth.signals import user_logged_in
 
+        from . import signals
         from .middleware import mark_admin_login_succeeded
+
+        signals.connect()
 
         user_logged_in.connect(
             mark_admin_login_succeeded,

@@ -20,7 +20,7 @@ import {
   type NewsArticle,
 } from "@/lib/news";
 import { safePublicHttpsUrl, siteConfig, type PublicSiteConfig } from "@/lib/site";
-import { dimensionMatches } from "@/lib/units";
+import { isUnitSystem } from "@/lib/unit-format";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
 const serverApiBase = process.env.API_BASE_URL ?? apiBase;
@@ -73,6 +73,7 @@ type SiteSettingsResponse = {
   google_analytics_id?: string;
   google_tag_manager_id?: string;
   footer_text?: string;
+  default_unit_system?: string;
 };
 
 export type HomeData = {
@@ -207,6 +208,28 @@ export async function getApplications(): Promise<Application[] | undefined> {
   }
 }
 
+const starterSearchText = (product: Product) => [
+  product.title,
+  product.model,
+  product.sku,
+  product.short_description,
+  product.category.name,
+  ...product.specs.map((spec) => `${spec.label} ${spec.display.imperial} ${spec.display.metric}`),
+  ...product.applications.map((item) => item.name),
+].join(" ").toLocaleLowerCase("en");
+
+/** Development-only fallback: every word must appear somewhere in the product. */
+const starterMatches = (product: Product, query: Record<string, string>) => {
+  const words = (query.q ?? "").toLocaleLowerCase("en").split(/\s+/).filter(Boolean);
+  const text = starterSearchText(product);
+  return (!query.category || product.category.slug === query.category)
+    && (!query.application || product.applications.some((item) => item.slug === query.application))
+    && words.every((word) => text.includes(word))
+    && (!query.customizable || product.is_customizable === (query.customizable === "true"))
+    && (!query.made_to_order || Boolean(product.made_to_order) === (query.made_to_order === "true"))
+    && (!query.oem || product.oem_available === (query.oem === "true"));
+};
+
 export async function getAllProducts(query: Record<string, string> = {}): Promise<Product[] | undefined> {
   try {
     const results: Product[] = [];
@@ -221,23 +244,7 @@ export async function getAllProducts(query: Record<string, string> = {}): Promis
     return results;
   } catch {
     if (!starterFallbackEnabled) return undefined;
-    const normalizedQuery = query.q?.trim().toLocaleLowerCase("en") ?? "";
-    return starterProducts.filter((product) =>
-      (!query.category || product.category.slug === query.category)
-      && (!query.application || product.applications.some((item) => item.slug === query.application))
-      && (!normalizedQuery || [
-        product.title,
-        product.model,
-        product.sku,
-        product.short_description,
-        product.category.name,
-        product.brake_type,
-        product.bolt_pattern,
-        product.surface_finish,
-        product.axle_type,
-        ...product.applications.map((item) => item.name),
-      ].join(" ").toLocaleLowerCase("en").includes(normalizedQuery))
-    );
+    return starterProducts.filter((product) => starterMatches(product, query));
   }
 }
 
@@ -249,46 +256,7 @@ export async function getProductPage(query: Record<string, string> = {}): Promis
     return { ...payload, results: payload.results.map(withStarterImage) };
   } catch {
     if (!starterFallbackEnabled) return undefined;
-    const legacyCapacity = Number(query.capacity || 0);
-    const capacityMin = Number(query.capacity_min || 0);
-    const capacityMax = Number(query.capacity_max || 0);
-    const capacityUnit = query.capacity_unit || query.unit || "";
-    const normalizedQuery = query.q?.trim().toLocaleLowerCase("en") ?? "";
-    const productCapacity = (product: Product) => (product.rated_capacity ?? 0)
-      * (product.capacity_unit === "kg" ? 2.2046226218 : 1)
-      / (capacityUnit === "kg" ? 2.2046226218 : 1);
-    let results = starterProducts.filter((product) =>
-      (!query.category || product.category.slug === query.category)
-      && (!query.application || product.applications.some((item) => item.slug === query.application))
-      && (!normalizedQuery || [
-        product.title,
-        product.model,
-        product.sku,
-        product.short_description,
-        product.category.name,
-        product.brake_type,
-        product.bolt_pattern,
-        product.surface_finish,
-        product.axle_type,
-        ...product.applications.map((item) => item.name),
-      ].join(" ").toLocaleLowerCase("en").includes(normalizedQuery))
-      && (!query.brake || product.brake_type === query.brake)
-      && (!query.type || product.axle_type === query.type)
-      && (!query.bolt_pattern || product.bolt_pattern === query.bolt_pattern)
-      && dimensionMatches(product.hub_face_length, query.hub_face || "", product.dimension_unit)
-      && dimensionMatches(product.spring_center, query.spring_center || "", product.dimension_unit)
-      && (!query.tube_shape || Object.entries(product.axle_spec ?? {}).some(([key, value]) => key.toLocaleLowerCase("en").replaceAll(" ", "_") === "tube_shape" && value.toLocaleLowerCase("en") === query.tube_shape.toLocaleLowerCase("en")))
-      && (!query.finish || product.surface_finish === query.finish)
-      && (!(legacyCapacity > 0) || ((!capacityUnit || (product.capacity_unit || "lb") === capacityUnit) && (product.rated_capacity ?? 0) >= legacyCapacity))
-      && (!(capacityMin > 0) || productCapacity(product) >= capacityMin)
-      && (!(capacityMax > 0) || productCapacity(product) <= capacityMax)
-      && (!query.customizable || product.is_customizable === (query.customizable === "true"))
-      && (!query.made_to_order || Boolean(product.made_to_order) === (query.made_to_order === "true"))
-      && (!query.oem || product.oem_available === (query.oem === "true"))
-    );
-    const asLb = (product: Product) => (product.rated_capacity ?? 0) * (product.capacity_unit === "kg" ? 2.2046226218 : 1);
-    if (query.sort === "capacity_asc") results = [...results].sort((a, b) => asLb(a) - asLb(b));
-    if (query.sort === "capacity_desc") results = [...results].sort((a, b) => asLb(b) - asLb(a));
+    let results = starterProducts.filter((product) => starterMatches(product, query));
     if (query.sort === "model") results = [...results].sort((a, b) => a.model.localeCompare(b.model));
     const page = Math.max(1, Number(query.page) || 1);
     const start = (page - 1) * 12;
@@ -400,8 +368,44 @@ export const getSiteSettings = cache(async (): Promise<PublicSiteConfig> => {
       defaultOgImageUrl: settings.default_og_image_url || siteConfig.defaultOgImageUrl,
       googleAnalyticsId: settings.google_analytics_id?.trim() || siteConfig.googleAnalyticsId,
       googleTagManagerId: settings.google_tag_manager_id?.trim() || siteConfig.googleTagManagerId,
+      defaultUnitSystem: isUnitSystem(settings.default_unit_system) ? settings.default_unit_system : siteConfig.defaultUnitSystem,
     };
   } catch {
     return siteConfig;
   }
 });
+
+export type FaqEntry = { id: number; question: string; answer: string; group: string };
+
+export async function getFaqs(): Promise<FaqEntry[] | undefined> {
+  try {
+    return await apiJson<FaqEntry[]>("/faqs/", { next: { revalidate: 60 } });
+  } catch {
+    return undefined;
+  }
+}
+
+export type SiteSearchResult = {
+  query: string;
+  corrections: Record<string, string>;
+  products: Product[];
+  news: CmsNewsArticle[];
+  documents: ProductDocument[];
+};
+
+export async function searchSite(query: string): Promise<SiteSearchResult | undefined> {
+  try {
+    const params = new URLSearchParams({ q: query });
+    const payload = await apiJson<SiteSearchResult>(`/search/?${params}`, { cache: "no-store" });
+    return { ...payload, products: payload.products.map(withStarterImage) };
+  } catch {
+    if (!starterFallbackEnabled) return undefined;
+    return {
+      query,
+      corrections: {},
+      products: starterProducts.filter((product) => starterMatches(product, { q: query })),
+      news: [],
+      documents: [],
+    };
+  }
+}

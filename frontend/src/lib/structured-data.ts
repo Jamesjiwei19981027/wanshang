@@ -105,12 +105,12 @@ export function faqJsonLd(faqs: { question: string; answer: string }[]) {
 }
 
 export function productJsonLd(product: Product, path: string, primaryImage: string, brandName?: string) {
-  const additionalProperty = Object.entries(product.axle_spec ?? {})
-    .filter(([, value]) => Boolean(value))
-    .map(([name, value]) => ({
+  const additionalProperty = (product.specs ?? [])
+    .filter((spec) => Boolean(spec.display?.imperial))
+    .map((spec) => ({
       "@type": "PropertyValue",
-      name: name.replaceAll("_", " "),
-      value: String(value),
+      name: spec.label,
+      value: spec.display.imperial,
     }));
 
   return {

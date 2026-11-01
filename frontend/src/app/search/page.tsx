@@ -3,8 +3,9 @@ import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { ProductCard } from "@/components/ProductCard";
 import { SearchEventTracker } from "@/components/SearchEventTracker";
-import { getAllProducts, getNewsArticles } from "@/lib/api";
-import { searchNewsArticles } from "@/lib/news";
+import { searchSite } from "@/lib/api";
+import { normalizeCmsNews } from "@/lib/news";
+import { DocumentDownloadLink } from "@/components/DocumentDownloadLink";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -22,14 +23,14 @@ export default async function SearchPage({
 }) {
   const rawQuery = (await searchParams).q;
   const query = (Array.isArray(rawQuery) ? rawQuery[0] : rawQuery ?? "").trim().slice(0, 120);
-  const [productResponse, newsResponse] = query
-    ? await Promise.all([getAllProducts({ q: query }), getNewsArticles()])
-    : [[], []];
-  const productError = productResponse === undefined;
-  const newsError = newsResponse === undefined;
-  const products = productResponse ?? [];
-  const articles = query && newsResponse ? searchNewsArticles(query, newsResponse) : [];
-  const resultCount = products.length + articles.length;
+  const result = query ? await searchSite(query) : undefined;
+  const productError = Boolean(query) && result === undefined;
+  const newsError = productError;
+  const products = result?.products ?? [];
+  const articles = (result?.news ?? []).map(normalizeCmsNews);
+  const documents = result?.documents ?? [];
+  const corrections = Object.entries(result?.corrections ?? {});
+  const resultCount = products.length + articles.length + documents.length;
 
   return <main>
     <SearchEventTracker query={query} resultCount={resultCount} available={!productError && !newsError} />
@@ -78,6 +79,8 @@ export default async function SearchPage({
         </div>
       </div>}
 
+      {query && corrections.length > 0 && resultCount > 0 && <p className="rfq-section-note">Also showing results for {corrections.map(([typed, corrected]) => `“${corrected}” (you typed “${typed}”)`).join(", ")}.</p>}
+
       {query && products.length > 0 && <section className="section-tight">
         <div className="section-head">
           <div>
@@ -87,6 +90,17 @@ export default async function SearchPage({
           <Link className="link-arrow" href={`/products?q=${encodeURIComponent(query)}`}>Refine product filters</Link>
         </div>
         <div className="product-grid">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div>
+      </section>}
+
+      {query && documents.length > 0 && <section className="section-tight">
+        <div className="section-head">
+          <div>
+            <p className="eyebrow">Documents</p>
+            <h2>{documents.length} matching document{documents.length === 1 ? "" : "s"}</h2>
+          </div>
+          <Link className="link-arrow" href="/downloads">All downloads</Link>
+        </div>
+        {documents.map((document) => <div className="document-row" key={document.id}><div><strong>{document.title}</strong><span> · {document.product_model}</span></div><DocumentDownloadLink url={document.url} title={document.title} productModel={document.product_model} /></div>)}
       </section>}
 
       {query && articles.length > 0 && <section className="section-tight">

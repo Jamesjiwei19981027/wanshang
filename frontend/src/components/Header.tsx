@@ -65,13 +65,13 @@ export function Header({ categories = [], applications = [] }: { categories?: Ca
               {categories.map((category) => <Link href={`/products/${category.slug}`} key={category.id}>{category.name}</Link>)}
             </div>
           </details>
-          <details className="nav-dropdown">
+          {applications.length > 0 && <details className="nav-dropdown">
             <summary>Applications</summary>
             <div className="nav-dropdown-menu">
               <Link href="/applications">All applications</Link>
               {applications.map((application) => <Link href={`/applications/${application.slug}`} key={application.id}>{application.name}</Link>)}
             </div>
-          </details>
+          </details>}
           <Link href="/news">News</Link>
           <Link href="/faq">FAQ</Link>
           <Link href="/about">About us</Link>

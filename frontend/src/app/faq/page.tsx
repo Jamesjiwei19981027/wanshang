@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { pageMetadata } from "@/lib/seo";
+import { getFaqs } from "@/lib/api";
 import { faqJsonLd, serializeJsonLd } from "@/lib/structured-data";
 
 export const metadata = pageMetadata({
@@ -9,57 +10,18 @@ export const metadata = pageMetadata({
   path: "/faq",
 });
 
-const faqSections: { title: string; items: { question: string; answer: string }[] }[] = [
-  {
-    title: "Product selection",
-    items: [
-      {
-        question: "How do I choose a trailer axle from this catalogue?",
-        answer: "Start with the trailer application and actual gross weight, then filter by rated capacity, axle direction (straight or drop), brake type and bolt pattern. Compare hub face and spring centre on product pages. Submit the complete dimension set through RFQ so engineering can confirm the configuration against your trailer geometry.",
-      },
-      {
-        question: "Are published dimensions a final engineering approval?",
-        answer: "No. Catalogue values are published configuration guidance. Final axle selection requires complete trailer geometry, actual load distribution, wheels and tyres, mounting interfaces, braking requirements, operating environment and destination-market regulations.",
-      },
-      {
-        question: "What do hub face and spring centre mean?",
-        answer: "Hub face is the distance between the wheel-mounting surfaces of the hubs on opposite ends of the axle. Spring centre is the distance between the centre lines of the two spring seats. Confirm both measurements against the trailer frame, suspension, wheels and required clearances. If either differs from a listed platform, request a configuration review before order release.",
-      },
-    ],
-  },
-  {
-    title: "RFQ and orders",
-    items: [
-      {
-        question: "What should I include in an RFQ?",
-        answer: "Include intended application, gross weight and load distribution, hub face, spring centre, bolt pattern, stud size, brake type, surface finish, destination market and quantity. Attach drawings or photos when available. Add model or SKU when one is already selected.",
-      },
-      {
-        question: "Can I request a custom or OEM configuration?",
-        answer: "Yes. Mark custom requirements in the RFQ and provide target dimensions or a drawing. Custom, made-to-order and OEM options depend on the platform, volume and technical review; they are not confirmed by the public catalogue alone.",
-      },
-      {
-        question: "Are technical drawings available?",
-        answer: "Published documents appear on product pages and the download centre when released. Controlled or configuration-specific approval drawings are issued through the RFQ workflow after technical review.",
-      },
-    ],
-  },
-  {
-    title: "Quality, packing and delivery",
-    items: [
-      {
-        question: "How are quality and inspection claims handled?",
-        answer: "The site publishes only company-verified test and certification evidence. Final inspection points, traceability, packaging, lead time and loading port are confirmed against the approved configuration and order.",
-      },
-      {
-        question: "Which markets and regulations apply?",
-        answer: "Requirements differ by destination market. State the destination and any applicable brake, lighting or marking rules in the RFQ so the configuration can be reviewed for that market.",
-      },
-    ],
-  },
-];
+export const revalidate = 60;
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  // Questions and answers are managed in the admin; the assistant uses the same list.
+  const faqs = await getFaqs() ?? [];
+  const faqSections: { title: string; items: { question: string; answer: string }[] }[] = [];
+  for (const faq of faqs) {
+    const title = faq.group || "Questions";
+    let section = faqSections.find((item) => item.title === title);
+    if (!section) faqSections.push(section = { title, items: [] });
+    section.items.push(faq);
+  }
   const allFaqs = faqSections.flatMap((section) => section.items);
   const structuredData = serializeJsonLd(faqJsonLd(allFaqs));
   return <main>

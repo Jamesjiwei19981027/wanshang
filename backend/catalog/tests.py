@@ -34,10 +34,11 @@ from rest_framework import serializers as drf_serializers
 from rest_framework.test import APIClient
 
 from .admin import ContactMessageAdmin, InquiryAdmin, InquiryFollowupInline
+from .spec_templates import TRAILER_AXLE_PARAMETERS, apply_template
+from .specs import refresh_search_document
 from .models import (
     AnalyticsEvent,
     Application,
-    AxleSpec,
     Banner,
     Category,
     ContactMessage,
@@ -50,7 +51,11 @@ from .models import (
     ProductDocument,
     ProductImage,
     NewsArticle,
+    SearchMiss,
+    SearchSynonym,
     SiteSetting,
+    SpecField,
+    ProductSpecValue,
     VisitSession,
 )
 from .serializers import (
@@ -136,10 +141,32 @@ def close_streaming_file(response) -> None:
     response._resource_closers.clear()
 
 
+def make_axle_category(slug="trailer-axles", name="Trailer Axles", **extra) -> Category:
+    category = Category.objects.create(name=name, slug=slug, **extra)
+    apply_template(category, TRAILER_AXLE_PARAMETERS)
+    return category
+
+
+def set_specs(product: Product, values: dict) -> None:
+    """values: {key: "text" | (number, unit) | bool}."""
+    fields = {field.key: field for field in product.category.effective_spec_fields()}
+    for key, value in values.items():
+        spec = ProductSpecValue(product=product, field=fields[key])
+        if isinstance(value, tuple):
+            spec.number_value, spec.entered_unit = Decimal(str(value[0])), value[1]
+        elif isinstance(value, bool):
+            spec.boolean_value = value
+        else:
+            spec.text_value = value
+        spec.full_clean()
+        spec.save()
+    refresh_search_document(product.pk)
+
+
 class PublicApiTests(TestCase):
     def setUp(self):
         cache.clear()
-        category = Category.objects.create(name="Trailer Axles", slug="trailer-axles")
+        category = make_axle_category()
         self.product = Product.objects.create(
             category=category,
             title="Test axle",
@@ -147,218 +174,93 @@ class PublicApiTests(TestCase):
             model="TEST-3500",
             sku="TEST-3500",
             short_description="Test product",
-            rated_capacity=3500,
-            axle_type=Product.AxleType.STRAIGHT,
-            brake_type="Electric Drum",
-            bolt_pattern="5 on 4.5",
-            stud_size="1/2-20 UNF",
-            grease_cap_type="Press-in",
             packaging="Export pallet",
-            hub_face_length=95,
-            spring_center=80,
+            moq="20 sets",
             status=Product.Status.PUBLISHED,
+        )
+        set_specs(
+            self.product,
+            {
+                "rated_capacity": (3500, "lb"),
+                "axle_type": "Straight",
+                "brake_type": "Electric drum",
+                "bolt_pattern": "5 on 4.5",
+                "stud_size": "1/2-20 UNF",
+                "hub_face": (95, "in"),
+                "spring_center": (80, "in"),
+            },
         )
         self.client = APIClient()
 
-    def test_product_filter_returns_published_product(self):
-        response = self.client.get("/api/products/?capacity=3500&type=straight")
+    def specs_of(self, payload: dict) -> dict:
+        return {row["key"]: row for row in payload["specs"]}
+
+    def test_product_list_serializes_parameters_in_both_unit_systems(self):
+        response = self.client.get("/api/products/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1)
-        self.assertEqual(response.data["results"][0]["slug"], self.product.slug)
-        self.assertEqual(response.data["results"][0]["capacity_unit"], "lb")
-        self.assertEqual(response.data["results"][0]["dimension_unit"], "in")
+        payload = response.data["results"][0]
+        specs = self.specs_of(payload)
+        self.assertEqual(specs["rated_capacity"]["display"], {"imperial": "3,500 lb", "metric": "1,588 kg"})
+        self.assertEqual(specs["hub_face"]["display"], {"imperial": "95 in", "metric": "2,413 mm"})
+        self.assertEqual(specs["brake_type"]["display"]["imperial"], "Electric drum")
+        self.assertTrue(specs["rated_capacity"]["show_on_card"])
+        # Buyer-only RFQ questions never appear on products.
+        self.assertNotIn("trailer_weight", specs)
+        self.assertEqual(payload["moq"], "20 sets")
+        self.assertEqual(payload["packaging"], "Export pallet")
 
-    def test_dimension_filters_match_hub_face_and_spring_center(self):
-        response = self.client.get("/api/products/?hub_face=95&spring_center=80")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 1)
-        self.assertEqual(response.data["results"][0]["slug"], self.product.slug)
-        self.assertEqual(response.data["results"][0]["hub_face_length"], "95.00")
-        self.assertEqual(response.data["results"][0]["spring_center"], "80.00")
-
-        metric_query = self.client.get(
-            "/api/products/?hub_face=2413mm&spring_center=2032MM"
+    def test_numeric_filters_compare_values_entered_in_different_units(self):
+        metric = Product.objects.create(
+            category=self.product.category, title="Metric axle", slug="metric-axle", model="M-1600", sku="M-1600",
+            short_description="Metric", status=Product.Status.PUBLISHED,
         )
-        self.assertEqual(metric_query.status_code, 200)
-        self.assertEqual(metric_query.data["count"], 1)
+        set_specs(metric, {"rated_capacity": (1600, "kg"), "hub_face": (2413, "mm")})
 
-        conflicting_unit = self.client.get(
-            "/api/products/?hub_face=95in&dimension_unit=mm"
-        )
-        self.assertEqual(conflicting_unit.status_code, 400)
-        unsupported_unit = self.client.get("/api/products/?hub_face=95feet")
-        self.assertEqual(unsupported_unit.status_code, 400)
+        def slugs(params):
+            response = self.client.get("/api/products/", params)
+            self.assertEqual(response.status_code, 200, response.content)
+            return sorted(item["slug"] for item in response.data["results"])
 
-        too_long = self.client.get(f"/api/products/?hub_face={'x' * 61}")
-        self.assertEqual(too_long.status_code, 400)
+        # 1,600 kg is about 3,527 lb: both products are at least 3,000 lb.
+        self.assertEqual(slugs({"spec.rated_capacity__min": "3000"}), ["metric-axle", "test-axle"])
+        self.assertEqual(slugs({"spec.rated_capacity__min": "3510", "spec.rated_capacity__unit": "lb"}), ["metric-axle"])
+        self.assertEqual(slugs({"spec.rated_capacity__max": "1590", "spec.rated_capacity__unit": "kg"}), ["test-axle"])
+        self.assertEqual(slugs({"spec.rated_capacity__min": "1500", "units": "metric"}), ["metric-axle", "test-axle"])
+        # 95 in equals 2,413 mm: the same hub face whatever unit was entered.
+        self.assertEqual(slugs({"spec.hub_face": "95"}), ["metric-axle", "test-axle"])
+        self.assertEqual(slugs({"spec.hub_face": "2413", "spec.hub_face__unit": "mm"}), ["metric-axle", "test-axle"])
+        self.assertEqual(slugs({"spec.hub_face": "2413mm"}), ["metric-axle", "test-axle"])
+        self.assertEqual(slugs({"spec.rated_capacity__min": "1590 kg"}), ["metric-axle"])
 
-    def test_canonical_spec_enums_keep_legacy_filter_aliases(self):
-        self.product.surface_finish = Product.SurfaceFinish.E_COATED
-        self.product.save(update_fields=["surface_finish"])
-        AxleSpec.objects.create(
-            product=self.product,
-            overall_length=97,
-            tube_shape=AxleSpec.TubeShape.ROUND,
-        )
+    def test_choice_and_text_filters_match_case_insensitively(self):
+        def count(params):
+            response = self.client.get("/api/products/", params)
+            self.assertEqual(response.status_code, 200)
+            return response.data["count"]
 
-        response = self.client.get(
-            "/api/products/?brake=electric&finish=e-coat&tube_shape=round%20tube"
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 1)
-        self.assertEqual(response.data["results"][0]["surface_finish"], "E-Coated")
-        detail = self.client.get(f"/api/products/{self.product.slug}/")
-        self.assertEqual(detail.data["axle_spec"]["tube_shape"], "Round")
-        self.assertEqual(detail.data["axle_spec"]["overall_length"], "97.00")
+        self.assertEqual(count({"spec.brake_type": "electric drum"}), 1)
+        self.assertEqual(count({"spec.brake_type": "Hydraulic disc"}), 0)
+        self.assertEqual(count({"spec.bolt_pattern": "5 ON 4.5"}), 1)
+        self.assertEqual(count({"spec.axle_type": "Straight", "spec.rated_capacity__min": "3000"}), 1)
 
-        invalid_brake = self.client.get("/api/products/?brake=unsafe")
-        self.assertEqual(invalid_brake.status_code, 400)
-        invalid_finish = self.client.get("/api/products/?finish=unsafe")
-        self.assertEqual(invalid_finish.status_code, 400)
-        invalid_shape = self.client.get("/api/products/?tube_shape=triangle")
-        self.assertEqual(invalid_shape.status_code, 400)
-
-    def test_canonical_spec_database_constraints_reject_invalid_values(self):
-        with self.assertRaises(IntegrityError), transaction.atomic():
-            Product.objects.filter(pk=self.product.pk).update(brake_type="Unsafe")
-        with self.assertRaises(IntegrityError), transaction.atomic():
-            Product.objects.filter(pk=self.product.pk).update(rated_capacity=0)
-        with self.assertRaises(IntegrityError), transaction.atomic():
-            Product.objects.filter(pk=self.product.pk).update(hub_face_length=0)
-
-        spec = AxleSpec.objects.create(
-            product=self.product,
-            overall_length=97,
-            tube_shape=AxleSpec.TubeShape.ROUND,
-        )
-        with self.assertRaises(IntegrityError), transaction.atomic():
-            AxleSpec.objects.filter(pk=spec.pk).update(tube_shape="Triangle")
-        with self.assertRaises(IntegrityError), transaction.atomic():
-            AxleSpec.objects.filter(pk=spec.pk).update(overall_length=-1)
-
-    def test_capacity_filter_and_sort_respect_mixed_units(self):
-        metric_product = Product.objects.create(
-            category=self.product.category,
-            title="Metric axle",
-            slug="metric-axle",
-            model="METRIC-1600",
-            sku="METRIC-1600",
-            short_description="Metric capacity test",
-            rated_capacity=1600,
-            capacity_unit=Product.CapacityUnit.KG,
-            status=Product.Status.PUBLISHED,
-        )
-        default_lb = self.client.get("/api/products/?capacity=3500")
-        self.assertEqual(default_lb.status_code, 200)
-        self.assertEqual(
-            [item["slug"] for item in default_lb.data["results"]],
-            [self.product.slug],
-        )
-        metric = self.client.get(
-            "/api/products/?capacity_unit=kg&capacity=1500"
-        )
-        self.assertEqual(metric.status_code, 200)
-        self.assertEqual(
-            [item["slug"] for item in metric.data["results"]],
-            [metric_product.slug],
-        )
-        cross_unit_range = self.client.get(
-            "/api/products/?capacity_unit=lb&capacity_min=3000&capacity_max=5000"
-        )
-        self.assertEqual(cross_unit_range.status_code, 200)
-        self.assertEqual(
-            {item["slug"] for item in cross_unit_range.data["results"]},
-            {self.product.slug, metric_product.slug},
-        )
-        ordered = self.client.get("/api/products/?sort=capacity_desc")
-        self.assertEqual(ordered.status_code, 200)
-        self.assertEqual(ordered.data["results"][0]["slug"], metric_product.slug)
-
-        filters = self.client.get("/api/filters/")
-        self.assertEqual(filters.status_code, 200)
-        self.assertEqual(filters.data["capacities"], [3500])
-        self.assertEqual(filters.data["capacities_by_unit"]["lb"], [3500])
-        self.assertEqual(filters.data["capacities_by_unit"]["kg"], [1600])
-
-    def test_documented_v1_product_query_aliases(self):
-        application = Application.objects.create(
-            name="Utility Trailers",
-            slug="utility-trailers",
-        )
-        self.product.applications.add(application)
-
-        response = self.client.get(
-            "/api/v1/products/"
-            "?category=trailer-axles"
-            "&axle_type=straight"
-            "&capacity_min=3000"
-            "&capacity_max=5000"
-            "&capacity_unit=lb"
-            "&brake_type=electric"
-            "&bolt_pattern=5x4.5"
-            "&application=utility-trailer"
-            "&ordering=-published_at"
-            "&page=1"
-        )
-
-        self.assertEqual(response.status_code, 200)
-        results = response.json()["data"]["results"]
-        self.assertEqual([item["slug"] for item in results], [self.product.slug])
-
-    def test_product_filters_reject_oversized_or_malformed_text_before_lookup(self):
-        executed_sql = []
-
-        def capture_execute(execute, sql, params, many, context):
-            executed_sql.append(sql)
-            return execute(sql, params, many, context)
-
-        with connection.execute_wrapper(capture_execute):
-            oversized_search = self.client.get(
-                "/api/products/",
-                {"q": "x" * 121},
-            )
-        self.assertEqual(oversized_search.status_code, 400)
-        self.assertFalse(any("LIKE" in sql.upper() for sql in executed_sql))
-
-        invalid_filters = (
-            {"category": "x" * 51},
-            {"category": "invalid category!"},
-            {"axle_type": "x" * 17},
-            {"type": "unsupported"},
-            {"brake": "x" * 81},
-            {"bolt_pattern": "5; DROP TABLE products"},
-            {"bolt_pattern": "5x" + "1" * 60},
-            {"finish": "x" * 81},
-            {"tube_shape": "x" * 41},
-            {"dimension_unit": "inches"},
-            {"customizable": "definitely"},
-            {"capacity": "1" * 33},
-            {"capacity_min": "1" * 33},
-            {"application": "x" * 51},
-            {"application": "invalid application!"},
-            {"ordering": "unsupported"},
-            {"sort": "x" * 31},
-        )
-        for query_params in invalid_filters:
-            with self.subTest(query_params=query_params):
-                response = self.client.get("/api/products/", query_params)
+    def test_parameter_filters_reject_unknown_unfilterable_and_malformed_values(self):
+        for params in (
+            {"spec.not_a_parameter": "x"},
+            {"spec.inner_bearing": "L68149"},  # exists but is not a filter
+            {"spec.rated_capacity__min": "lots"},
+            {"spec.rated_capacity__min": "NaN"},
+            {"spec.rated_capacity__unit": "mm", "spec.rated_capacity__min": "1"},
+            {"spec.rated_capacity__min": "95 mm"},
+            {"spec.rated_capacity__min": "5000", "spec.rated_capacity__max": "100"},
+            {"spec.brake_type__min": "1"},
+            {"spec.bad key": "1"},
+            {"units": "nautical"},
+            {"ordering": "capacity_asc"},
+        ):
+            with self.subTest(params=params):
+                response = self.client.get("/api/products/", params)
                 self.assertEqual(response.status_code, 400)
-
-        conflicting_aliases = (
-            {"axle_type": "straight", "type": "drop"},
-            {"brake_type": "electric", "brake": "hydraulic"},
-            {"ordering": "model", "sort": "newest"},
-        )
-        for query_params in conflicting_aliases:
-            with self.subTest(query_params=query_params):
-                response = self.client.get("/api/products/", query_params)
-                self.assertEqual(response.status_code, 400)
-
-        maximum_length_search = self.client.get(
-            "/api/products/",
-            {"q": "x" * 120},
-        )
-        self.assertEqual(maximum_length_search.status_code, 200)
 
     def test_product_pagination_rejects_malformed_or_excessive_pages(self):
         for page in ("", "Infinity", "1.5", "0", "-1", "10001", "9" * 100):
@@ -370,151 +272,130 @@ class PublicApiTests(TestCase):
         first_page = self.client.get("/api/products/", {"page": "1"})
         self.assertEqual(first_page.status_code, 200)
 
-    def test_lug_count_filter_matches_all_patterns_with_that_stud_count(self):
-        four_lug = Product.objects.create(
-            category=self.product.category,
-            title="Four-lug axle",
-            slug="four-lug-axle",
-            model="FOUR-LUG",
-            sku="FOUR-LUG",
-            short_description="Four-lug filter fixture.",
-            rated_capacity=2000,
-            bolt_pattern="4 on 4",
-            status=Product.Status.PUBLISHED,
+    def test_filter_options_list_filterable_parameters_with_values(self):
+        response = self.client.get("/api/filters/", {"category": "trailer-axles"})
+        self.assertEqual(response.status_code, 200)
+        options = {entry["key"]: entry for entry in response.data["parameters"]}
+        self.assertIn("rated_capacity", options)
+        self.assertEqual(options["rated_capacity"]["values"]["imperial"], ["3500"])
+        self.assertEqual(options["rated_capacity"]["values"]["metric"], ["1588"])
+        self.assertEqual(options["brake_type"]["values"], ["Electric drum"])
+        # Filterable parameters without any product value are omitted.
+        self.assertNotIn("tube_shape", options)
+        self.assertNotIn("inner_bearing", options)
+        self.assertEqual(self.client.get("/api/filters/", {"category": "missing"}).status_code, 400)
+
+    def test_subcategories_inherit_parameters_and_appear_under_their_parent(self):
+        child = Category.objects.create(name="American-Type Axles", slug="american-type-axles", parent=self.product.category)
+        SpecField.objects.create(category=child, key="hub_brand", label="Hub brand", data_type=SpecField.DataType.TEXT, filterable=True)
+        keys = [field.key for field in child.effective_spec_fields()]
+        self.assertIn("rated_capacity", keys)
+        self.assertIn("hub_brand", keys)
+        child_product = Product.objects.create(
+            category=child, title="American axle", slug="american-axle", model="AM-1", sku="AM-1",
+            short_description="American type", status=Product.Status.PUBLISHED,
         )
+        set_specs(child_product, {"rated_capacity": (5200, "lb"), "hub_brand": "Dexter-style"})
+        parent_listing = self.client.get("/api/products/", {"category": "trailer-axles"})
+        self.assertEqual(sorted(item["slug"] for item in parent_listing.data["results"]), ["american-axle", "test-axle"])
+        child_listing = self.client.get("/api/products/", {"category": "american-type-axles", "spec.hub_brand": "dexter-style"})
+        self.assertEqual([item["slug"] for item in child_listing.data["results"]], ["american-axle"])
+        detail = self.client.get("/api/categories/american-type-axles/").data
+        self.assertEqual([item["slug"] for item in detail["path"]], ["trailer-axles", "american-type-axles"])
+        self.assertIn("rated_capacity", [field["key"] for field in detail["rfq_fields"]])
 
-        for value in ("4 lug", "4 Lugs"):
-            with self.subTest(value=value):
-                response = self.client.get(
-                    "/api/products/",
-                    {"bolt_pattern": value},
-                )
-                self.assertEqual(response.status_code, 200)
-                self.assertEqual(
-                    [item["slug"] for item in response.data["results"]],
-                    [four_lug.slug],
-                )
+        self.product.category.parent = child
+        with self.assertRaises(ValidationError):
+            self.product.category.full_clean()
+        child.inherit_parent_specs = False
+        child.save()
+        self.assertEqual([field.key for field in child.effective_spec_fields()], ["hub_brand"])
 
-        five_lug = self.client.get(
-            "/api/products/",
-            {"bolt_pattern": "5 lug"},
+    def test_search_splits_words_reads_units_and_tolerates_typos(self):
+        other = Product.objects.create(
+            category=self.product.category, title="Heavy hydraulic disc axle", slug="heavy-axle", model="HD-7000", sku="HD-7000",
+            short_description="Heavy duty", status=Product.Status.PUBLISHED,
         )
-        self.assertEqual(five_lug.status_code, 200)
-        self.assertEqual(
-            [item["slug"] for item in five_lug.data["results"]],
-            [self.product.slug],
+        set_specs(other, {"rated_capacity": (3175, "kg"), "brake_type": "Hydraulic disc"})
+        boat = Application.objects.create(name="Boat Trailers", slug="boat-trailers")
+        hidden = Application.objects.create(name="Secret Mining Application", slug="secret-mining", is_active=False)
+        with self.captureOnCommitCallbacks(execute=True):
+            self.product.applications.set([boat, hidden])
+
+        def search(query):
+            response = self.client.get("/api/products/", {"q": query})
+            self.assertEqual(response.status_code, 200)
+            return [item["slug"] for item in response.data["results"]]
+
+        # Words need not be adjacent or in order.
+        self.assertEqual(search("electric axle test"), ["test-axle"])
+        self.assertEqual(search("boat trailers"), ["test-axle"])
+        self.assertEqual(search("5 on 4.5"), ["test-axle"])
+        # 7,000 lb equals the 3,175 kg entry.
+        self.assertEqual(search("7000 lb"), ["heavy-axle"])
+        self.assertEqual(search("3500lb electric"), ["test-axle"])
+        self.assertEqual(search("1588 kg"), ["test-axle"])
+        # One wrong letter still finds the product.
+        self.assertEqual(search("hydrualic"), ["heavy-axle"])
+        # An exact model number ranks first.
+        self.assertEqual(search("HD-7000")[0], "heavy-axle")
+        self.assertEqual(search("Secret Mining"), [])
+
+    def test_admin_synonyms_expand_search_terms(self):
+        with self.captureOnCommitCallbacks(execute=True):
+            SearchSynonym.objects.create(terms="running gear, axle")
+        response = self.client.get("/api/products/", {"q": "running gear"})
+        self.assertEqual([item["slug"] for item in response.data["results"]], ["test-axle"])
+
+    def test_site_search_endpoint_covers_products_documents_and_news(self):
+        ProductDocument.objects.create(
+            product=self.product, title="Installation torque chart", document_type=ProductDocument.DocumentType.INSTALLATION,
+            external_url="https://cdn.example.com/torque.pdf",
         )
-
-        for invalid_value in ("3 lug", "10 lug", "other"):
-            with self.subTest(invalid_value=invalid_value):
-                rejected = self.client.get(
-                    "/api/products/",
-                    {"bolt_pattern": invalid_value},
-                )
-                self.assertEqual(rejected.status_code, 400)
-
-    def test_filter_options_bolt_patterns_round_trip_including_other_formats(self):
-        Product.objects.create(
-            category=self.product.category,
-            title="Metric PCD axle",
-            slug="metric-pcd-axle",
-            model="METRIC-PCD",
-            sku="METRIC-PCD",
-            short_description="International bolt-pattern fixture.",
-            bolt_pattern="5×114.3 mm",
-            status=Product.Status.PUBLISHED,
+        NewsArticle.objects.create(
+            title="Choosing a torque wrench", slug="torque-news", summary="How to tighten wheel nuts.",
+            status=NewsArticle.Status.PUBLISHED,
         )
-        Product.objects.create(
-            category=self.product.category,
-            title="Proprietary PCD axle",
-            slug="proprietary-pcd-axle",
-            model="CUSTOM-PCD",
-            sku="CUSTOM-PCD",
-            short_description="Other bolt-pattern fixture.",
-            bolt_pattern="Other proprietary PCD",
-            status=Product.Status.PUBLISHED,
+        response = self.client.get("/api/search/", {"q": "torque"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["title"] for item in response.data["documents"]], ["Installation torque chart"])
+        self.assertEqual([item["slug"] for item in response.data["news"]], ["torque-news"])
+        self.assertTrue(response.data["documents"][0]["url"].endswith(f"/api/documents/{ProductDocument.objects.get().pk}/download/"))
+        self.assertEqual(self.client.get("/api/search/", {"q": "x" * 121}).status_code, 400)
+
+    def test_consenting_visitors_record_searches_without_results(self):
+        response = self.client.post(
+            "/api/events/",
+            {"event_name": "search_product", "path": "/search", "metadata": {"query": "Landing Leg  crank", "results": 0, "query_length": 18}},
+            format="json",
         )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(SearchMiss.objects.get().query, "landing leg crank")
+        self.assertNotIn("query", AnalyticsEvent.objects.get().metadata)
+        for query in ("buyer@example.com", "call 13800138000"):
+            self.client.post("/api/events/", {"event_name": "search_product", "metadata": {"query": query, "results": 0}}, format="json")
+        self.assertEqual(SearchMiss.objects.count(), 1)
 
-        options_response = self.client.get("/api/filters/")
-        self.assertEqual(options_response.status_code, 200)
-        options = options_response.data["bolt_patterns"]
-        self.assertIn("5×114.3 mm", options)
-        self.assertIn("Other proprietary PCD", options)
-
-        for option in options:
-            with self.subTest(option=option):
-                response = self.client.get(
-                    "/api/products/",
-                    {"bolt_pattern": option},
-                )
-                self.assertEqual(response.status_code, 200)
-                self.assertTrue(
-                    any(
-                        item["bolt_pattern"].casefold() == option.casefold()
-                        for item in response.data["results"]
-                    )
-                )
-
-    def test_search_covers_specs_category_and_active_applications(self):
-        self.product.brake_type = Product.BrakeType.HYDRAULIC_DISC
-        self.product.surface_finish = Product.SurfaceFinish.POWDER_COATED
-        self.product.save(update_fields=["brake_type", "surface_finish"])
-        active = Application.objects.create(
-            name="Boat Trailers",
-            slug="boat-trailers",
-        )
-        inactive = Application.objects.create(
-            name="Secret Mining Application",
-            slug="secret-mining-application",
-            is_active=False,
-        )
-        self.product.applications.set([active, inactive])
-
-        for query in (
-            "boat trailer",
-            "boat-trailers",
-            "Hydraulic Disc",
-            "5 on 4.5",
-            "Powder-Coated",
-            "Trailer Axles",
-            "Test product",
-        ):
-            with self.subTest(query=query):
-                response = self.client.get("/api/products/", {"q": query})
-                self.assertEqual(response.status_code, 200)
-                self.assertEqual(
-                    [item["slug"] for item in response.data["results"]],
-                    [self.product.slug],
-                )
-
-        inactive_search = self.client.get(
-            "/api/products/",
-            {"q": "Secret Mining"},
-        )
-        self.assertEqual(inactive_search.status_code, 200)
-        self.assertEqual(inactive_search.data["count"], 0)
-
-    def test_made_to_order_filter_is_independent_and_core_fields_are_serialized(self):
+    def test_made_to_order_filter_is_independent(self):
         self.product.is_customizable = False
         self.product.made_to_order = True
         self.product.save(update_fields=["is_customizable", "made_to_order"])
 
         response = self.client.get("/api/products/?made_to_order=true")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            [item["slug"] for item in response.data["results"]],
-            [self.product.slug],
-        )
-        payload = response.data["results"][0]
-        self.assertTrue(payload["made_to_order"])
-        self.assertEqual(payload["stud_size"], "1/2-20 UNF")
-        self.assertEqual(payload["grease_cap_type"], "Press-in")
-        self.assertEqual(payload["packaging"], "Export pallet")
-
+        self.assertEqual([item["slug"] for item in response.data["results"]], [self.product.slug])
+        self.assertTrue(response.data["results"][0]["made_to_order"])
         customizable = self.client.get("/api/products/?customizable=true")
         self.assertEqual(customizable.data["count"], 0)
         invalid = self.client.get("/api/products/?made_to_order=sometimes")
         self.assertEqual(invalid.status_code, 400)
+
+    def test_navigation_hides_applications_until_one_is_published(self):
+        items = [item["url"] for item in self.client.get("/api/navigation/").data["items"]]
+        self.assertNotIn("/applications", items)
+        Application.objects.create(name="Utility", slug="utility")
+        items = [item["url"] for item in self.client.get("/api/navigation/").data["items"]]
+        self.assertIn("/applications", items)
 
     def test_category_detail_exposes_seo_and_hides_inactive_category(self):
         category = self.product.category
@@ -620,14 +501,14 @@ class PublicApiTests(TestCase):
         self.assertEqual(product_page["page_size"], 12)
         self.assertEqual(product_page["total_pages"], 1)
 
-        invalid = self.client.get("/api/v1/products/?capacity_min=invalid")
+        invalid = self.client.get("/api/v1/products/?spec.rated_capacity__min=invalid")
         self.assertEqual(invalid.status_code, 400)
         error = invalid.json()
         self.assertFalse(error["success"])
         self.assertEqual(error["error_code"], "VALIDATION_ERROR")
-        self.assertIn("capacity", error["fields"])
+        self.assertIn("spec.rated_capacity__min", error["fields"])
 
-        non_finite = self.client.get("/api/v1/products/?capacity_min=NaN")
+        non_finite = self.client.get("/api/v1/products/?spec.rated_capacity__min=NaN")
         self.assertEqual(non_finite.status_code, 400)
         self.assertFalse(non_finite.json()["success"])
 
@@ -678,7 +559,7 @@ class PublicApiTests(TestCase):
         self.assertEqual(response.data["featured_products"], [])
 
     @patch("catalog.views.send_inquiry_notification.delay")
-    def test_multipart_rfq_preserves_product_item(self, mocked_task):
+    def test_multipart_rfq_keeps_product_snapshot_apart_from_buyer_requirements(self, mocked_task):
         with self.captureOnCommitCallbacks(execute=True):
             response = self.client.post(
                 "/api/inquiries/",
@@ -688,44 +569,43 @@ class PublicApiTests(TestCase):
                     "message": "Please quote this configuration.",
                     "privacy_consent": "true",
                     "items": json.dumps([{"product_id": self.product.id, "quantity": 2}]),
-                    "specifications": json.dumps({"hub_face": "95 in", "spring_center": "80 in"}),
+                    "requested_categories": json.dumps(["trailer-axles"]),
+                    "specifications": json.dumps({"trailer-axles": {"hub_face": "2413 mm", "spring_center": "80 in"}}),
                 },
                 format="multipart",
             )
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         inquiry = Inquiry.objects.get(reference=response.data["reference"])
-        self.assertEqual(inquiry.items.count(), 1)
-        self.assertEqual(inquiry.items.first().quantity, 2)
-        self.assertEqual(inquiry.specifications["hub_face"], "95 in")
+        item = inquiry.items.get()
+        self.assertEqual(item.quantity, 2)
+        self.assertEqual(item.product_snapshot["specs"]["rated_capacity"]["value"], "3,500 lb")
+        self.assertEqual(item.product_snapshot["specs"]["rated_capacity"]["metric"], "1,588 kg")
+        self.assertEqual(inquiry.requested_categories, ["trailer-axles"])
+        requirement = inquiry.specifications["trailer-axles"]
+        self.assertEqual(requirement["hub_face"]["value"], "2,413 mm")
+        self.assertEqual(requirement["hub_face"]["label"], "Hub face")
+        self.assertNotIn("rated_capacity", requirement)
         mocked_task.assert_called_once_with(inquiry.pk)
 
     @patch("catalog.views.send_inquiry_notification.delay")
-    def test_multipart_rfq_normalizes_strict_structured_specifications(self, mocked_task):
+    def test_rfq_normalizes_category_parameters_and_general_requirements(self, mocked_task):
+        Category.objects.create(name="Trailer Landing Gear", slug="landing-gear")
         specifications = {
-            "estimated_trailer_weight": " 10,000 ",
-            "capacity": 3500,
-            "capacity_unit": "LB",
-            "axle_count": "Tandem",
-            "axle_type": "Drop",
-            "brake": "electric brake",
-            "environment": " saltwater ",
-            "hub_face": '95"',
-            "spring_center": "80 IN",
-            "overall_length": 97,
-            "tube_shape": "round tube",
-            "tube_size": ' 3" round ',
-            "drop_height": "4 inch",
-            "dimension_unit": "IN",
-            "bolt_pattern": " 5 on 4.5 ",
-            "stud_size": " 1/2-20 UNF ",
-            "hub_type": " Hub and drum ",
-            "bearing_type": " L68149 / L44649 ",
-            "brake_size": ' 10" x 2-1/4" ',
-            "finish": "hot-dip galvanised",
-            "oem_requirement": "YES",
-            "odm_requirement": "discuss",
-            "special_requirements": "  Confirm salt-spray target.  ",
-            "selected_product": f" {self.product.model} ",
+            "trailer-axles": {
+                "rated_capacity": "3,500",
+                "trailer_weight": " 10,000 ",
+                "axle_count": "tandem",
+                "brake_type": "hydraulic disc",
+                "operating_environment": " saltwater ",
+                "tube_shape": "round",
+                "drop_height": "4 inch",
+            },
+            "general": {
+                "oem_requirement": "YES",
+                "odm_requirement": "discuss",
+                "special_requirements": "  Confirm salt-spray target.  ",
+                "selected_product": f" {self.product.model} ",
+            },
         }
         with self.captureOnCommitCallbacks(execute=True):
             response = self.client.post(
@@ -733,106 +613,88 @@ class PublicApiTests(TestCase):
                 {
                     "name": "Structured Buyer",
                     "email": "structured@example.com",
-                    "privacy_consent": "true",
-                    "specifications": json.dumps(specifications),
+                    "privacy_consent": True,
+                    "requested_categories": ["trailer-axles", "landing-gear"],
+                    "specifications": specifications,
                 },
-                format="multipart",
+                format="json",
             )
-
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         inquiry = Inquiry.objects.get(reference=response.data["reference"])
-        normalized = inquiry.specifications
-        self.assertEqual(normalized["estimated_trailer_weight"], "10000")
-        self.assertEqual(normalized["capacity"], "3500")
-        self.assertEqual(normalized["capacity_unit"], "lb")
-        self.assertEqual(normalized["axle_count"], "tandem")
-        self.assertEqual(normalized["axle_type"], "drop")
-        self.assertEqual(normalized["brake"], Product.BrakeType.ELECTRIC_DRUM)
-        self.assertEqual(normalized["hub_face"], "95 in")
-        self.assertEqual(normalized["spring_center"], "80 in")
-        self.assertEqual(normalized["overall_length"], "97")
-        self.assertEqual(normalized["tube_shape"], AxleSpec.TubeShape.ROUND)
-        self.assertEqual(normalized["finish"], Product.SurfaceFinish.HOT_DIP_GALVANIZED)
-        self.assertEqual(normalized["environment"], "saltwater")
-        self.assertEqual(normalized["selected_product"], self.product.model)
-        self.assertEqual(
-            normalized["special_requirements"],
-            "Confirm salt-spray target.",
-        )
-        mocked_task.assert_called_once_with(inquiry.pk)
+        axle = inquiry.specifications["trailer-axles"]
+        self.assertEqual(axle["rated_capacity"]["value"], "3,500 lb")
+        self.assertEqual(axle["trailer_weight"]["value"], "10,000 lb")
+        self.assertEqual(axle["axle_count"]["value"], "Tandem")
+        self.assertEqual(axle["brake_type"]["value"], "Hydraulic disc")
+        self.assertEqual(axle["operating_environment"]["value"], "saltwater")
+        self.assertEqual(axle["drop_height"]["value"], "4 in")
+        general = inquiry.specifications["general"]
+        self.assertEqual(general["oem_requirement"], "yes")
+        self.assertEqual(general["special_requirements"], "Confirm salt-spray target.")
+        self.assertEqual(general["selected_product"], self.product.model)
+        self.assertEqual(inquiry.requested_categories, ["trailer-axles", "landing-gear"])
 
     @patch("catalog.views.send_inquiry_notification.delay")
     def test_rfq_rejects_unknown_nested_nonfinite_and_invalid_specs(self, mocked_task):
         invalid_cases = (
-            {"unknown_internal_key": "value"},
-            {"environment": ["nested"]},
-            {"capacity": True},
-            {"capacity": "NaN"},
-            {"capacity": "10,00"},
-            {"capacity_unit": "ton"},
-            {"axle_count": "quad"},
-            {"brake": "unsafe"},
-            {"hub_face": "95 ft"},
-            {"hub_face": "2413 mm", "dimension_unit": "in"},
-            {"tube_shape": "triangle"},
-            {"oem_requirement": "maybe"},
-            {"environment": "x" * 161},
-            {"special_requirements": "x" * 4001},
-            {"bearing_type": None},
-            {"environment": f"unsafe{chr(0)}value"},
-            {"environment": f"unsafe{chr(0xD800)}value"},
+            {"trailer-axles": {"unknown_internal_key": "value"}},
+            {"trailer-axles": {"inner_bearing": "L68149"}},
+            {"trailer-axles": {"operating_environment": ["nested"]}},
+            {"trailer-axles": {"rated_capacity": "NaN"}},
+            {"trailer-axles": {"rated_capacity": "95 mm"}},
+            {"trailer-axles": {"axle_count": "quad"}},
+            {"trailer-axles": {"brake_type": "unsafe"}},
+            {"trailer-axles": {"hub_face": "95 lb"}},
+            {"trailer-axles": {"operating_environment": "x" * 161}},
+            {"trailer-axles": {"operating_environment": f"unsafe{chr(0)}value"}},
+            {"trailer-axles": {"operating_environment": f"unsafe{chr(0xD800)}value"}},
+            {"landing-gear": {"rated_capacity": "1"}},
+            {"general": {"oem_requirement": "maybe"}},
+            {"general": {"special_requirements": "x" * 4001}},
+            {"general": {"internal_note": "x"}},
+            {"trailer-axles": "not an object"},
         )
         for specifications in invalid_cases:
-            with self.subTest(specifications=specifications):
+            with self.subTest(specifications=str(specifications)[:80]):
                 cache.clear()
                 request_body = json.dumps(
                     {
                         "name": "Invalid Specs Buyer",
                         "email": "invalid-specs@example.com",
                         "privacy_consent": True,
+                        "requested_categories": ["trailer-axles"],
                         "specifications": specifications,
                     },
                     ensure_ascii=True,
                 )
-                response = self.client.post(
-                    "/api/inquiries/",
-                    request_body,
-                    content_type="application/json",
-                )
+                response = self.client.post("/api/inquiries/", request_body, content_type="application/json")
                 self.assertEqual(response.status_code, 400)
                 self.assertIn("specifications", response.data)
         self.assertFalse(Inquiry.objects.filter(email="invalid-specs@example.com").exists())
         mocked_task.assert_not_called()
 
-    def test_specification_validator_accepts_only_scalar_whitelisted_values(self):
-        validator = InquirySerializer().validate_specifications
-        normalized = validator(
-            {
-                "capacity": "7,000",
-                "hub_face": "95 inches",
-                "brake": "disc brake",
-                "finish": "e-coat",
-                "selected_product": " TA-7000-HD ",
-            }
-        )
-        self.assertEqual(normalized["capacity"], "7000")
-        self.assertEqual(normalized["hub_face"], "95 in")
-        self.assertEqual(normalized["brake"], Product.BrakeType.HYDRAULIC_DISC)
-        self.assertEqual(normalized["finish"], Product.SurfaceFinish.E_COATED)
-        self.assertEqual(normalized["selected_product"], "TA-7000-HD")
+    def test_rfq_rejects_unknown_or_inactive_categories(self):
+        Category.objects.create(name="Retired", slug="retired", is_active=False)
+        for categories in (["missing"], ["retired"], "trailer-axles", [1], ["c" + str(index) for index in range(11)]):
+            with self.subTest(categories=categories):
+                response = self.client.post(
+                    "/api/inquiries/",
+                    {"name": "Buyer", "email": "categories@example.com", "privacy_consent": True, "requested_categories": categories},
+                    format="json",
+                )
+                self.assertEqual(response.status_code, 400)
+                self.assertIn("requested_categories", response.data)
 
-        galvanized = validator({"finish": "galvanised"})
-        self.assertEqual(
-            galvanized["finish"],
-            Product.SurfaceFinish.HOT_DIP_GALVANIZED,
-        )
-
-        with self.assertRaises(drf_serializers.ValidationError):
-            validator({"capacity": {"nested": 7000}})
-        for unsafe_text in (f"unsafe{chr(0)}value", f"unsafe{chr(0xD800)}value"):
-            with self.subTest(unsafe_text=repr(unsafe_text)):
-                with self.assertRaises(drf_serializers.ValidationError):
-                    validator({"environment": unsafe_text})
+    def test_rfq_application_must_be_a_published_application_or_other(self):
+        Application.objects.create(name="Boat Trailers", slug="boat-trailers")
+        Application.objects.create(name="Retired", slug="retired-application", is_active=False)
+        serializer = InquirySerializer()
+        self.assertEqual(serializer.validate_application("boat-trailers"), "boat-trailers")
+        self.assertEqual(serializer.validate_application("other"), "other")
+        self.assertEqual(serializer.validate_application(""), "")
+        for value in ("retired-application", "utility-trailers"):
+            with self.subTest(value=value), self.assertRaises(drf_serializers.ValidationError):
+                serializer.validate_application(value)
 
     def test_rfq_item_json_rejects_unsafe_nonfinite_and_deep_values(self):
         validator = InquirySerializer().validate_items
@@ -2291,14 +2153,19 @@ class NotificationTaskTests(TestCase):
             email="buyer@example.com",
             company="Example Manufacturing",
             privacy_consent=True,
-            specifications={"capacity": "7000 lb"},
+            specifications={
+                "trailer-axles": {"rated_capacity": {"label": "Rated capacity", "value": "7,000 lb"}},
+                "general": {"oem_requirement": "yes"},
+            },
             message="Please review the drawing.",
         )
+        Category.objects.create(name="Trailer Axles", slug="trailer-axles")
         send_inquiry_notification.run(inquiry.pk)
         inquiry.refresh_from_db()
         self.assertEqual(len(mail.outbox), 2)
         self.assertIn(inquiry.reference, mail.outbox[0].subject)
-        self.assertIn("7000 lb", mail.outbox[0].body)
+        self.assertIn("Trailer Axles:\n  - Rated capacity: 7,000 lb", mail.outbox[0].body)
+        self.assertIn("- OEM requirement: yes", mail.outbox[0].body)
         self.assertIsNotNone(inquiry.notification_sent_at)
         self.assertIsNotNone(inquiry.confirmation_sent_at)
         self.assertIsNone(inquiry.notification_claimed_at)

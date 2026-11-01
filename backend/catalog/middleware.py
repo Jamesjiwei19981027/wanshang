@@ -19,6 +19,8 @@ PUBLIC_FORM_PATHS = frozenset({
     "/api/v1/inquiries",
     "/api/v1/contact",
     "/api/v1/contact-messages",
+    "/api/assistant/chat",
+    "/api/v1/assistant/chat",
 })
 
 

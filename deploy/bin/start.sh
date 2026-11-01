@@ -22,7 +22,7 @@ finish() {
             ops_resume_writers || status=1
             ops_record_release failed-before-migrate || log 'Could not append the failed deployment state.'
         else
-            dc stop --timeout 330 nginx frontend api celery >&2 || true
+            dc stop --timeout 330 nginx frontend api assistant celery >&2 || true
             if ((MIGRATION_STARTED == 1)); then
                 ops_record_release failed-after-migrate || log 'Could not append the failed deployment state.'
             else
@@ -63,9 +63,10 @@ dc --profile ops up --no-deps --abort-on-container-exit --exit-code-from volume-
 MIGRATION_STARTED=1
 dc_ops run --rm -T --no-deps manage migrate --noinput >&2
 ops_migration_guard --expect-current
+dc_ops run --rm -T --no-deps manage rebuild_search_index >&2
 dc_ops run --rm -T --no-deps manage collectstatic --noinput >&2
 dc_ops run --rm -T --no-deps manage check --deploy --fail-level WARNING >&2
-dc up -d --wait --wait-timeout 900 api celery frontend nginx >&2
+dc up -d --wait --wait-timeout 900 api assistant celery frontend nginx >&2
 ops_record_release healthy
 COMPLETED=1
 log "Production services are healthy for project $PROJECT."

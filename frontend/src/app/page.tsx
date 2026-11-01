@@ -22,17 +22,17 @@ export default async function HomePage() {
       <div className="shell quick-find-inner">
         <div className="quick-find-title"><h2>Find an axle for your trailer</h2><p>Start with what you know. All filters are optional.</p></div>
         <form action="/products/trailer-axles" method="get" className="filter-grid home-quick-filter">
-          <div className="field"><label htmlFor="application">Trailer application</label><select id="application" name="application"><option value="">Select application</option>{applications.map((item) => <option value={item.slug} key={item.id}>{item.name}</option>)}</select></div>
-          <div className="field"><label htmlFor="capacity">Required capacity (kg)</label><input id="capacity" name="capacity_min" type="number" min="0" step="any" placeholder="Enter required axle load" /><input type="hidden" name="capacity_unit" value="kg" /></div>
+          {applications.length > 0 && <div className="field"><label htmlFor="application">Trailer application</label><select id="application" name="application"><option value="">Select application</option>{applications.map((item) => <option value={item.slug} key={item.id}>{item.name}</option>)}</select></div>}
+          <div className="field"><label htmlFor="capacity">Required capacity (lb)</label><input id="capacity" name="spec.rated_capacity__min" type="number" min="0" step="any" placeholder="Enter required axle load" /><input type="hidden" name="spec.rated_capacity__unit" value="lb" /></div>
           <div className="field"><label htmlFor="brake">Axle or brake description</label><input id="brake" name="q" placeholder="e.g. drum brake axle" /></div>
           <button className="button" type="submit">Search catalogue</button>
           <details className="quick-filter-advanced">
             <summary>Advanced filters: axle type and dimensions</summary>
             <div className="quick-filter-advanced-grid">
-              <div className="field"><label htmlFor="axle">Axle type</label><select id="axle" name="type"><option value="">Any type</option><option value="straight">Straight axle</option><option value="drop">Drop axle</option><option value="torsion">Torsion axle</option></select></div>
-              <div className="field"><label htmlFor="bolt-pattern">Bolt pattern</label><input id="bolt-pattern" name="bolt_pattern" placeholder="Enter wheel bolt pattern" /></div>
-              <div className="field"><label htmlFor="hub-face">Hub face length</label><input id="hub-face" name="hub_face" inputMode="decimal" placeholder="Enter dimension and unit" /></div>
-              <div className="field"><label htmlFor="spring-center">Spring centre</label><input id="spring-center" name="spring_center" inputMode="decimal" placeholder="Enter dimension and unit" /></div>
+              <div className="field"><label htmlFor="axle">Axle type</label><select id="axle" name="spec.axle_type"><option value="">Any type</option><option value="straight">Straight axle</option><option value="drop">Drop axle</option><option value="torsion">Torsion axle</option></select></div>
+              <div className="field"><label htmlFor="bolt-pattern">Bolt pattern</label><input id="bolt-pattern" name="spec.bolt_pattern" placeholder="Enter wheel bolt pattern" /></div>
+              <div className="field"><label htmlFor="hub-face">Hub face length</label><input id="hub-face" name="spec.hub_face" inputMode="decimal" placeholder="Enter dimension and unit" /></div>
+              <div className="field"><label htmlFor="spring-center">Spring centre</label><input id="spring-center" name="spec.spring_center" inputMode="decimal" placeholder="Enter dimension and unit" /></div>
             </div>
           </details>
         </form>
@@ -69,19 +69,17 @@ export default async function HomePage() {
 
     <section className="section-tight" aria-label="Support for your enquiry"><div className="shell stats"><Stat value="Drawing review" label="Share dimensions & photos" /><Stat value="Axle options" label="Compare key configurations" /><Stat value="Project quotes" label="Include quantity & delivery needs" /><Stat value="One enquiry" label="Combine multiple parts" /></div></section>
 
-    <section className="section">
+    {applications.length > 0 && <section className="section">
       <div className="shell">
         <SectionHead eyebrow="Applications" title="Start with the operating environment" copy="Explore components by trailer use, load conditions and exposure to water or rough terrain." href="/applications" link="Explore applications" />
-        {applications.length > 0
-          ? <div className="application-grid">{applications.map((application) => <Link href={`/applications/${application.slug}`} className="application-card" key={application.id}>
+        <div className="application-grid">{applications.map((application) => <Link href={`/applications/${application.slug}`} className="application-card" key={application.id}>
             {application.image_url
               ? <Image className="application-card-image" src={application.image_url} alt={`${application.name} trailer application`} fill sizes="(max-width: 700px) 100vw, (max-width: 1000px) 50vw, 33vw" />
               : <span className="card-media-placeholder" aria-hidden="true" />}
             <div className="application-card-content"><h3>{application.name}</h3><p>{application.summary}</p></div>
           </Link>)}</div>
-          : <HomeEmptyState title="Discuss your trailer application" copy="Browse the available product range or send your operating environment and required configuration for review." primaryHref="/products" primaryLabel="Browse products" secondaryHref="/request-a-quote" secondaryLabel="Send an RFQ" />}
       </div>
-    </section>
+    </section>}
 
     <section className="section section-alt">
       <div className="shell">

@@ -2,16 +2,20 @@ from django import forms
 from django.contrib import admin, messages
 from django.db.models import Q
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 
-from .file_security import scan_inquiry_attachment
+from .file_security import schedule_inquiry_attachment_scan
+from .signals import batched_search_updates
 from .models import (
-    AnalyticsEvent, Application, AxleSpec, Banner, Category, ContactMessage,
-    CompanyPhoto, CompanyProfile,
+    FAQ, AnalyticsEvent, Application, Banner, Category, ContactMessage,
+    CompanyPhoto, CompanyProfile, KnowledgeEntry,
     Inquiry, InquiryAttachment, InquiryFollowup, InquiryItem, PageView, Product,
-    ProductDocument, ProductImage, NewsArticle, SiteSetting, VisitSession,
+    ProductDocument, ProductImage, ProductSpecValue, NewsArticle, SearchMiss,
+    SearchSynonym, SiteSetting, SpecField, VisitSession,
 )
-from .tasks import enqueue_contact_notification, enqueue_inquiry_notification
+from .tasks import enqueue_contact_notification, enqueue_document_text_extraction, enqueue_inquiry_notification
+from .units import QUANTITIES, QUANTITY_CHOICES, display_unit, unit_choices
 
 
 class ProtectedProductDocumentForm(forms.ModelForm):
@@ -54,12 +58,6 @@ class AuditedAdminActionMixin:
             self.log_change(request, obj, message)
 
 
-class AxleSpecInline(admin.StackedInline):
-    model = AxleSpec
-    extra = 0
-    classes = ("collapse",)
-
-
 class ProductDocumentInline(
     ProtectedProductDocumentAdminMixin,
     admin.TabularInline,
@@ -74,6 +72,7 @@ class ProductDocumentInline(
         "file",
         "protected_file_status",
         "controlled_download_link",
+        "text_note",
         "is_active",
     )
     readonly_fields = ("protected_file_status", "controlled_download_link")
@@ -93,14 +92,93 @@ class ProductImageInline(admin.TabularInline):
     ordering = ("sort_order", "id")
 
 
+SPEC_PREFIX = "spec__"
+
+
+def _spec_form_fields(spec_fields: list[SpecField], system: str) -> dict[str, forms.Field]:
+    """One form field per parameter, plus a unit selector for measured numbers."""
+    fields: dict[str, forms.Field] = {}
+    for field in spec_fields:
+        name = f"{SPEC_PREFIX}{field.key}"
+        options = {"label": field.label, "required": field.required, "help_text": field.help_text}
+        if field.data_type == SpecField.DataType.NUMBER:
+            fields[name] = forms.DecimalField(max_digits=20, decimal_places=6, **options)
+            if field.quantity in QUANTITIES:
+                fields[f"{name}__unit"] = forms.ChoiceField(
+                    label=f"{field.label} unit",
+                    choices=unit_choices(field.quantity),
+                    initial=display_unit(field.quantity, system, field.imperial_unit, field.metric_unit),
+                )
+        elif field.data_type == SpecField.DataType.CHOICE:
+            fields[name] = forms.ChoiceField(choices=[("", "—")] + [(item, item) for item in field.choices], **options)
+        elif field.data_type == SpecField.DataType.BOOLEAN:
+            fields[name] = forms.NullBooleanField(
+                widget=forms.Select(choices=[("unknown", "—"), ("true", "Yes"), ("false", "No")]),
+                **{**options, "required": False},
+            )
+        else:
+            fields[name] = forms.CharField(max_length=255, **options)
+    return fields
+
+
+class ProductAdminForm(forms.ModelForm):
+    spec_field_objects: list[SpecField] = []
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk:
+            return
+        existing = {value.field_id: value for value in self.instance.spec_values.select_related("field")}
+        for field in self.spec_field_objects:
+            value = existing.get(field.pk)
+            if value is None:
+                continue
+            name = f"{SPEC_PREFIX}{field.key}"
+            if field.data_type == SpecField.DataType.NUMBER:
+                self.initial[name] = value.number_value
+                if value.entered_unit:
+                    self.initial[f"{name}__unit"] = value.entered_unit
+            elif field.data_type == SpecField.DataType.BOOLEAN:
+                self.initial[name] = value.boolean_value
+            else:
+                self.initial[name] = value.text_value
+
+    def save_specs(self, product: Product) -> None:
+        keep: set[int] = set()
+        for field in self.spec_field_objects:
+            name = f"{SPEC_PREFIX}{field.key}"
+            raw = self.cleaned_data.get(name)
+            keep.add(field.pk)
+            values = {"number_value": None, "entered_unit": "", "text_value": "", "boolean_value": None}
+            if field.data_type == SpecField.DataType.NUMBER:
+                values["number_value"] = raw
+                values["entered_unit"] = self.cleaned_data.get(f"{name}__unit", "") if raw is not None else ""
+            elif field.data_type == SpecField.DataType.BOOLEAN:
+                values["boolean_value"] = raw
+            else:
+                values["text_value"] = raw or ""
+            if values["number_value"] is None and not values["text_value"] and values["boolean_value"] is None:
+                ProductSpecValue.objects.filter(product=product, field=field).delete()
+                continue
+            spec_value = ProductSpecValue.objects.filter(product=product, field=field).first() or ProductSpecValue(product=product, field=field)
+            for attribute, value in values.items():
+                setattr(spec_value, attribute, value)
+            spec_value.save()
+        # Values of parameters that no longer apply (e.g. after a category change).
+        ProductSpecValue.objects.filter(product=product).exclude(field_id__in=keep).delete()
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("model", "title", "category", "capacity_display", "brake_type", "featured", "status_badge")
+    form = ProductAdminForm
+    list_display = ("model", "title", "category", "featured", "status_badge")
     list_filter = (
         "status",
         "category",
-        "axle_type",
-        "brake_type",
         "featured",
         "is_customizable",
         "made_to_order",
@@ -109,31 +187,138 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ("title", "model", "sku", "short_description")
     prepopulated_fields = {"slug": ("title",)}
     filter_horizontal = ("applications",)
-    inlines = (AxleSpecInline, ProductImageInline, ProductDocumentInline)
+    inlines = (ProductImageInline, ProductDocumentInline)
     list_select_related = ("category",)
     list_per_page = 25
-    fieldsets = (
+    base_fieldsets = (
         ("Product identity", {"fields": (("title", "slug"), ("model", "sku"), ("category", "status", "position"))}),
-        ("Commercial configuration", {"fields": (("rated_capacity", "capacity_unit", "dimension_unit"), ("axle_type", "brake_type"), ("bolt_pattern", "stud_size"), ("grease_cap_type", "tube_size"), ("hub_face_length", "spring_center"), ("surface_finish", "packaging"), "image_url")}),
+        ("Commercial information", {"fields": (("moq", "lead_time", "loading_port"), "packaging", "image_url")}),
         ("Publishing", {"fields": (("featured", "is_customizable", "oem_available", "made_to_order"), "applications", "short_description", "description")}),
+        ("Translations", {"classes": ("collapse",), "description": 'Optional. Example: {"es": {"title": "…", "short_description": "…"}}. Untranslated text shows in English.', "fields": ("translations",)}),
         ("Search metadata", {"classes": ("collapse",), "fields": ("meta_title", "meta_description")} ),
     )
 
-    @admin.display(description="Capacity", ordering="rated_capacity")
-    def capacity_display(self, obj):
-        return f"{obj.rated_capacity:,} {obj.capacity_unit}" if obj.rated_capacity else "—"
+    class Media:
+        js = ("catalog/admin/product-category-parameters.js",)
+
+    def _selected_category(self, request, obj=None) -> Category | None:
+        cached = getattr(request, "_wanshang_product_category", False)
+        if cached is not False:
+            return cached
+        raw = request.POST.get("category") or request.GET.get("category") or ""
+        category = None
+        if raw.isdecimal():
+            category = Category.objects.filter(pk=int(raw)).first()
+        if category is None and obj is not None:
+            category = obj.category
+        request._wanshang_product_category = category
+        return category
+
+    def _spec_fields(self, request, obj=None) -> list[SpecField]:
+        category = self._selected_category(request, obj)
+        return category.effective_spec_fields(products_only=True) if category else []
+
+    def get_fieldsets(self, request, obj=None):
+        spec_fields = self._spec_fields(request, obj)
+        if not spec_fields:
+            category = self._selected_category(request, obj)
+            note = (
+                "This category has no parameter list yet. Add parameters under Categories."
+                if category
+                else "Choose a category; its parameter list appears here."
+            )
+            return (self.base_fieldsets[0], ("Parameters", {"description": note, "fields": ()}), *self.base_fieldsets[1:])
+        rows = []
+        for field in spec_fields:
+            name = f"{SPEC_PREFIX}{field.key}"
+            rows.append((name, f"{name}__unit") if field.data_type == SpecField.DataType.NUMBER and field.quantity in QUANTITIES else name)
+        category = self._selected_category(request, obj)
+        return (
+            self.base_fieldsets[0],
+            ("Parameters", {"description": f"Parameter list of {category}. Enter values in any unit; the site converts them.", "fields": tuple(rows)}),
+            *self.base_fieldsets[1:],
+        )
+
+    def get_form(self, request, obj=None, **kwargs):
+        spec_fields = self._spec_fields(request, obj)
+        system = SiteSetting.objects.filter(pk=1).values_list("default_unit_system", flat=True).first() or "imperial"
+        attributes = _spec_form_fields(spec_fields, system)
+        attributes["spec_field_objects"] = spec_fields
+        kwargs["form"] = type("ProductParameterForm", (self.form,), attributes)
+        return super().get_form(request, obj, **kwargs)
+
+    def changeform_view(self, request, *args, **kwargs):
+        # Product, parameters, images, documents and applications are saved in
+        # one request; rebuild the product's search text once at the end.
+        with batched_search_updates():
+            return super().changeform_view(request, *args, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        form.save_specs(obj)
 
     @admin.display(description="Status", ordering="status")
     def status_badge(self, obj):
         return format_html('<span class="status-badge status-{}">{}</span>', obj.status, obj.get_status_display())
 
 
+class SpecFieldForm(forms.ModelForm):
+    quantity = forms.ChoiceField(choices=[("", "— no unit —")] + QUANTITY_CHOICES, required=False)
+    choices_text = forms.CharField(
+        label="Options",
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 2, "cols": 28}),
+        help_text="One option per line, for list parameters.",
+    )
+
+    class Meta:
+        model = SpecField
+        fields = (
+            "key", "label", "data_type", "quantity", "imperial_unit", "metric_unit",
+            "choices_text", "required", "filterable", "show_on_card", "ask_in_rfq", "used_by_products", "position", "help_text",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["choices_text"].initial = "\n".join(self.instance.choices or [])
+
+    def clean(self):
+        cleaned = super().clean()
+        lines = [line.strip() for line in (cleaned.get("choices_text") or "").splitlines()]
+        self.instance.choices = [line for line in lines if line]
+        return cleaned
+
+
+class SpecFieldInline(admin.TabularInline):
+    model = SpecField
+    form = SpecFieldForm
+    extra = 0
+    ordering = ("position", "label")
+
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("name", "position", "is_active")
+    list_display = ("__str__", "parent", "parameter_count", "position", "is_active")
     list_editable = ("position", "is_active")
+    list_filter = ("is_active", "parent")
     prepopulated_fields = {"slug": ("name",)}
     list_per_page = 25
+    inlines = (SpecFieldInline,)
+    fields = (
+        ("name", "slug"),
+        ("parent", "inherit_parent_specs"),
+        "description",
+        ("icon", "image_url"),
+        ("position", "is_active"),
+        ("meta_title", "meta_description"),
+        "translations",
+    )
+
+    @admin.display(description="Parameters")
+    def parameter_count(self, obj):
+        own = obj.spec_fields.count()
+        total = len(obj.effective_spec_fields())
+        return f"{own}" if own == total else f"{own} own · {total} total"
 
 
 @admin.register(Application)
@@ -143,6 +328,41 @@ class ApplicationAdmin(admin.ModelAdmin):
     list_filter = ("is_active",)
     prepopulated_fields = {"slug": ("name",)}
     list_per_page = 25
+
+
+@admin.register(FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    list_display = ("question", "group", "position", "is_published", "updated_at")
+    list_editable = ("position", "is_published")
+    list_filter = ("is_published", "group")
+    search_fields = ("question", "answer")
+
+
+@admin.register(KnowledgeEntry)
+class KnowledgeEntryAdmin(admin.ModelAdmin):
+    list_display = ("title", "is_published", "updated_at")
+    list_filter = ("is_published",)
+    search_fields = ("title", "body")
+    prepopulated_fields = {"slug": ("title",)}
+
+
+@admin.register(SearchSynonym)
+class SearchSynonymAdmin(admin.ModelAdmin):
+    list_display = ("terms", "is_active", "updated_at")
+    list_editable = ("is_active",)
+    search_fields = ("terms",)
+
+
+@admin.register(SearchMiss)
+class SearchMissAdmin(admin.ModelAdmin):
+    list_display = ("query", "count", "last_seen_at", "resolved")
+    list_editable = ("resolved",)
+    list_filter = ("resolved",)
+    search_fields = ("query",)
+    readonly_fields = ("query", "count", "first_seen_at", "last_seen_at")
+
+    def has_add_permission(self, request):
+        return False
 
 
 class InquiryItemInline(admin.TabularInline):
@@ -196,7 +416,7 @@ class InquiryAdmin(AuditedAdminActionMixin, admin.ModelAdmin):
     list_display = ("reference", "company", "name", "email", "status_badge", "priority_badge", "assigned_to", "next_followup_at", "created_at")
     list_filter = ("status", "priority", "country", "utm_source")
     search_fields = ("reference", "name", "company", "email")
-    readonly_fields = ("reference", "next_followup_at", "session", "source_url", "referrer", "first_touch_source", "last_touch_source", "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "first_landing_page", "last_landing_page", "user_agent", "ip_hash", "notification_queued_at", "notification_claimed_at", "notification_sent_at", "confirmation_claimed_at", "confirmation_sent_at", "notification_error", "created_at", "updated_at")
+    readonly_fields = ("reference", "assistant_conversations", "next_followup_at", "session", "source_url", "referrer", "first_touch_source", "last_touch_source", "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "first_landing_page", "last_landing_page", "user_agent", "ip_hash", "notification_queued_at", "notification_claimed_at", "notification_sent_at", "confirmation_claimed_at", "confirmation_sent_at", "notification_error", "created_at", "updated_at")
     inlines = (InquiryItemInline, InquiryAttachmentInline, InquiryFollowupInline)
     list_select_related = ("assigned_to",)
     date_hierarchy = "created_at"
@@ -212,7 +432,7 @@ class InquiryAdmin(AuditedAdminActionMixin, admin.ModelAdmin):
         ("Pipeline", {"fields": (("reference", "status", "priority", "assigned_to"), "next_followup_at", "created_at", "updated_at")}),
         ("Buyer contact", {"fields": (("name", "company"), ("email", "phone"), ("country", "quantity"), "application")}),
         ("Delivery", {"fields": ("destination_port", "target_delivery_date")}),
-        ("Requirement", {"fields": ("message", "specifications", "privacy_consent", "admin_notes")} ),
+        ("Requirement", {"fields": ("message", "requested_categories", "specifications", "privacy_consent", "admin_notes", "assistant_conversations")} ),
         ("Attribution & traceability", {"classes": ("collapse",), "fields": ("session", "source_url", "referrer", ("first_touch_source", "last_touch_source"), ("utm_source", "utm_medium", "utm_campaign"), ("utm_term", "utm_content"), ("first_landing_page", "last_landing_page"), "user_agent", "ip_hash")} ),
         ("Email delivery", {"classes": ("collapse",), "fields": ("notification_queued_at", ("notification_claimed_at", "notification_sent_at"), ("confirmation_claimed_at", "confirmation_sent_at"), "notification_error")} ),
     )
@@ -220,6 +440,20 @@ class InquiryAdmin(AuditedAdminActionMixin, admin.ModelAdmin):
     @admin.display(description="Status", ordering="status")
     def status_badge(self, obj):
         return format_html('<span class="status-badge status-{}">{}</span>', obj.status, obj.get_status_display())
+
+    @admin.display(description="Assistant conversation before this RFQ")
+    def assistant_conversations(self, obj):
+        conversations = list(obj.assistant_conversations.all()) if obj.pk else []
+        if not conversations:
+            return "—"
+        return format_html_join(
+            mark_safe("<br>"),
+            '<a href="{}">Conversation {} ({} messages)</a>',
+            (
+                (reverse("admin:assistant_conversation_change", args=[item.pk]), item.public_id[:8], item.message_count)
+                for item in conversations
+            ),
+        )
 
     @admin.display(description="Priority", ordering="priority")
     def priority_badge(self, obj):
@@ -285,29 +519,33 @@ class InquiryAdmin(AuditedAdminActionMixin, admin.ModelAdmin):
 
     @admin.action(description="Rescan selected RFQ attachments", permissions=["change"])
     def rescan_attachments(self, request, queryset):
-        scanned = 0
-        clean = 0
+        # Scanning runs in the background worker; the page returns at once and
+        # each attachment's status updates when its scan finishes.
+        queued = 0
+        failed = 0
         for inquiry in queryset.prefetch_related("attachments"):
-            inquiry_scanned = 0
-            inquiry_clean = 0
-            for attachment in inquiry.attachments.all():
-                scanned += 1
-                inquiry_scanned += 1
-                if scan_inquiry_attachment(attachment) == InquiryAttachment.ScanStatus.CLEAN:
-                    clean += 1
-                    inquiry_clean += 1
+            attachments = list(inquiry.attachments.all())
+            for attachment in attachments:
+                InquiryAttachment.objects.filter(pk=attachment.pk).update(
+                    scan_status=InquiryAttachment.ScanStatus.PENDING,
+                    scan_detail="Rescan requested by staff.",
+                )
+                attachment.scan_status = InquiryAttachment.ScanStatus.PENDING
+                status = schedule_inquiry_attachment_scan(attachment)
+                if status == InquiryAttachment.ScanStatus.ERROR:
+                    failed += 1
+                else:
+                    queued += 1
             self.log_admin_action(
                 request,
                 [inquiry],
-                (
-                    "Admin action: rescanned "
-                    f"{inquiry_scanned} attachment(s); {inquiry_clean} reported clean."
-                ),
+                f"Admin action: queued a rescan of {len(attachments)} attachment(s).",
             )
         self.message_user(
             request,
-            f"Scanned {scanned} attachment(s); {clean} reported clean.",
-            level=messages.SUCCESS if scanned == clean else messages.WARNING,
+            f"Queued {queued} attachment scan(s); results appear when scanning finishes."
+            + (f" {failed} could not be queued." if failed else ""),
+            level=messages.SUCCESS if failed == 0 else messages.WARNING,
         )
 
     def save_formset(self, request, form, formset, change):
@@ -485,12 +723,28 @@ class ProductDocumentAdmin(
     ProtectedProductDocumentAdminMixin,
     admin.ModelAdmin,
 ):
-    list_display = ("title", "product", "document_type", "version", "is_active", "downloads")
+    list_display = ("title", "product", "document_type", "version", "is_active", "downloads", "text_status")
     list_filter = ("document_type", "is_active")
     list_editable = ("is_active",)
     search_fields = ("title", "product__title", "product__model")
     list_select_related = ("product",)
-    readonly_fields = ("protected_file_status", "controlled_download_link")
+    readonly_fields = ("protected_file_status", "controlled_download_link", "extracted_at", "extracted_preview")
+    actions = ("extract_text",)
+
+    @admin.display(description="Text for search")
+    def text_status(self, obj):
+        if obj.extracted_text:
+            return "Extracted"
+        return "Described" if obj.text_note else "—"
+
+    @admin.display(description="Extracted text (first 2,000 characters)")
+    def extracted_preview(self, obj):
+        return (obj.extracted_text or "—")[:2000]
+
+    @admin.action(description="Extract text from selected PDF files", permissions=["change"])
+    def extract_text(self, request, queryset):
+        queued = sum(int(enqueue_document_text_extraction(document.pk)) for document in queryset.filter(file__iendswith=".pdf"))
+        self.message_user(request, f"Queued text extraction for {queued} PDF file(s).")
 
 
 @admin.register(NewsArticle)
@@ -630,6 +884,7 @@ class SiteSettingAdmin(admin.ModelAdmin):
                     "global_seo_keywords",
                     "global_seo_description",
                     ("google_analytics_id", "google_tag_manager_id"),
+                    "default_unit_system",
                 )
             },
         ),
@@ -739,6 +994,6 @@ class AnalyticsEventAdmin(admin.ModelAdmin):
         return False
 
 
-admin.site.site_header = "AxleForge Control Center"
-admin.site.site_title = "AxleForge Admin"
+admin.site.site_header = "WANSHANG Control Center"
+admin.site.site_title = "WANSHANG Admin"
 admin.site.index_title = "Catalogue, RFQ and content operations"

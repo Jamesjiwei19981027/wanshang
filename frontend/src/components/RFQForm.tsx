@@ -14,35 +14,46 @@ import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { AttachmentInput } from "@/components/AttachmentInput";
 import { validateInquiryAttachments } from "@/lib/inquiry-attachments";
 import { clearSubmissionKey, getSubmissionKey } from "@/lib/submission";
+import { RfqCategoryFields } from "@/components/RfqCategoryFields";
+import { useSiteConfig } from "@/components/SiteConfigProvider";
+import { CATEGORY_FIELD_PREFIX, packRfqForm } from "@/lib/rfq-form";
+import { useUnitSystem } from "@/lib/units";
+import type { Application, Category } from "@/lib/types";
 
 const DRAFT_KEY = "axleforge-rfq-draft";
 const NON_DRAFT_FIELDS = new Set(["attachments", "website", "turnstile_token", "cf-turnstile-response"]);
-const WEIGHT_SPECIFICATIONS = new Set(["capacity", "estimated_trailer_weight"]);
-const DIMENSION_SPECIFICATIONS = new Set(["hub_face", "spring_center", "overall_length", "drop_height", "tube_size", "stud_size", "brake_size"]);
-const FINISH_ALIASES: Record<string, string> = {
-  "e-coat": "E-Coated",
-  "e-coated": "E-Coated",
-  "powder coat": "Powder-Coated",
-  "powder-coated": "Powder-Coated",
-  "zinc plated": "Zinc Plated",
-  galvanised: "Hot-Dip Galvanized",
-  galvanized: "Hot-Dip Galvanized",
-  "hot-dip galvanised": "Hot-Dip Galvanized",
-  "hot-dip galvanized": "Hot-Dip Galvanized",
-  custom: "Custom Finish",
-};
 
-function finishFromSearch(value: string | null): string {
-  if (!value) return "";
-  const canonical = ["Painted", "E-Coated", "Powder-Coated", "Zinc Plated", "Hot-Dip Galvanized", "Custom Finish"]
-    .find((item) => item.toLocaleLowerCase("en") === value.toLocaleLowerCase("en"));
-  return canonical || FINISH_ALIASES[value.trim().toLocaleLowerCase("en")] || "";
+type DraftControl = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+function readDraft(): Record<string, unknown> {
+  const parsed = JSON.parse(storageGet("sessionStorage", DRAFT_KEY) ?? "{}") as unknown;
+  return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
 }
 
-export function RFQForm() {
+/** Put saved values back into the form; onlyEmpty keeps what the buyer typed since. */
+function applyDraft(form: HTMLFormElement, draft: Record<string, unknown>, searchParams: URLSearchParams, onlyEmpty: boolean) {
+  for (const [name, value] of Object.entries(draft)) {
+    const control = form.elements.namedItem(name);
+    if (!(control instanceof HTMLInputElement || control instanceof HTMLSelectElement || control instanceof HTMLTextAreaElement)) continue;
+    const queryKey = name.replace(/^specifications\.general\./, "");
+    if (searchParams.has(queryKey)) continue;
+    if (control instanceof HTMLInputElement && control.type === "checkbox") {
+      if (!onlyEmpty) control.checked = Boolean(value);
+    } else if (typeof value === "string" && (!onlyEmpty || !control.value)) {
+      control.value = value;
+    }
+  }
+}
+
+export function RFQForm({ categories = [], applications = [] }: { categories?: Category[]; applications?: Application[] } = {}) {
   const searchParams = useSearchParams();
   const items = useRfqItems();
   const formRef = useRef<HTMLFormElement>(null);
+  const system = useUnitSystem(useSiteConfig().defaultUnitSystem);
+  const linkedCategories = (searchParams.get("category") ?? "").split(",").map((slug) => slug.trim()).filter(Boolean);
+  const initialCategories = [...new Set([...linkedCategories, ...items.map((item) => item.category ?? "")])]
+    .filter((slug) => categories.some((category) => category.slug === slug));
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [reference, setReference] = useState("");
@@ -57,10 +68,7 @@ export function RFQForm() {
     const form = formRef.current;
     if (!form) return;
     try {
-      const parsed = JSON.parse(storageGet("sessionStorage", DRAFT_KEY) ?? "{}") as unknown;
-      const draft = parsed && typeof parsed === "object" && !Array.isArray(parsed)
-        ? parsed as Record<string, unknown>
-        : {};
+      const draft = readDraft();
       let removedTransientFields = false;
       for (const name of NON_DRAFT_FIELDS) {
         if (Object.hasOwn(draft, name)) {
@@ -69,40 +77,38 @@ export function RFQForm() {
         }
       }
       if (removedTransientFields) storageSet("sessionStorage", DRAFT_KEY, JSON.stringify(draft));
-      const draftCapacityUnit = draft["specifications.capacity_unit"] === "kg" ? "kg" : "lb";
-      const draftDimensionUnit = draft["specifications.dimension_unit"] === "mm" ? "mm" : "in";
-      const capacityUnitChanged = searchParams.has("capacity_unit") && searchParams.get("capacity_unit") !== draftCapacityUnit;
-      const dimensionUnitChanged = searchParams.has("dimension_unit") && searchParams.get("dimension_unit") !== draftDimensionUnit;
-      for (const [name, value] of Object.entries(draft)) {
-        const control = form.elements.namedItem(name);
-        if (!(control instanceof HTMLInputElement || control instanceof HTMLSelectElement || control instanceof HTMLTextAreaElement)) continue;
-        const queryKey = name.replace(/^specifications\./, "");
-        const hasQueryOverride = searchParams.has(queryKey)
-          || (queryKey === "capacity" && searchParams.has("required_axle_capacity"))
-          || (queryKey === "axle_type" && searchParams.has("type"));
-        // Draft measurements belong to their saved unit. When a link changes that
-        // unit, leave uncovered measurements blank instead of relabelling their
-        // numbers. Explicit query values still win; other draft fields survive.
-        if (!hasQueryOverride && ((capacityUnitChanged && WEIGHT_SPECIFICATIONS.has(queryKey))
-          || (dimensionUnitChanged && DIMENSION_SPECIFICATIONS.has(queryKey)))) continue;
-        if (control instanceof HTMLInputElement && control.type === "checkbox") {
-          if (!hasQueryOverride) control.checked = Boolean(value);
-        } else if (!hasQueryOverride && typeof value === "string") {
-          control.value = value;
-        }
-      }
+      applyDraft(form, draft, searchParams, false);
+      const restored = Object.entries(draft)
+        .filter(([name, value]) => name.startsWith(CATEGORY_FIELD_PREFIX) && value === true)
+        .map(([name]) => name.slice(CATEGORY_FIELD_PREFIX.length));
+      if (restored.length) setTimeout(() => setSelectedCategories((current) => [...new Set([...current, ...restored])]), 0);
     } catch {
       storageRemove("sessionStorage", DRAFT_KEY);
     }
     // Keep restored or linked requirements visible while retaining every field in FormData.
     for (const section of form.querySelectorAll<HTMLDetailsElement>("details[data-rfq-optional]")) {
       const controls = section.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>("input, select, textarea");
-      if (Array.from(controls).some((control) => Boolean(control.value.trim())
-        && !(control.name === "specifications.dimension_unit" && control.value === "in"))) {
+      if (Array.from(controls).some((control) => Boolean(control.value.trim()))) {
         section.open = true;
       }
     }
   }, [searchParams]);
+
+  // Category sections render after their checkbox is restored; refill them.
+  const selectedKey = selectedCategories.join(",");
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form || !selectedKey) return;
+    try {
+      applyDraft(form, readDraft(), searchParams, true);
+    } catch {
+      storageRemove("sessionStorage", DRAFT_KEY);
+    }
+  }, [searchParams, selectedKey]);
+
+  const toggleCategory = (slug: string, checked: boolean) => {
+    setSelectedCategories((current) => checked ? [...new Set([...current, slug])] : current.filter((item) => item !== slug));
+  };
 
   const markStarted = () => {
     if (started.current) return;
@@ -140,15 +146,7 @@ export function RFQForm() {
     }
     setSubmitting(true);
     const form = new FormData(formElement);
-    const specifications = Object.fromEntries(
-      [...form.entries()]
-        .filter(([key]) => key.startsWith("specifications."))
-        .map(([key, value]) => [key.replace("specifications.", ""), value]),
-    );
-    [...form.keys()]
-      .filter((key) => key.startsWith("specifications."))
-      .forEach((key) => form.delete(key));
-    form.set("specifications", JSON.stringify(specifications));
+    packRfqForm(form);
     form.set("items", JSON.stringify(items.map(({ id, quantity }) => ({ product_id: id, quantity }))));
     addAttributionToForm(form);
     if (turnstileEnabled && !form.get("turnstile_token")) {
@@ -205,33 +203,16 @@ export function RFQForm() {
     </div></div>
     <div className="form-card"><h2>What do you need?</h2><p className="rfq-section-note">Share what you know. You can send a drawing or let our team help with the technical details.</p><div className="form-grid three">
       <div className="field form-wide"><label htmlFor="rfq-message">Project overview</label><textarea id="rfq-message" name="message" maxLength={10000} placeholder="Tell us about your trailer, selected products or the problem you need to solve." /></div>
-      <div className="field"><label htmlFor="rfq-application">Application</label><select id="rfq-application" name="application" defaultValue={searchParams.get("application") ?? ""}><option value="">Select application</option><option value="utility-trailers">Utility Trailer</option><option value="boat-trailers">Boat Trailer</option><option value="agricultural-trailers">Agricultural Trailer</option><option value="car-haulers">Car Hauler</option><option value="rv-caravan">RV / Caravan</option><option value="construction-trailers">Construction Trailer</option><option value="heavy-duty-transport">Heavy-Duty Trailer</option><option value="other">Other</option></select></div>
-      <div className="field"><label htmlFor="rfq-capacity">Desired axle capacity</label><input id="rfq-capacity" name="specifications.capacity" defaultValue={searchParams.get("required_axle_capacity") ?? searchParams.get("capacity") ?? ""} inputMode="decimal" placeholder="e.g. 7,000" /></div>
-      <div className="field"><label htmlFor="rfq-capacity-unit">Weight unit</label><select id="rfq-capacity-unit" name="specifications.capacity_unit" defaultValue={searchParams.get("capacity_unit") ?? "lb"}><option value="lb">lb</option><option value="kg">kg</option></select></div>
+      {applications.length > 0 && <div className="field"><label htmlFor="rfq-application">Application</label><select id="rfq-application" name="application" defaultValue={searchParams.get("application") ?? ""}><option value="">Select application</option>{applications.map((item) => <option value={item.slug} key={item.id}>{item.name}</option>)}<option value="other">Other</option></select></div>}
+      {categories.length > 0 && <fieldset className="field form-wide"><legend>Product categories</legend><div className="form-grid three">{categories.map((category) => <label className="checkbox" key={category.slug}><input type="checkbox" name={`${CATEGORY_FIELD_PREFIX}${category.slug}`} value="true" checked={selectedCategories.includes(category.slug)} onChange={(event) => toggleCategory(category.slug, event.target.checked)} />{category.parent ? "— " : ""}{category.name}</label>)}</div></fieldset>}
     </div></div>
     <div className="form-card"><h2>Drawings or photos <span className="optional-label">Optional</span></h2><div className="file-drop"><label htmlFor="rfq-attachments">Attach a drawing, photo or specification</label><AttachmentInput id="rfq-attachments" /></div></div>
     <details className="form-card rfq-optional" data-rfq-optional>
-      <summary><strong>Technical details</strong><span>Optional · dimensions, brakes and configuration</span></summary>
-      <div className="form-grid three">
-      <div className="field"><label htmlFor="rfq-trailer-weight">Estimated trailer weight</label><input id="rfq-trailer-weight" name="specifications.estimated_trailer_weight" defaultValue={searchParams.get("estimated_trailer_weight") ?? ""} inputMode="decimal" placeholder="e.g. 10,000" /></div>
-      <div className="field"><label htmlFor="rfq-axle-count">Axle count</label><select id="rfq-axle-count" name="specifications.axle_count" defaultValue={searchParams.get("axle_count") ?? ""}><option value="">Not sure</option><option value="single">Single axle</option><option value="tandem">Tandem axle</option><option value="triple">Triple axle</option></select></div>
-      <div className="field"><label htmlFor="rfq-axle-type">Axle type</label><select id="rfq-axle-type" name="specifications.axle_type" defaultValue={searchParams.get("type") ?? ""}><option value="">Not sure</option><option value="straight">Straight axle</option><option value="drop">Drop axle</option><option value="torsion">Torsion axle</option></select></div>
-      <div className="field"><label htmlFor="rfq-brake">Preferred brake</label><select id="rfq-brake" name="specifications.brake" defaultValue={searchParams.get("brake") ?? ""}><option value="">Not sure</option><option>Electric Drum</option><option>Hydraulic Drum</option><option>Hydraulic Disc</option><option>No Brake</option></select></div>
-      <div className="field"><label htmlFor="rfq-environment">Operating environment</label><input id="rfq-environment" name="specifications.environment" defaultValue={searchParams.get("environment") ?? ""} placeholder="e.g. saltwater" /></div>
-      <div className="field"><label htmlFor="rfq-hub-face">Hub face length</label><input id="rfq-hub-face" name="specifications.hub_face" defaultValue={searchParams.get("hub_face") ?? ""} placeholder="e.g. 95" /></div>
-      <div className="field"><label htmlFor="rfq-spring-centre">Spring centre</label><input id="rfq-spring-centre" name="specifications.spring_center" defaultValue={searchParams.get("spring_center") ?? ""} placeholder="e.g. 80" /></div>
-      <div className="field"><label htmlFor="rfq-overall-length">Overall length</label><input id="rfq-overall-length" name="specifications.overall_length" defaultValue={searchParams.get("overall_length") ?? ""} placeholder="e.g. 97" /></div>
-      <div className="field"><label htmlFor="rfq-tube-shape">Tube shape</label><select id="rfq-tube-shape" name="specifications.tube_shape" defaultValue={searchParams.get("tube_shape") ?? ""}><option value="">Not sure</option><option value="round">Round tube</option><option value="square">Square tube</option></select></div>
-      <div className="field"><label htmlFor="rfq-tube-size">Tube size</label><input id="rfq-tube-size" name="specifications.tube_size" defaultValue={searchParams.get("tube_size") ?? ""} placeholder={'e.g. 3" round'} /></div>
-      <div className="field"><label htmlFor="rfq-drop-height">Drop height</label><input id="rfq-drop-height" name="specifications.drop_height" defaultValue={searchParams.get("drop_height") ?? ""} placeholder="If applicable" /></div>
-      <div className="field"><label htmlFor="rfq-dimension-unit">Dimension unit</label><select id="rfq-dimension-unit" name="specifications.dimension_unit" defaultValue={searchParams.get("dimension_unit") ?? "in"}><option value="in">inch</option><option value="mm">mm</option></select></div>
-      <div className="field"><label htmlFor="rfq-bolt-pattern">Bolt pattern</label><input id="rfq-bolt-pattern" name="specifications.bolt_pattern" defaultValue={searchParams.get("bolt_pattern") ?? ""} placeholder="e.g. 5 on 4.5" /></div>
-      <div className="field"><label htmlFor="rfq-stud-size">Stud size</label><input id="rfq-stud-size" name="specifications.stud_size" defaultValue={searchParams.get("stud_size") ?? ""} /></div>
-      <div className="field"><label htmlFor="rfq-hub-type">Hub type</label><input id="rfq-hub-type" name="specifications.hub_type" defaultValue={searchParams.get("hub_type") ?? ""} /></div>
-      <div className="field"><label htmlFor="rfq-bearing-type">Bearing type</label><input id="rfq-bearing-type" name="specifications.bearing_type" defaultValue={searchParams.get("bearing_type") ?? ""} /></div>
-      <div className="field"><label htmlFor="rfq-brake-size">Brake size</label><input id="rfq-brake-size" name="specifications.brake_size" defaultValue={searchParams.get("brake_size") ?? ""} /></div>
-      <div className="field"><label htmlFor="rfq-finish">Preferred finish</label><select id="rfq-finish" name="specifications.finish" defaultValue={finishFromSearch(searchParams.get("finish"))}><option value="">Not specified</option><option>Painted</option><option>E-Coated</option><option>Powder-Coated</option><option>Zinc Plated</option><option>Hot-Dip Galvanized</option><option>Custom Finish</option></select></div>
-      <div className="field form-wide"><label htmlFor="rfq-special-requirements">Special requirements</label><textarea id="rfq-special-requirements" name="specifications.special_requirements" maxLength={4000} defaultValue={searchParams.get("special_requirements") ?? ""} /></div>
+      <summary><strong>Technical details</strong><span>Optional · parameters of the selected categories</span></summary>
+      {selectedCategories.length === 0 && <p className="rfq-section-note">Select a product category above to see its technical questions.</p>}
+      <RfqCategoryFields categories={categories} selected={selectedCategories} system={system} />
+      <div className="form-grid">
+      <div className="field form-wide"><label htmlFor="rfq-special-requirements">Special requirements</label><textarea id="rfq-special-requirements" name="specifications.general.special_requirements" maxLength={4000} defaultValue={searchParams.get("special_requirements") ?? ""} /></div>
       </div>
     </details>
     <details className="form-card rfq-optional" data-rfq-optional>
@@ -241,8 +222,8 @@ export function RFQForm() {
       <div className="field"><label htmlFor="rfq-destination-port">Destination port</label><input id="rfq-destination-port" name="destination_port" maxLength={150} /></div>
       <div className="field"><label htmlFor="rfq-quantity">Required quantity</label><input id="rfq-quantity" name="quantity" type="number" min="1" max="100000" inputMode="numeric" /></div>
       <div className="field"><label htmlFor="rfq-delivery-date">Target delivery date</label><input id="rfq-delivery-date" name="target_delivery_date" type="date" /></div>
-      <div className="field"><label htmlFor="rfq-oem">OEM requirement</label><select id="rfq-oem" name="specifications.oem_requirement" defaultValue={searchParams.get("oem_requirement") ?? ""}><option value="">Not specified</option><option value="yes">Required</option><option value="no">Not required</option><option value="discuss">Discuss options</option></select></div>
-      <div className="field"><label htmlFor="rfq-odm">ODM requirement</label><select id="rfq-odm" name="specifications.odm_requirement" defaultValue={searchParams.get("odm_requirement") ?? ""}><option value="">Not specified</option><option value="yes">Required</option><option value="no">Not required</option><option value="discuss">Discuss options</option></select></div>
+      <div className="field"><label htmlFor="rfq-oem">OEM requirement</label><select id="rfq-oem" name="specifications.general.oem_requirement" defaultValue={searchParams.get("oem_requirement") ?? ""}><option value="">Not specified</option><option value="yes">Required</option><option value="no">Not required</option><option value="discuss">Discuss options</option></select></div>
+      <div className="field"><label htmlFor="rfq-odm">ODM requirement</label><select id="rfq-odm" name="specifications.general.odm_requirement" defaultValue={searchParams.get("odm_requirement") ?? ""}><option value="">Not specified</option><option value="yes">Required</option><option value="no">Not required</option><option value="discuss">Discuss options</option></select></div>
       </div>
     </details>
     <TurnstileWidget action="rfq" resetSignal={captchaReset} />

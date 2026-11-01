@@ -58,14 +58,10 @@ export function ProductInquiryForm({ product }: { product: Product }) {
       selected_options: selectedOptionsPayload,
       requested_specs: {},
     }]));
-    const productSpecifications: Record<string, string | number> = {
-      selected_product: product.model,
-    };
-    if (product.rated_capacity !== null) {
-      productSpecifications.capacity = product.rated_capacity;
-      productSpecifications.capacity_unit = product.capacity_unit || "lb";
-    }
-    form.set("specifications", JSON.stringify(productSpecifications));
+    // The product's own parameters are recorded server-side from the
+    // selected item; the buyer's requirements stay separate.
+    form.set("specifications", JSON.stringify({ general: { selected_product: product.model } }));
+    if (product.category?.slug) form.set("requested_categories", JSON.stringify([product.category.slug]));
     addAttributionToForm(form);
     if (turnstileEnabled && !form.get("turnstile_token")) {
       setError("Complete the security verification before submitting.");

@@ -3,6 +3,7 @@ import { PageHero } from "@/components/PageHero";
 import { RFQForm } from "@/components/RFQForm";
 import { RfqSummary } from "@/components/RfqSummary";
 import { pageMetadata } from "@/lib/seo";
+import { getApplications, getCategories } from "@/lib/api";
 import { faqJsonLd, serializeJsonLd } from "@/lib/structured-data";
 
 export const metadata = pageMetadata({ title: "Request a quote", description: "Submit a technical RFQ for trailer axle assemblies and components.", path: "/request-a-quote" });
@@ -22,7 +23,8 @@ const rfqFaqs = [
   },
 ];
 
-export default function RequestQuotePage() {
+export default async function RequestQuotePage() {
+  const [categories, applications] = await Promise.all([getCategories(), getApplications()]);
   const structuredData = serializeJsonLd(faqJsonLd(rfqFaqs));
   return <main>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: structuredData }} />
@@ -35,7 +37,7 @@ export default function RequestQuotePage() {
           <RfqSummary />
         </aside>
         <div className="rfq-form-main">
-          <Suspense fallback={<p>Loading form…</p>}><RFQForm /></Suspense>
+          <Suspense fallback={<p>Loading form…</p>}><RFQForm categories={categories ?? []} applications={applications ?? []} /></Suspense>
           <section className="content-card" style={{ marginTop: "1.5rem" }}>
             <h2>RFQ questions</h2>
             <div className="faq-list">

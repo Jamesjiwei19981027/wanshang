@@ -6,7 +6,7 @@ BIN_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 DEPLOY_DIR=$(cd -- "$BIN_DIR/.." && pwd -P)
 REPO_DIR=$(cd -- "$DEPLOY_DIR/.." && pwd -P)
 COMPOSE_FILE="$DEPLOY_DIR/compose.production.yml"
-WRITER_SERVICES=(nginx frontend api celery)
+WRITER_SERVICES=(nginx frontend api assistant celery)
 WAS_RUNNING=()
 
 log() { printf '%s\n' "$*" >&2; }

@@ -1,3 +1,5 @@
+import type { UnitSystem } from "@/lib/types";
+
 const publicValue = (value: string | undefined) => value?.trim() ?? "";
 
 const isPublicHostname = (hostnameValue: string): boolean => {
@@ -72,6 +74,7 @@ export type PublicSiteConfig = {
   defaultOgImageUrl: string;
   googleAnalyticsId: string;
   googleTagManagerId: string;
+  defaultUnitSystem: UnitSystem;
 };
 
 export const siteConfig: PublicSiteConfig = {
@@ -99,4 +102,5 @@ export const siteConfig: PublicSiteConfig = {
   defaultOgImageUrl: "",
   googleAnalyticsId: "",
   googleTagManagerId: "",
+  defaultUnitSystem: "imperial",
 };

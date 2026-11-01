@@ -23,7 +23,10 @@ urlpatterns = [
     path("admin/inquiry-attachments/<int:pk>/download/", inquiry_attachment_download_view, name="inquiry-attachment-download"),
     path("admin/", admin.site.urls),
     path("api/", include("catalog.urls")),
-    path("api/v1/", include("catalog.urls")),
+    # Namespaced so reverse() of an unnamespaced route always yields /api/…
+    path("api/v1/", include(("catalog.urls", "catalog"), namespace="v1")),
+    path("api/v1/assistant/", include(("assistant.urls", "assistant"), namespace="v1-assistant")),
+    path("api/assistant/", include("assistant.urls")),
     re_path(r"^api/v1(?:/(?P<unmatched_path>.*))?$", api_v1_not_found, name="api-v1-not-found"),
 ]
 

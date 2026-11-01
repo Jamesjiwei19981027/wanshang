@@ -28,7 +28,38 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 
+def validate_translations(value: object) -> None:
+    """Translations are {"es": {"name": "..."}, ...}; English is the base row."""
+    if not isinstance(value, dict):
+        raise ValidationError("Translations must be an object keyed by language code.")
+    for language, fields in value.items():
+        if (
+            not isinstance(language, str)
+            or not 2 <= len(language) <= 10
+            or not all(part.isalnum() for part in language.split("-"))
+        ):
+            raise ValidationError("Use language codes such as es, pt or pt-BR.")
+        if not isinstance(fields, dict) or not all(
+            isinstance(key, str) and isinstance(text, str) for key, text in fields.items()
+        ):
+            raise ValidationError("Each language must map field names to text.")
+
+
 class Category(TimeStampedModel):
+    MAX_DEPTH = 5
+
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="children",
+        help_text="Leave blank for a top-level category.",
+    )
+    inherit_parent_specs = models.BooleanField(
+        default=True,
+        help_text="Use the parent category's parameter list in addition to this category's own parameters.",
+    )
     name = models.CharField(max_length=120)
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)
@@ -38,13 +69,150 @@ class Category(TimeStampedModel):
     is_active = models.BooleanField(default=True)
     meta_title = models.CharField(max_length=160, blank=True)
     meta_description = models.CharField(max_length=320, blank=True)
+    translations = models.JSONField(default=dict, blank=True, validators=[validate_translations])
 
     class Meta:
         ordering = ("position", "name")
         verbose_name_plural = "categories"
 
     def __str__(self) -> str:
-        return self.name
+        return " → ".join(category.name for category in self.lineage())
+
+    def clean(self) -> None:
+        super().clean()
+        seen = {self.pk} if self.pk else set()
+        current = self.parent
+        depth = 1
+        while current is not None:
+            if current.pk in seen:
+                raise ValidationError({"parent": "A category cannot be placed inside itself."})
+            seen.add(current.pk)
+            depth += 1
+            current = current.parent
+        if depth > self.MAX_DEPTH:
+            raise ValidationError({"parent": f"Categories can be nested at most {self.MAX_DEPTH} levels deep."})
+
+    def lineage(self) -> list["Category"]:
+        """Ancestors first, this category last."""
+        chain: list[Category] = []
+        current: Category | None = self
+        guard = 0
+        while current is not None and guard < self.MAX_DEPTH + 1:
+            chain.append(current)
+            current = current.parent
+            guard += 1
+        return list(reversed(chain))
+
+    def descendant_ids(self) -> set[int]:
+        ids = {self.pk}
+        frontier = {self.pk}
+        for _ in range(self.MAX_DEPTH):
+            frontier = set(
+                Category.objects.filter(parent_id__in=frontier).values_list("pk", flat=True)
+            ) - ids
+            if not frontier:
+                break
+            ids |= frontier
+        return ids
+
+    def spec_source_categories(self) -> list["Category"]:
+        """Categories whose parameter lists apply here, ancestors first."""
+        sources = [self]
+        current = self
+        while current.inherit_parent_specs and current.parent is not None:
+            current = current.parent
+            sources.append(current)
+        return list(reversed(sources))
+
+    def effective_spec_fields(self, *, products_only: bool = False) -> list["SpecField"]:
+        fields: dict[str, SpecField] = {}
+        for category in self.spec_source_categories():
+            for field in category.spec_fields.all():
+                # A child category may redefine an inherited key.
+                fields[field.key] = field
+        result = sorted(fields.values(), key=lambda field: (field.position, field.label))
+        return [field for field in result if field.used_by_products] if products_only else result
+
+
+class SpecField(TimeStampedModel):
+    """One parameter in a category's parameter list."""
+
+    class DataType(models.TextChoices):
+        NUMBER = "number", "Number"
+        TEXT = "text", "Text"
+        CHOICE = "choice", "Choose from a list"
+        BOOLEAN = "boolean", "Yes / no"
+
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="spec_fields")
+    key = models.SlugField(
+        max_length=60,
+        help_text="Stable internal name, e.g. rated_capacity. Do not change after products use it.",
+    )
+    label = models.CharField(max_length=120)
+    help_text = models.CharField(max_length=255, blank=True)
+    data_type = models.CharField(max_length=10, choices=DataType.choices, default=DataType.TEXT)
+    quantity = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="For numbers measured in a unit (weight, length, pressure…). Leave blank for counts.",
+    )
+    imperial_unit = models.CharField(max_length=10, blank=True, help_text="Override the imperial display unit.")
+    metric_unit = models.CharField(max_length=10, blank=True, help_text="Override the metric display unit.")
+    choices = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='For "Choose from a list": ["Electric drum", "Hydraulic disc"].',
+    )
+    required = models.BooleanField(default=False)
+    filterable = models.BooleanField(default=False, help_text="Offer this parameter as a catalogue filter.")
+    show_on_card = models.BooleanField(default=False, help_text="Show on product cards in listings.")
+    ask_in_rfq = models.BooleanField(default=False, help_text="Ask buyers for this parameter in the RFQ form.")
+    used_by_products = models.BooleanField(
+        default=True,
+        help_text="Untick for questions asked only in the RFQ, e.g. the buyer's trailer weight.",
+    )
+    position = models.PositiveSmallIntegerField(default=0)
+    translations = models.JSONField(default=dict, blank=True, validators=[validate_translations])
+
+    class Meta:
+        ordering = ("category", "position", "label")
+        constraints = [
+            models.UniqueConstraint(fields=["category", "key"], name="spec_field_unique_key_per_category"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.category.name}: {self.label}"
+
+    def clean(self) -> None:
+        from .units import QUANTITIES
+
+        super().clean()
+        errors: dict[str, str] = {}
+        if self.data_type == self.DataType.NUMBER:
+            if self.quantity:
+                quantity = QUANTITIES.get(self.quantity)
+                if quantity is None:
+                    errors["quantity"] = "Select a supported quantity."
+                else:
+                    for name in ("imperial_unit", "metric_unit"):
+                        code = getattr(self, name)
+                        if code and quantity.unit(code) is None:
+                            errors[name] = f"{code} does not measure {quantity.label.lower()}."
+        elif self.quantity or self.imperial_unit or self.metric_unit:
+            errors["quantity"] = "Only number parameters have units."
+        if self.data_type == self.DataType.CHOICE:
+            if (
+                not isinstance(self.choices, list)
+                or not self.choices
+                or len(self.choices) > 100
+                or not all(isinstance(item, str) and item.strip() and len(item) <= 120 for item in self.choices)
+                or len({item.casefold() for item in self.choices}) != len(self.choices)
+            ):
+                errors["choices"] = "Enter a list of up to 100 distinct options."
+        elif self.choices:
+            errors["choices"] = "Only list parameters have options."
+        if errors:
+            raise ValidationError(errors)
 
 
 class Application(TimeStampedModel):
@@ -55,6 +223,7 @@ class Application(TimeStampedModel):
     recommended_finish = models.CharField(max_length=120, blank=True)
     position = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True, db_index=True)
+    translations = models.JSONField(default=dict, blank=True, validators=[validate_translations])
 
     class Meta:
         ordering = ("position", "name")
@@ -69,35 +238,6 @@ class Product(TimeStampedModel):
         PUBLISHED = "published", "Published"
         ARCHIVED = "archived", "Archived"
 
-    class AxleType(models.TextChoices):
-        STRAIGHT = "straight", "Straight axle"
-        DROP = "drop", "Drop axle"
-        TORSION = "torsion", "Torsion axle"
-        OTHER = "other", "Other"
-
-    class CapacityUnit(models.TextChoices):
-        LB = "lb", "Pounds (lb)"
-        KG = "kg", "Kilograms (kg)"
-
-    class DimensionUnit(models.TextChoices):
-        IN = "in", "Inches (in)"
-        MM = "mm", "Millimetres (mm)"
-
-    class BrakeType(models.TextChoices):
-        NO_BRAKE = "No Brake", "No brake"
-        ELECTRIC_DRUM = "Electric Drum", "Electric drum brake"
-        HYDRAULIC_DRUM = "Hydraulic Drum", "Hydraulic drum brake"
-        HYDRAULIC_DISC = "Hydraulic Disc", "Hydraulic disc brake"
-        OTHER = "Other", "Other / engineering review"
-
-    class SurfaceFinish(models.TextChoices):
-        PAINTED = "Painted", "Painted"
-        E_COATED = "E-Coated", "E-coated"
-        POWDER_COATED = "Powder-Coated", "Powder-coated"
-        ZINC_PLATED = "Zinc Plated", "Zinc plated"
-        HOT_DIP_GALVANIZED = "Hot-Dip Galvanized", "Hot-dip galvanized"
-        CUSTOM = "Custom Finish", "Custom finish"
-
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="products")
     applications = models.ManyToManyField(Application, blank=True, related_name="products")
     title = models.CharField(max_length=180)
@@ -107,166 +247,89 @@ class Product(TimeStampedModel):
     short_description = models.TextField()
     description = models.TextField(blank=True)
     image_url = models.URLField(blank=True, validators=[validate_secure_public_url])
-    rated_capacity = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(1)],
-    )
-    capacity_unit = models.CharField(
-        max_length=8,
-        choices=CapacityUnit.choices,
-        default=CapacityUnit.LB,
-    )
-    dimension_unit = models.CharField(
-        max_length=8,
-        choices=DimensionUnit.choices,
-        default=DimensionUnit.IN,
-    )
-    axle_type = models.CharField(max_length=16, choices=AxleType.choices, default=AxleType.OTHER)
-    brake_type = models.CharField(
-        max_length=80,
-        choices=BrakeType.choices,
-        blank=True,
-    )
-    bolt_pattern = models.CharField(max_length=60, blank=True)
-    stud_size = models.CharField(max_length=60, blank=True)
-    grease_cap_type = models.CharField(max_length=80, blank=True)
-    tube_size = models.CharField(max_length=60, blank=True)
-    hub_face_length = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(Decimal("0.01"))],
-    )
-    spring_center = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(Decimal("0.01"))],
-    )
-    surface_finish = models.CharField(
-        max_length=80,
-        choices=SurfaceFinish.choices,
-        blank=True,
-    )
     is_customizable = models.BooleanField(default=True)
     oem_available = models.BooleanField(default=True)
     made_to_order = models.BooleanField(default=False)
     packaging = models.CharField(max_length=160, blank=True)
+    moq = models.CharField("MOQ", max_length=60, blank=True)
+    lead_time = models.CharField(max_length=80, blank=True)
+    loading_port = models.CharField(max_length=80, blank=True)
     featured = models.BooleanField(default=False)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.DRAFT)
     position = models.PositiveIntegerField(default=0)
     meta_title = models.CharField(max_length=160, blank=True)
     meta_description = models.CharField(max_length=320, blank=True)
+    translations = models.JSONField(default=dict, blank=True, validators=[validate_translations])
+    # Rebuilt from the product, its category path, applications, parameters
+    # and documents whenever any of them changes. Used by site search.
+    search_document = models.TextField(blank=True, editable=False)
 
     class Meta:
         ordering = ("position", "title")
         indexes = [
             models.Index(fields=["status", "featured"]),
-            models.Index(fields=["rated_capacity"]),
-            models.Index(fields=["axle_type", "brake_type"]),
-        ]
-        constraints = [
-            models.CheckConstraint(
-                condition=models.Q(rated_capacity__isnull=True)
-                | models.Q(rated_capacity__gt=0),
-                name="product_capacity_gt_zero",
-            ),
-            models.CheckConstraint(
-                condition=models.Q(hub_face_length__isnull=True)
-                | models.Q(hub_face_length__gt=0),
-                name="product_hub_face_gt_zero",
-            ),
-            models.CheckConstraint(
-                condition=models.Q(spring_center__isnull=True)
-                | models.Q(spring_center__gt=0),
-                name="product_spring_center_gt_zero",
-            ),
-            models.CheckConstraint(
-                condition=models.Q(brake_type="")
-                | models.Q(
-                    brake_type__in=(
-                        "No Brake",
-                        "Electric Drum",
-                        "Hydraulic Drum",
-                        "Hydraulic Disc",
-                        "Other",
-                    )
-                ),
-                name="product_brake_type_valid",
-            ),
-            models.CheckConstraint(
-                condition=models.Q(surface_finish="")
-                | models.Q(
-                    surface_finish__in=(
-                        "Painted",
-                        "E-Coated",
-                        "Powder-Coated",
-                        "Zinc Plated",
-                        "Hot-Dip Galvanized",
-                        "Custom Finish",
-                    )
-                ),
-                name="product_surface_finish_valid",
-            ),
         ]
 
     def __str__(self) -> str:
         return f"{self.model} — {self.title}"
 
 
-class AxleSpec(TimeStampedModel):
-    class TubeShape(models.TextChoices):
-        ROUND = "Round", "Round"
-        SQUARE = "Square", "Square"
-        OTHER = "Other", "Other / engineering review"
+class ProductSpecValue(models.Model):
+    """A product's value for one parameter of its category's parameter list.
 
-    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name="axle_spec")
-    overall_length = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(Decimal("0.01"))],
-    )
-    tube_shape = models.CharField(
-        max_length=40,
-        choices=TubeShape.choices,
-        blank=True,
-    )
-    tube_wall_thickness = models.CharField(max_length=40, blank=True)
-    drop_height = models.CharField(max_length=40, blank=True)
-    hub_type = models.CharField(max_length=80, blank=True)
-    spindle_type = models.CharField(max_length=80, blank=True)
-    inner_bearing = models.CharField(max_length=80, blank=True)
-    outer_bearing = models.CharField(max_length=80, blank=True)
-    seal_size = models.CharField(max_length=60, blank=True)
-    brake_size = models.CharField(max_length=60, blank=True)
-    brake_voltage = models.CharField(max_length=40, blank=True)
-    axle_material = models.CharField(max_length=80, blank=True)
-    corrosion_protection = models.CharField(max_length=120, blank=True)
-    moq = models.CharField(max_length=60, blank=True)
-    lead_time = models.CharField(max_length=80, blank=True)
-    loading_port = models.CharField(max_length=80, blank=True)
+    Numbers keep the value and unit staff entered, plus the same value in the
+    quantity's base unit so filters and search compare lb with kg directly.
+    """
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="spec_values")
+    field = models.ForeignKey(SpecField, on_delete=models.CASCADE, related_name="values")
+    number_value = models.DecimalField(max_digits=24, decimal_places=8, null=True, blank=True)
+    entered_unit = models.CharField(max_length=10, blank=True)
+    base_value = models.DecimalField(max_digits=24, decimal_places=8, null=True, blank=True, db_index=True)
+    text_value = models.CharField(max_length=255, blank=True)
+    boolean_value = models.BooleanField(null=True, blank=True)
 
     class Meta:
         constraints = [
-            models.CheckConstraint(
-                condition=models.Q(overall_length__isnull=True)
-                | models.Q(overall_length__gt=0),
-                name="axle_overall_length_gt_zero",
-            ),
-            models.CheckConstraint(
-                condition=models.Q(tube_shape="")
-                | models.Q(tube_shape__in=("Round", "Square", "Other")),
-                name="axle_tube_shape_valid",
-            ),
+            models.UniqueConstraint(fields=["product", "field"], name="product_spec_value_unique"),
         ]
 
     def __str__(self) -> str:
-        return f"Specs — {self.product.model}"
+        return f"{self.product.model} — {self.field.label}"
+
+    def clean(self) -> None:
+        from .units import QUANTITIES
+
+        super().clean()
+        field = self.field
+        if field.data_type == SpecField.DataType.NUMBER:
+            if field.quantity:
+                quantity = QUANTITIES.get(field.quantity)
+                if self.number_value is not None and (
+                    quantity is None or quantity.unit(self.entered_unit) is None
+                ):
+                    raise ValidationError({"entered_unit": "Select a unit for this parameter."})
+        elif field.data_type == SpecField.DataType.CHOICE:
+            if self.text_value and self.text_value not in field.choices:
+                raise ValidationError({"text_value": "Select one of the configured options."})
+
+    def save(self, *args, **kwargs) -> None:
+        from .units import to_base
+
+        field = self.field
+        if field.data_type == SpecField.DataType.NUMBER and self.number_value is not None:
+            self.base_value = (
+                to_base(self.number_value, field.quantity, self.entered_unit)
+                if field.quantity
+                else self.number_value
+            )
+        else:
+            self.base_value = None
+        super().save(*args, **kwargs)
+
+    @property
+    def is_empty(self) -> bool:
+        return self.number_value is None and not self.text_value and self.boolean_value is None
 
 
 class ProductDocument(TimeStampedModel):
@@ -292,6 +355,13 @@ class ProductDocument(TimeStampedModel):
     version = models.CharField(max_length=40, blank=True)
     downloads = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    text_note = models.TextField(
+        blank=True,
+        max_length=20_000,
+        help_text="Describe drawings or scanned files in words so search and the assistant can use them.",
+    )
+    extracted_text = models.TextField(blank=True, editable=False)
+    extracted_at = models.DateTimeField(null=True, blank=True, editable=False)
 
     class Meta:
         ordering = ("document_type", "title")
@@ -515,6 +585,12 @@ class SiteSetting(TimeStampedModel):
     google_analytics_id = models.CharField(max_length=100, blank=True)
     google_tag_manager_id = models.CharField(max_length=100, blank=True)
     footer_text = models.TextField(blank=True)
+    default_unit_system = models.CharField(
+        max_length=10,
+        choices=(("imperial", "Imperial (lb, in)"), ("metric", "Metric (kg, mm)")),
+        default="imperial",
+        help_text="Units shown to visitors by default. Visitors can switch.",
+    )
     inquiry_sales_subject_template = models.CharField(max_length=255, blank=True)
     inquiry_sales_intro_template = models.TextField(blank=True)
     inquiry_confirmation_subject_template = models.CharField(max_length=255, blank=True)
@@ -685,6 +761,7 @@ class Inquiry(TimeStampedModel):
     destination_port = models.CharField(max_length=150, blank=True)
     target_delivery_date = models.DateField(null=True, blank=True)
     message = models.TextField(blank=True)
+    requested_categories = models.JSONField(default=list, blank=True)
     specifications = models.JSONField(default=dict, blank=True)
     privacy_consent = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.NEW)
@@ -989,3 +1066,77 @@ class AnalyticsEvent(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.event_name} at {self.created_at:%Y-%m-%d}"
+
+
+class FAQ(TimeStampedModel):
+    question = models.CharField(max_length=255)
+    answer = models.TextField(max_length=10_000)
+    group = models.CharField(max_length=80, blank=True, help_text="Optional heading, e.g. Ordering or Shipping.")
+    position = models.PositiveIntegerField(default=0)
+    is_published = models.BooleanField(default=True, db_index=True)
+    translations = models.JSONField(default=dict, blank=True, validators=[validate_translations])
+
+    class Meta:
+        ordering = ("position", "id")
+        verbose_name = "FAQ"
+        verbose_name_plural = "FAQs"
+
+    def __str__(self) -> str:
+        return self.question
+
+
+class KnowledgeEntry(TimeStampedModel):
+    """Information for the assistant that is not shown as a website page."""
+
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
+    body = models.TextField(max_length=30_000)
+    is_published = models.BooleanField(default=True, db_index=True)
+    translations = models.JSONField(default=dict, blank=True, validators=[validate_translations])
+
+    class Meta:
+        ordering = ("title",)
+        verbose_name_plural = "knowledge entries"
+
+    def __str__(self) -> str:
+        return self.title
+
+
+class SearchSynonym(TimeStampedModel):
+    terms = models.CharField(
+        max_length=500,
+        help_text="Comma-separated words or phrases that mean the same thing, e.g. tyre, tire.",
+    )
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ("terms",)
+
+    def __str__(self) -> str:
+        return self.terms
+
+    def term_list(self) -> list[str]:
+        return [term.strip().casefold() for term in self.terms.split(",") if term.strip()]
+
+    def clean(self) -> None:
+        super().clean()
+        if len(self.term_list()) < 2:
+            raise ValidationError({"terms": "Enter at least two terms separated by commas."})
+
+
+class SearchMiss(models.Model):
+    """Searches that returned nothing, from visitors who accepted analytics."""
+
+    query = models.CharField(max_length=120, unique=True)
+    count = models.PositiveIntegerField(default=1)
+    first_seen_at = models.DateTimeField(default=timezone.now, editable=False)
+    last_seen_at = models.DateTimeField(default=timezone.now, db_index=True)
+    resolved = models.BooleanField(default=False, help_text="Tick after adding a synonym or product.")
+
+    class Meta:
+        ordering = ("-count", "-last_seen_at")
+        verbose_name = "search without results"
+        verbose_name_plural = "searches without results"
+
+    def __str__(self) -> str:
+        return self.query
