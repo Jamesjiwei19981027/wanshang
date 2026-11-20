@@ -18,11 +18,11 @@ from psycopg import pq
 
 
 EXPECTED_APK_VERSIONS = {
-    "libpq": "18.6-r0",
-    "libcrypto3": "3.5.9-r0",
-    "libssl3": "3.5.9-r0",
-    # Alpine's -r1 carries the upstream CVE-2026-85091 patch.
-    "zlib": "1.3.2-r1",
+    "libpq": "18.7-r0",
+    "libcrypto3": "3.5.9-r1",
+    "libssl3": "3.5.9-r1",
+    # Upstream zlib 1.4 is later than the CVE-2026-85091 fix that 1.3.2-r1 backported.
+    "zlib": "1.4-r0",
 }
 FORBIDDEN_PACKAGES = {
     "glibc", "glibc-bin", "glibc-utils", "gcompat",
@@ -63,7 +63,7 @@ def verify_runtime():
     unexpected = sorted(FORBIDDEN_PACKAGES.intersection(packages))
     require(not unexpected, f"Unneeded native/toolchain packages present: {unexpected}.")
     require(pq.__impl__ == "c", "Use the locally compiled psycopg C binding.")
-    require(pq.version() == 180006, "Unexpected system libpq version.")
+    require(pq.version() == 180007, "Unexpected system libpq version.")
     require(
         importlib.util.find_spec("psycopg_binary") is None,
         "A private binary-wheel libpq/OpenSSL must not be installed.",

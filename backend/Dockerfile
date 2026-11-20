@@ -15,8 +15,8 @@ FROM base AS builder
 # Compilers and headers exist only in this discarded stage. The libpq C
 # binding avoids runtime ctypes library-discovery tools on musl.
 RUN for attempt in 1 2 3; do apk add --no-cache build-base \
-    libpq-dev=18.6-r0 libjpeg-turbo-dev=3.1.3-r0 \
-    zlib-dev=1.3.2-r1 libwebp-dev=1.6.0-r0 \
+    libpq-dev=18.7-r0 libjpeg-turbo-dev=3.1.3-r0 \
+    zlib-dev=1.4-r0 libwebp-dev=1.6.0-r0 \
     && break; [ "$attempt" != 3 ] || exit 1; sleep 1; done
 COPY pyproject.toml uv.lock ./
 # Build the locked Pillow sdist with only the native codecs this application
@@ -40,12 +40,13 @@ ARG APP_VERSION=development
 LABEL org.opencontainers.image.revision=$GIT_SHA \
     org.opencontainers.image.version=$APP_VERSION \
     org.opencontainers.image.source="https://github.com/zsdadisscy/wanshang"
-# Alpine's system libpq has no GSS/LDAP dependency. The zlib -r1 package carries
-# the CVE-2026-85091 fix; distro OpenSSL stays separate from binary wheels.
+# Alpine's system libpq has no GSS/LDAP dependency. zlib 1.4 is a later upstream
+# release than the CVE-2026-85091 fix 1.3.2-r1 backported; distro OpenSSL stays separate
+# from binary wheels. Pins re-checked against the Alpine 3.24 repository on 2026-11-20.
 RUN for attempt in 1 2 3; do apk add --no-cache \
-    libpq=18.6-r0 libssl3=3.5.9-r0 libcrypto3=3.5.9-r0 \
+    libpq=18.7-r0 libssl3=3.5.9-r1 libcrypto3=3.5.9-r1 \
     libjpeg-turbo=3.1.3-r0 libwebp=1.6.0-r0 \
-    libwebpdemux=1.6.0-r0 libwebpmux=1.6.0-r0 zlib=1.3.2-r1 \
+    libwebpdemux=1.6.0-r0 libwebpmux=1.6.0-r0 zlib=1.4-r0 \
     && break; [ "$attempt" != 3 ] || exit 1; sleep 1; done
 COPY --from=builder /app/.venv /app/.venv
 # Copy only application sources. Never import a host .venv, .env, or media store.

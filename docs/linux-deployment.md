@@ -38,13 +38,13 @@ python3 scripts/check_linux_stack.py --output-dir output/linux-check
 
 默认后端基线已改为固定 digest 的官方 **Python 3.13.18 / Alpine 3.24** 镜像，使用 uv 0.13.5；不再沿用先前 Debian 容器。当前 Dockerfile 将构建阶段与运行阶段分离：编译器、链接器和开发头文件只在 builder 中安装，运行阶段仅复制本项目虚拟环境及所需的发行版原生库。
 
-容器依赖通过 `uv sync --locked --no-dev --extra container` 安装。`container` extra 将 psycopg 3.3.6 的 C 扩展从源码编译并链接系统 `libpq=18.6-r0` 和 `libssl3/libcrypto3=3.5.9-r0`，运行时采用 `PSYCOPG_IMPL=c`；不会安装带私有 libpq/OpenSSL 的 `psycopg-binary`。精简 musl 环境中纯 Python 实现依赖的 ctypes 库发现可能需要额外编译/链接工具，因此不能把旧的 `PSYCOPG_IMPL=python` 配置复制到这个镜像。
+容器依赖通过 `uv sync --locked --no-dev --extra container` 安装。`container` extra 将 psycopg 3.3.6 的 C 扩展从源码编译并链接系统 `libpq=18.7-r0` 和 `libssl3/libcrypto3=3.5.9-r1`，运行时采用 `PSYCOPG_IMPL=c`；不会安装带私有 libpq/OpenSSL 的 `psycopg-binary`。精简 musl 环境中纯 Python 实现依赖的 ctypes 库发现可能需要额外编译/链接工具，因此不能把旧的 `PSYCOPG_IMPL=python` 配置复制到这个镜像。
 
 Alpine 的此版本 libpq 不带 GSS/Kerberos 或 LDAP 客户端依赖。当前基线面向密码/SCRAM 及按部署要求配置的 TLS 数据库连接，**不提供 GSS/Kerberos 客户端认证或 LDAP 连接服务发现**；原部署依赖这些客户端功能时，先制定并验证替代连接方案，不能直接切换。PostgreSQL 服务端的 LDAP 密码认证使用普通客户端密码协议，不要求客户端安装 libldap。libpq 客户端升级也不等于升级数据库服务器，目标 PostgreSQL 仍需单独维护与验收。
 
 Pillow 13 使用锁定 sdist 在 builder 中编译，仅保留业务需要的原生 **PNG、JPEG、WebP** 能力；安装 `libjpeg-turbo`、`libwebp`、`libwebpdemux`、`libwebpmux` 和系统 zlib。WebP 的 demux/mux 分包也必需，不能仅保留 libwebp。TIFF、JPEG2000、AVIF、LCMS、字体/RAQM、XCB 等可选原生功能被关闭，避免带入对应 wheel 私有库及 C++ 依赖。PDF/CAD 附件仍按业务签名校验并交给独立扫描器，不由 Pillow 解码。
 
-`zlib=1.3.2-r1` 包含发行版的 CVE-2026-85091 修复。Python 基础镜像 digest、builder 的开发包版本与 runtime 对应库版本必须一起维护；不要只替换某一个 so 文件或混用其他发行版软件源。`config/runtime_security.py` 在最终镜像构建阶段检查实际 APK 版本、驱动实现、codec 往返和加载的库，`scripts/check_linux_stack.py` 在隔离联调中再次调用它。更新 Python、Alpine、libpq/OpenSSL/zlib 的 pin 时必须同步审查和更新该断言策略，随后重新构建、扫描并执行隔离验证；不能仅删除断言来使构建通过。当前验证结果以本次日志为准，本文不替代最终测试或扫描结果。
+`zlib=1.4-r0`（2026-11-20 起替换 `1.3.2-r1`，是上游修复 CVE-2026-85091 之后的版本）。Alpine 软件源发布新版本后会删除旧版本，锁定的版本失效时构建会直接失败，需要按软件源当前版本同步更新这里、`Dockerfile` 和 `runtime_security.py`。Python 基础镜像 digest、builder 的开发包版本与 runtime 对应库版本必须一起维护；不要只替换某一个 so 文件或混用其他发行版软件源。`config/runtime_security.py` 在最终镜像构建阶段检查实际 APK 版本、驱动实现、codec 往返和加载的库，`scripts/check_linux_stack.py` 在隔离联调中再次调用它。更新 Python、Alpine、libpq/OpenSSL/zlib 的 pin 时必须同步审查和更新该断言策略，随后重新构建、扫描并执行隔离验证；不能仅删除断言来使构建通过。当前验证结果以本次日志为准，本文不替代最终测试或扫描结果。
 
 ## 独立 API 与主机部署
 
